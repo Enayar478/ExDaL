@@ -36,9 +36,20 @@ export function rateLimit(
   return { allowed: true, remaining: limit - next.count };
 }
 
-/** Extrait une IP client raisonnable des en-têtes de la requête. */
+/**
+ * Extrait une IP client fiable des en-têtes.
+ * `x-real-ip` est injecté par Vercel et non falsifiable par le client — on le
+ * privilégie. Le premier maillon de `x-forwarded-for` est spoofable ; on prend
+ * donc le DERNIER maillon (celui ajouté par le proxy en périphérie) en repli.
+ */
 export function clientIp(headers: Headers): string {
+  const realIp = headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+
   const forwarded = headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  return headers.get("x-real-ip") ?? "unknown";
+  if (forwarded) {
+    const parts = forwarded.split(",");
+    return parts[parts.length - 1].trim();
+  }
+  return "unknown";
 }

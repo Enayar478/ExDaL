@@ -3,6 +3,7 @@
  * Styles inline (compatibilité clients mail). Fond sombre, or rare.
  */
 import { site } from "@/lib/site";
+import { escapeHtml } from "@/lib/email/html";
 
 export interface EmailContent {
   subject: string;
@@ -42,12 +43,12 @@ function shell(inner: string): string {
 /** Confirmation sobre envoyée au prospect après réservation. */
 export function prospectConfirmation(details: BookingDetails): EmailContent {
   const whenLine = details.when
-    ? `<p style="font-family:'Courier New',monospace;font-size:13px;letter-spacing:.06em;color:${OR};margin:20px 0 0;">${details.when}</p>`
+    ? `<p style="font-family:'Courier New',monospace;font-size:13px;letter-spacing:.06em;color:${OR};margin:20px 0 0;">${escapeHtml(details.when)}</p>`
     : "";
 
   const html = shell(`
     <h1 style="font-size:26px;font-weight:400;line-height:1.35;margin:0 0 18px;color:${BLANC};">Votre créneau est réservé.</h1>
-    <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0 0 14px;">Merci, ${details.name}. Nous prendrons vingt minutes pour comprendre votre situation. Sans engagement, sans jargon.</p>
+    <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0 0 14px;">Merci, ${escapeHtml(details.name)}. Nous prendrons vingt minutes pour comprendre votre situation. Sans engagement, sans jargon.</p>
     <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0;">Vous repartirez avec une idée claire de ce que votre donnée peut vous dire — que l'on travaille ensemble ou non.</p>
     ${whenLine}
     <p style="font-size:16px;line-height:1.6;color:${BLANC};margin:28px 0 0;font-style:italic;">Vos chiffres savent déjà tout. À bientôt pour leur donner la parole.</p>
@@ -78,7 +79,7 @@ export function ownerNotification(details: BookingDetails): EmailContent {
     .filter(([, v]) => v)
     .map(
       ([k, v]) =>
-        `<tr><td style="padding:6px 0;font-family:'Courier New',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6f6858;width:110px;vertical-align:top;">${k}</td><td style="padding:6px 0;font-size:15px;color:${BLANC};">${v}</td></tr>`,
+        `<tr><td style="padding:6px 0;font-family:'Courier New',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6f6858;width:110px;vertical-align:top;">${k}</td><td style="padding:6px 0;font-size:15px;color:${BLANC};">${escapeHtml(String(v))}</td></tr>`,
     )
     .join("");
 
