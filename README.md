@@ -212,6 +212,20 @@ Ces étapes ne peuvent être réalisées que par le titulaire des comptes :
 Une fois ces étapes faites, le site est pleinement fonctionnel et prend des
 rendez-vous.
 
+## Assets de marque
+
+L'emblème (matière sombre d'où jaillit un point d'or) est intégré au hero, à
+l'en-tête, au favicon et à l'image de partage. Ils sont générés depuis le PNG
+source `brand/logo-exdal-source.png` :
+
+```bash
+node scripts/logo.mjs           # emblème, icônes, opengraph-image
+node scripts/logo.mjs L T S     # recadre l'emblème (left top size en px)
+```
+
+Sorties : `public/emblem.png`, `app/icon.png`, `app/apple-icon.png`,
+`app/opengraph-image.png` (détectés automatiquement par Next).
+
 ## Tests & qualité
 
 ```bash
