@@ -9,6 +9,7 @@ import {
   calWebhookPayload,
   formatWhen,
 } from "@/lib/cal-webhook";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
@@ -20,14 +21,22 @@ export const runtime = "nodejs";
  */
 export async function POST(request: NextRequest) {
   const env = getServerEnv();
-  const raw = await request.text();
 
-  // La signature n'est vérifiée que si un secret est configuré.
-  if (env.CAL_WEBHOOK_SECRET) {
-    const signature = request.headers.get("x-cal-signature-256");
-    if (!verifyCalSignature(raw, signature, env.CAL_WEBHOOK_SECRET)) {
-      return fail("Signature invalide.", 401);
-    }
+  // Rate-limit permissif : Cal.com peut envoyer des bursts légitimes.
+  if (!rateLimit(`cal-webhook:${clientIp(request.headers)}`, 30).allowed) {
+    return fail("Trop de requêtes.", 429);
+  }
+
+  // Fail-closed : sans secret configuré, on REJETTE tout (jamais d'endpoint ouvert).
+  if (!env.CAL_WEBHOOK_SECRET) {
+    logger.error("CAL_WEBHOOK_SECRET non configuré — webhook rejeté");
+    return fail("Webhook non configuré.", 503);
+  }
+
+  const raw = await request.text();
+  const signature = request.headers.get("x-cal-signature-256");
+  if (!verifyCalSignature(raw, signature, env.CAL_WEBHOOK_SECRET)) {
+    return fail("Signature invalide.", 401);
   }
 
   let json: unknown;

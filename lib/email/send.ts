@@ -2,6 +2,7 @@ import "server-only";
 import { Resend } from "resend";
 import { getServerEnv } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import { maskEmail } from "@/lib/email/html";
 import type { EmailContent } from "@/lib/email/templates";
 
 /**
@@ -14,7 +15,9 @@ export async function sendEmail(
 ): Promise<boolean> {
   const env = getServerEnv();
   if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) {
-    logger.warn("Resend non configuré — email non envoyé", { to });
+    logger.warn("Resend non configuré — email non envoyé", {
+      to: maskEmail(to),
+    });
     return false;
   }
 
