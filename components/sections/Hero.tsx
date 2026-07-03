@@ -11,20 +11,21 @@ export function Hero() {
       className="relative overflow-hidden pb-24 pt-20 sm:pb-32 sm:pt-28"
     >
       <Container width="wide" className="relative">
-        <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
-          {/* L'emblème : la source de lumière unique, née de la matière sombre */}
-          <div className="order-1 flex justify-center lg:order-2 lg:justify-end">
+        <div className="grid items-center gap-10 md:grid-cols-[1.05fr_0.9fr] md:gap-8">
+          {/* L'emblème : source de lumière unique. Masqué sur mobile (vide inutile),
+              réduit sur tablette, pleine présence sur desktop. */}
+          <div className="hidden md:order-2 md:flex md:justify-end">
             <Image
               src="/emblem.png"
               alt="Emblème ExDaL — un point de lumière né de la donnée"
               width={480}
               height={480}
               priority
-              className="w-52 max-w-full sm:w-64 lg:w-[460px] [mask-image:radial-gradient(circle_at_center,#000_52%,transparent_74%)]"
+              className="w-56 max-w-full lg:w-[400px] xl:w-[460px] [mask-image:radial-gradient(circle_at_center,#000_52%,transparent_74%)]"
             />
           </div>
 
-          <div className="order-2 lg:order-1">
+          <div className="md:order-1">
             <MonoLabel tone="or-dim">De la donnée · la lumière</MonoLabel>
 
             <h1
