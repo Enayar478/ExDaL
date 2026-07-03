@@ -1,0 +1,37 @@
+import { Logo } from "@/components/ui/Logo";
+import { Rule } from "@/components/ui/Rule";
+import { Container } from "@/components/ui/Container";
+import { site } from "@/lib/site";
+
+export function SiteFooter() {
+  const year = new Date().getFullYear();
+  const domain = site.url.replace(/^https?:\/\//, "");
+
+  return (
+    <footer className="py-16">
+      <Container width="wide">
+        <Rule className="mb-10" />
+        <div className="flex flex-col items-start justify-between gap-8 sm:flex-row sm:items-end">
+          <div>
+            <Logo size="sm" />
+            <p className="mt-4 max-w-[42ch] font-serif text-sm italic text-brume">
+              {site.legalName} — de vos données, la clarté qui vous rend
+              puissant.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-gris sm:items-end">
+            <a
+              href={`mailto:${site.email}`}
+              className="transition-colors hover:text-blanc"
+            >
+              {site.email}
+            </a>
+            <span>
+              {domain} · © {year}
+            </span>
+          </div>
+        </div>
+      </Container>
+    </footer>
+  );
+}

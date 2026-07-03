@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+/*
+  ExDaL — Ex Datis Lumen
+  Direction artistique : clair-obscur, luxe austère.
+  L'or (#D9B26A) est réservé aux points de lumière rares.
+*/
+@theme {
+  --color-noir: #090a0c;
+  --color-noir-2: #0e1013;
+  --color-noir-3: #14171b;
+  --color-or: #d9b26a;
+  --color-or-dim: #a8894f;
+  --color-blanc: #e8e9e6;
+  --color-brume: #a9b0b6;
+  --color-gris: #6f6858;
+  --color-line: #22262b;
+
+  --font-serif: var(--font-newsreader), Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background-color: var(--color-noir);
+  color: var(--color-blanc);
+  font-family: var(--font-serif);
+  font-weight: 300;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Le trait d'or signature : gradient réservé au logo « DaL » */
+.lum-gradient {
+  background: linear-gradient(105deg, #5b5344 0%, #c9b98f 55%, #f8f1e1 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Filet horizontal avec amorce d'or, motif récurrent du brand */
+.rule-gold {
+  position: relative;
+  height: 1px;
+  background: var(--color-line);
+}
+.rule-gold::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 44px;
+  height: 1px;
+  background: var(--color-or);
+}
+
+/* Focus visible sobre, accessibilité */
+:focus-visible {
+  outline: 2px solid var(--color-or);
+  outline-offset: 2px;
+}
