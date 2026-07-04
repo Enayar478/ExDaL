@@ -7,22 +7,24 @@ import { getLenis } from "@/components/tunnel/lenis-store";
 
 /**
  * Voyage immersif — « vers la lumière, dans les profondeurs ».
- * Viewport fixe en perspective : on ne scrolle pas verticalement, on s'enfonce
- * sur l'axe Z. Chaque palier (slab) surgit du lointain, fonce au centre (net,
- * plein écran), puis nous traverse pendant que le suivant émerge. Un halo doré
- * enfle à mesure qu'on approche de la lumière (la prise de RDV).
  *
- * Couche purement visuelle : le HTML/copie est inchangé (SEO/a11y intacts).
- * `prefers-reduced-motion` → aucun effet, scroll vertical classique (paliers
- * empilés, entièrement lisibles et navigables au clavier).
+ * Deux modes selon l'appareil :
+ *  • Desktop (pointeur fin) : scroll fluide piloté (Lenis + ScrollTrigger) avec
+ *    snap magnétique — on glisse dans la profondeur puis on se cale sur un palier.
+ *  • Tactile (mobile/tablette) : scroll verrouillé (plus de barre de navigateur
+ *    qui saute), navigation au SWIPE (haut/bas ou gauche/droite) palier par
+ *    palier, chaque arrêt net à 100 % — franc et lisible. Barre de progression.
+ *
+ * Couche visuelle : le HTML/copie est inchangé (SEO/a11y intacts). En
+ * `prefers-reduced-motion`, aucun effet : scroll vertical classique, accessible.
  */
-const Z_FAR = 3000; // éloignement d'arrivée
-const Z_NEAR = 900; // dépassement vers la caméra
-const LEAD = 0; // chaque palier se cale sur un point de scroll exact (snap)
+const Z_FAR = 3000;
+const Z_NEAR = 900;
 
 export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
+  const [touch, setTouch] = useState(false);
   const slabs = Children.toArray(children);
   const n = slabs.length;
 
@@ -38,65 +40,186 @@ export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
     );
     const light = root.querySelector<HTMLElement>(".journey-light");
     const bar = root.querySelector<HTMLElement>(".journey-bar");
+    const viewport = root.querySelector<HTMLElement>(".journey-viewport");
     const track = root.querySelector<HTMLElement>(".journey-track");
-    if (!track || layers.length === 0) return;
+    const steps = n - 1;
+    if (!track || !viewport || layers.length === 0) return;
 
-    root.classList.add("is-active");
-    track.style.height = `${n * 100}svh`;
-
-    let raf = 0;
-    const render = (ratio: number) => {
-      const travel = ratio * (n - 1 + LEAD);
+    let rafId = 0;
+    /** Positionne tous les paliers pour une profondeur `travel` ∈ [0, n-1]. */
+    const renderTravel = (travel: number) => {
+      const ratio = steps > 0 ? clamp(0, 1, travel / steps) : 0;
       layers.forEach((layer, i) => {
         const p = travel - i;
-        const z = p <= 0 ? p * Z_FAR : p * Z_NEAR;
-        let opacity: number;
-        if (p < -1) opacity = clamp(0, 1, 1 + (p + 1) * 1.2);
-        else if (p <= 0) opacity = 1;
-        else opacity = clamp(0, 1, 1 - p * 1.4);
-        const blur = p < 0 ? Math.min(14, -p * 10) : Math.min(14, p * 12);
-
-        if (opacity <= 0.005) {
+        const ap = Math.abs(p);
+        // Fondu symétrique : seul le palier centré est net ; les voisins
+        // disparaissent complètement → arrêt franc, sans flou résiduel.
+        const opacity = clamp(0, 1, 1 - ap * 1.25);
+        if (opacity <= 0.004) {
           layer.style.visibility = "hidden";
           return;
         }
         layer.style.visibility = "visible";
+        const z = p <= 0 ? p * Z_FAR : p * Z_NEAR;
+        const blur = Math.min(12, ap * 13);
         layer.style.transform = `translate(-50%, -50%) translateZ(${z.toFixed(0)}px)`;
         layer.style.opacity = opacity.toFixed(3);
-        layer.style.filter = `blur(${blur.toFixed(2)}px)`;
-        layer.style.zIndex = String(Math.round(1000 - Math.abs(p) * 10));
-        layer.style.pointerEvents = Math.abs(p) < 0.4 ? "auto" : "none";
+        layer.style.filter =
+          blur < 0.06 ? "none" : `blur(${blur.toFixed(2)}px)`;
+        layer.style.zIndex = String(Math.round(1000 - ap * 10));
+        layer.style.pointerEvents = ap < 0.35 ? "auto" : "none";
       });
-
       if (light) {
-        light.style.opacity = (0.12 + ratio * 0.88).toFixed(3);
-        light.style.transform = `scale(${(1 + ratio * 2.2).toFixed(3)})`;
+        light.style.opacity = (0.1 + ratio * 0.72).toFixed(3);
+        light.style.transform = `scale(${(1 + ratio * 2).toFixed(3)})`;
       }
       if (bar) bar.style.transform = `scaleX(${ratio.toFixed(4)})`;
-
-      // Palier actif (pour les points de progression) — throttlé via rAF.
-      if (!raf) {
-        raf = requestAnimationFrame(() => {
-          raf = 0;
-          setActive(clamp(0, n - 1, Math.round(travel)));
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          rafId = 0;
+          setActive(clamp(0, steps, Math.round(travel)));
         });
       }
     };
 
-    render(0);
+    root.classList.add("is-active");
+    document.body.classList.add("journey-on");
+    renderTravel(0);
+
+    const isTouch =
+      window.matchMedia("(pointer: coarse)").matches ||
+      window.matchMedia("(max-width: 820px)").matches;
+    setTouch(isTouch);
+
+    // ── Mode TACTILE : scroll verrouillé + navigation au swipe ──────────────
+    if (isTouch) {
+      const html = document.documentElement;
+      const prevHtmlOverflow = html.style.overflow;
+      const prevBodyOverflow = document.body.style.overflow;
+      const prevOverscroll = html.style.overscrollBehavior;
+      html.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+      html.style.overscrollBehavior = "none";
+      viewport.style.touchAction = "none";
+      track.style.height = "0px";
+
+      let step = 0;
+      let cur = 0; // profondeur courante (animée à la main, sans dépendance ticker)
+      let animId = 0;
+      const easeInOut = (t: number) =>
+        t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      const animateTo = (targetTravel: number) => {
+        cancelAnimationFrame(animId);
+        const from = cur;
+        const startTime = performance.now();
+        const duration = 620;
+        const frame = (now: number) => {
+          const k = Math.min(1, (now - startTime) / duration);
+          cur = from + (targetTravel - from) * easeInOut(k);
+          renderTravel(cur);
+          if (k < 1) animId = requestAnimationFrame(frame);
+        };
+        animId = requestAnimationFrame(frame);
+      };
+      const go = (dir: number) => {
+        const target = clamp(0, steps, step + dir);
+        if (target === step) return;
+        step = target;
+        animateTo(step);
+      };
+      if (process.env.NODE_ENV !== "production") {
+        (window as unknown as { __journey?: unknown }).__journey = {
+          go,
+          jump: (s: number) => {
+            step = clamp(0, steps, s);
+            cur = step;
+            renderTravel(cur);
+          },
+          get travel() {
+            return cur;
+          },
+          get step() {
+            return step;
+          },
+          steps,
+        };
+      }
+
+      let sx = 0,
+        sy = 0,
+        stime = 0;
+      const onStart = (e: TouchEvent) => {
+        const t = e.touches[0];
+        sx = t.clientX;
+        sy = t.clientY;
+        stime = Date.now();
+      };
+      const onEnd = (e: TouchEvent) => {
+        const t = e.changedTouches[0];
+        const dx = t.clientX - sx;
+        const dy = t.clientY - sy;
+        if (Date.now() - stime > 900) return;
+        const adx = Math.abs(dx);
+        const ady = Math.abs(dy);
+        if (Math.max(adx, ady) < 42) return; // simple tap → ignoré
+        // vertical prioritaire ; sinon horizontal. Vers le haut / la gauche = avancer.
+        if (ady >= adx) go(dy < 0 ? 1 : -1);
+        else go(dx < 0 ? 1 : -1);
+      };
+      const onHint = () => go(1);
+
+      // Navigation clavier (accessibilité + flèches/PageUp-Down)
+      const onKey = (e: KeyboardEvent) => {
+        const target = e.target as HTMLElement | null;
+        // On laisse les champs de saisie tranquilles.
+        if (
+          target &&
+          (target.tagName === "INPUT" || target.tagName === "TEXTAREA")
+        )
+          return;
+        if (["ArrowDown", "ArrowRight", "PageDown", " "].includes(e.key)) {
+          e.preventDefault();
+          go(1);
+        } else if (["ArrowUp", "ArrowLeft", "PageUp"].includes(e.key)) {
+          e.preventDefault();
+          go(-1);
+        }
+      };
+
+      viewport.addEventListener("touchstart", onStart, { passive: true });
+      viewport.addEventListener("touchend", onEnd, { passive: true });
+      window.addEventListener("keydown", onKey);
+      const hint = root.querySelector<HTMLElement>(".journey-hint");
+      hint?.addEventListener("click", onHint);
+
+      return () => {
+        cancelAnimationFrame(animId);
+        if (rafId) cancelAnimationFrame(rafId);
+        viewport.removeEventListener("touchstart", onStart);
+        viewport.removeEventListener("touchend", onEnd);
+        window.removeEventListener("keydown", onKey);
+        hint?.removeEventListener("click", onHint);
+        html.style.overflow = prevHtmlOverflow;
+        document.body.style.overflow = prevBodyOverflow;
+        html.style.overscrollBehavior = prevOverscroll;
+        viewport.style.touchAction = "";
+        root.classList.remove("is-active");
+        track.style.height = "";
+        layers.forEach((l) => (l.style.cssText = ""));
+      };
+    }
+
+    // ── Mode DESKTOP : scroll fluide + snap magnétique ──────────────────────
+    track.style.height = `${n * 100}svh`;
     const st = ScrollTrigger.create({
       trigger: root,
       start: "top top",
       end: "bottom bottom",
       scrub: true,
       invalidateOnRefresh: true,
-      onUpdate: (self) => render(self.progress),
+      onUpdate: (self) => renderTravel(self.progress * steps),
     });
 
-    // Snap magnétique : ça glisse librement entre les paliers, mais dès que le
-    // scroll s'arrête, on se cale en douceur sur le palier le plus proche —
-    // un point fixe, net et stable, pour lire ou remplir sans rester dans le flou.
-    const steps = n - 1;
     const scrollableMax = () =>
       Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
     let snapTimer = 0;
@@ -126,12 +249,11 @@ export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
       st.kill();
       window.clearTimeout(snapTimer);
       window.removeEventListener("scroll", onScrollIdle);
-      if (raf) cancelAnimationFrame(raf);
+      if (rafId) cancelAnimationFrame(rafId);
       root.classList.remove("is-active");
+      document.body.classList.remove("journey-on");
       track.style.height = "";
-      layers.forEach((l) => {
-        l.style.cssText = "";
-      });
+      layers.forEach((l) => (l.style.cssText = ""));
     };
   }, [n]);
 
@@ -147,7 +269,6 @@ export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
           ))}
         </div>
 
-        {/* Repères de descente — décoratifs, masqués aux lecteurs d'écran */}
         <div className="journey-progress" aria-hidden="true">
           <span className="journey-bar" />
         </div>
@@ -163,11 +284,11 @@ export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
           className={`journey-hint${active > 0 ? " gone" : ""}`}
           aria-hidden="true"
         >
-          Avancez vers la lumière<span>↓</span>
+          {touch ? "Glissez vers la lumière" : "Avancez vers la lumière"}
+          <span>{touch ? "↑" : "↓"}</span>
         </div>
       </div>
 
-      {/* Piste de scroll : donne la longueur du voyage (hauteur pilotée en JS) */}
       <div className="journey-track" aria-hidden="true" />
     </div>
   );

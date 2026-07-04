@@ -94,8 +94,17 @@ body {
   inset: 0;
   z-index: 2;
   overflow: hidden;
+  /* Fond plein : le viewport occulte totalement le reste (header/footer) */
+  background: var(--color-noir);
   perspective: 950px;
   perspective-origin: 50% 50%;
+}
+
+/* En immersion, on masque l'en-tête (épuré, et la barre de progression au tout
+   en haut redevient visible). Il reste présent en fallback reduced-motion. */
+body.journey-on .site-header {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .journey-stage {
@@ -163,9 +172,11 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 3px;
   z-index: 30;
   opacity: 1;
+  /* Rail discret : montre le chemin total (qu'il y a une fin) */
+  background: rgba(217, 178, 106, 0.14);
 }
 .journey-bar {
   display: block;
