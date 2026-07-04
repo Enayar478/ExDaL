@@ -61,7 +61,7 @@ describe("POST /api/lead", () => {
 
   // --- Happy path ---
 
-  it("200 — lead valide : enregistre et renvoie une calUrl", async () => {
+  it("200 — lead valide : enregistre et renvoie une calUrl avec metadata[lead_id]", async () => {
     const req = makeRequest(validBody);
     const res = await POST(req);
     const json = await res.json();
@@ -70,6 +70,9 @@ describe("POST /api/lead", () => {
     expect(json.success).toBe(true);
     expect(typeof json.data.calUrl).toBe("string");
     expect(json.data.calUrl).toContain("cal.com");
+    // La corrélation lead↔booking doit être présente dans l'URL Cal.
+    const calUrl = new URL(json.data.calUrl);
+    expect(calUrl.searchParams.get("metadata[lead_id]")).toBe("lead-uuid-42");
     expect(insertLead).toHaveBeenCalledOnce();
   });
 

@@ -27,9 +27,16 @@ const attendee = z.object({
 export const calWebhookPayload = z.object({
   triggerEvent: z.string(),
   payload: z.object({
+    uid: z.string().optional(),
     startTime: z.string().optional(),
     attendees: z.array(attendee).min(1),
     responses: z.record(z.string(), z.unknown()).optional(),
+    metadata: z
+      .object({
+        lead_id: z.string().optional(),
+      })
+      .passthrough()
+      .optional(),
   }),
 });
 

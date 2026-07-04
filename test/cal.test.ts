@@ -12,17 +12,24 @@ const lead: LeadInput = {
   segment: "premium",
 };
 
+const LEAD_ID = "uuid-lead-123";
+
 describe("buildCalUrl", () => {
   it("construit une URL cal.com à partir d'un slug", () => {
-    const url = new URL(buildCalUrl("exdal/echange-20min", lead));
+    const url = new URL(buildCalUrl("exdal/echange-20min", lead, LEAD_ID));
     expect(url.origin + url.pathname).toBe("https://cal.com/exdal/echange-20min");
     expect(url.searchParams.get("name")).toBe("Jean Rivet");
     expect(url.searchParams.get("email")).toBe("jean@startup.fr");
     expect(url.searchParams.get("metadata[segment]")).toBe("premium");
   });
 
+  it("pose metadata[lead_id] pour la corrélation webhook", () => {
+    const url = new URL(buildCalUrl("exdal/echange-20min", lead, LEAD_ID));
+    expect(url.searchParams.get("metadata[lead_id]")).toBe(LEAD_ID);
+  });
+
   it("préremplit des notes lisibles avec rôle, entreprise, Pennylane et stade", () => {
-    const url = new URL(buildCalUrl("exdal/echange-20min", lead));
+    const url = new URL(buildCalUrl("exdal/echange-20min", lead, LEAD_ID));
     const notes = url.searchParams.get("notes") ?? "";
     expect(notes).toContain("CEO");
     expect(notes).toContain("Startup");
@@ -31,7 +38,7 @@ describe("buildCalUrl", () => {
   });
 
   it("accepte une URL complète comme base", () => {
-    const url = new URL(buildCalUrl("https://cal.exdal.fr/echange", lead));
+    const url = new URL(buildCalUrl("https://cal.exdal.fr/echange", lead, LEAD_ID));
     expect(url.origin).toBe("https://cal.exdal.fr");
     expect(url.pathname).toBe("/echange");
   });
@@ -39,7 +46,9 @@ describe("buildCalUrl", () => {
   it("gère un segment absent sans casser", () => {
     const { segment: _omit, ...noSegment } = lead;
     void _omit;
-    const url = new URL(buildCalUrl("exdal/echange", noSegment as LeadInput));
+    const url = new URL(buildCalUrl("exdal/echange", noSegment as LeadInput, LEAD_ID));
     expect(url.searchParams.get("metadata[segment]")).toBe("");
+    // lead_id toujours présent même sans segment
+    expect(url.searchParams.get("metadata[lead_id]")).toBe(LEAD_ID);
   });
 });

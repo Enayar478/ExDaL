@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { ok, fail } from "@/lib/api";
 import { getServerEnv } from "@/lib/env";
-import { markLeadBooked } from "@/lib/leads/repository";
+import { markLeadBooked, markLeadBookedById } from "@/lib/leads/repository";
 import { sendEmail } from "@/lib/email/send";
 import { prospectConfirmation, ownerNotification } from "@/lib/email/templates";
 import {
@@ -18,6 +18,10 @@ export const runtime = "nodejs";
  * POST /api/cal-webhook
  * Reçoit BOOKING_CREATED de Cal.com : marque le lead comme réservé,
  * envoie la confirmation sobre au prospect et la notification au propriétaire.
+ *
+ * Corrélation : par lead_id (metadata Cal) en priorité, fallback email.
+ * Idempotence : cal_booking_uid unique en base — un replay Cal ne déclenche
+ *               pas de doublon d'email.
  */
 export async function POST(request: NextRequest) {
   const env = getServerEnv();
@@ -63,13 +67,35 @@ export async function POST(request: NextRequest) {
   const company =
     typeof responses.company === "string" ? responses.company : undefined;
 
-  // Corrélation du lead (best-effort, ne bloque pas les emails).
+  const leadId = payload.metadata?.lead_id;
+  const calBookingUid = payload.uid;
+
+  // Corrélation + idempotence (best-effort, ne bloque pas les emails si erreur DB).
+  let alreadyProcessed = false;
   try {
-    await markLeadBooked(attendee.email);
+    if (leadId && calBookingUid) {
+      // Chemin nominal : corrélation par id, idempotence garantie par cal_booking_uid.
+      const wasNew = await markLeadBookedById(leadId, calBookingUid);
+      if (!wasNew) {
+        // Le booking uid était déjà en base : replay Cal, on ne renvoie pas d'emails.
+        logger.warn("Booking déjà traité — ignoré (idempotence)", {
+          calBookingUid,
+          leadId,
+        });
+        alreadyProcessed = true;
+      }
+    } else {
+      // Fallback : corrélation par email (lead_id absent = ancien client Cal sans metadata).
+      await markLeadBooked(attendee.email);
+    }
   } catch (error) {
-    logger.error("markLeadBooked a échoué", {
+    logger.error("Corrélation lead échouée", {
       message: error instanceof Error ? error.message : String(error),
     });
+  }
+
+  if (alreadyProcessed) {
+    return ok({ processed: false, reason: "already_handled" });
   }
 
   const details = {

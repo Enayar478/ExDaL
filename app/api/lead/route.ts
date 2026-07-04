@@ -51,8 +51,9 @@ export async function POST(request: NextRequest) {
     return fail("Réservation temporairement indisponible.", 503);
   }
 
+  let storedLead: { id: string };
   try {
-    await insertLead(withSegment);
+    storedLead = await insertLead(withSegment);
   } catch (error) {
     logger.error("insertLead a échoué", {
       message: error instanceof Error ? error.message : String(error),
@@ -60,6 +61,6 @@ export async function POST(request: NextRequest) {
     return fail("Impossible d'enregistrer votre demande pour le moment.", 500);
   }
 
-  const calUrl = buildCalUrl(calLink, withSegment);
+  const calUrl = buildCalUrl(calLink, withSegment, storedLead.id);
   return ok({ calUrl });
 }
