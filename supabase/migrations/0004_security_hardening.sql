@@ -46,7 +46,7 @@ comment on column public.leads.email is 'PII — adresse e-mail du prospect (non
 -- ============================================================
 comment on column public.leads.name    is 'PII — prénom / nom du prospect.';
 comment on column public.leads.company is 'PII — entreprise du prospect.';
-comment on column public.leads.ip_hash is 'PII indirect — empreinte IP (déjà hachée). Non réversible.';
+-- Note : la table leads ne stocke aucune IP (pas de colonne ip_hash) — rien à documenter ici.
 
 comment on column public.newsletter_subscribers.email   is 'PII — adresse e-mail de l''abonné (non hachée). Purge RGPD : non confirmés > 30 j, confirmés selon politique de conservation.';
 comment on column public.newsletter_subscribers.ip_hash is 'PII indirect — empreinte IP hachée. Non réversible.';
