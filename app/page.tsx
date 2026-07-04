@@ -1,4 +1,6 @@
 import { BookingProvider } from "@/components/booking/BookingProvider";
+import { SmoothScroll } from "@/components/tunnel/SmoothScroll";
+import { DepthTunnel } from "@/components/tunnel/DepthTunnel";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { StructuredData } from "@/components/StructuredData";
@@ -13,25 +15,30 @@ import { Closing } from "@/components/sections/Closing";
 
 /**
  * Landing exdal.fr — les 8 sections du tunnel, dans l'ordre du brief.
- * Le tout enveloppé du BookingProvider : chaque CTA ouvre le même formulaire
- * de qualification, chaque porte du sélecteur alimente la segmentation.
+ * Les 3 sections narratives d'ouverture (Hero, Preuve, Problème) sont traversées
+ * en « tunnel de profondeur » (axe Z) ; on débouche ensuite sur le contenu dense
+ * (sélecteur, offres, méthode…) en scroll classique pour préserver la lisibilité.
  */
 export default function Home() {
   return (
     <BookingProvider>
-      <StructuredData />
-      <SiteHeader />
-      <main>
-        <Hero />
-        <Proof />
-        <Problem />
-        <PathSelector />
-        <Offers />
-        <Method />
-        <Why />
-        <Closing />
-      </main>
-      <SiteFooter />
+      <SmoothScroll>
+        <StructuredData />
+        <SiteHeader />
+        <main>
+          <DepthTunnel>
+            <Hero />
+            <Proof />
+            <Problem />
+          </DepthTunnel>
+          <PathSelector />
+          <Offers />
+          <Method />
+          <Why />
+          <Closing />
+        </main>
+        <SiteFooter />
+      </SmoothScroll>
     </BookingProvider>
   );
 }

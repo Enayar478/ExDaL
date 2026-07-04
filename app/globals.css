@@ -74,3 +74,51 @@ body {
   outline: 2px solid var(--color-or);
   outline-offset: 2px;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Tunnel de profondeur (axe Z)
+   État par défaut = flux normal (fallback élégant, reduced-motion,
+   SSR, no-JS). L'effet 3D n'est appliqué qu'avec la classe .is-active
+   ajoutée côté client quand le mouvement est autorisé.
+   ───────────────────────────────────────────────────────────── */
+.tunnel-viewport {
+  position: relative;
+}
+.tunnel-viewport.is-active {
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  perspective: 950px;
+  perspective-origin: 50% 46%;
+}
+
+.tunnel-layer {
+  position: relative;
+}
+.tunnel-viewport.is-active .tunnel-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform, opacity, filter;
+}
+
+/* Halo doré au fond du tunnel — invisible hors effet (opacity pilotée par GSAP) */
+.tunnel-halo {
+  position: absolute;
+  inset: -25%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    circle at 50% 54%,
+    rgba(217, 178, 106, 0.85) 0%,
+    rgba(217, 178, 106, 0.22) 26%,
+    transparent 62%
+  );
+  will-change: transform, opacity;
+}
