@@ -26,6 +26,12 @@ export function SiteFooter() {
             >
               {site.email}
             </a>
+            <a
+              href="/mentions-legales"
+              className="transition-colors hover:text-blanc"
+            >
+              Mentions légales
+            </a>
             <span>
               {domain} · © {year}
             </span>
