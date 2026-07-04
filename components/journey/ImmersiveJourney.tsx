@@ -1,6 +1,7 @@
 "use client";
 
 import { Children, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { getLenis } from "@/components/tunnel/lenis-store";
@@ -220,14 +221,17 @@ export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
       onUpdate: (self) => renderTravel(self.progress * steps),
     });
 
-    const scrollableMax = () =>
-      Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
     let snapTimer = 0;
     const snapToNearest = () => {
       if (steps <= 0) return;
-      const max = scrollableMax();
-      const idx = clamp(0, steps, Math.round((window.scrollY / max) * steps));
-      const targetY = (idx / steps) * max;
+      // On se cale sur la plage EXACTE de ScrollTrigger (pas la hauteur du
+      // document, qui inclut header/footer) → le palier arrive pile au centre,
+      // parfaitement net, sans se figer entre deux vues.
+      const range = st.end - st.start;
+      if (range <= 0) return;
+      const prog = clamp(0, 1, (window.scrollY - st.start) / range);
+      const idx = clamp(0, steps, Math.round(prog * steps));
+      const targetY = st.start + (idx / steps) * range;
       if (Math.abs(targetY - window.scrollY) < 3) return;
       const lenis = getLenis();
       if (lenis) {
@@ -261,6 +265,9 @@ export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
     <div className="journey" ref={rootRef}>
       <div className="journey-viewport">
         <div className="journey-light" aria-hidden="true" />
+        <Link href="/" className="journey-brand" aria-label="ExDaL — accueil">
+          Ex<span className="lum-gradient">DaL</span>
+        </Link>
         <div className="journey-stage">
           {slabs.map((slab, i) => (
             <div className="journey-slab" key={i} data-index={i}>

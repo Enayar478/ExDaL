@@ -472,3 +472,38 @@ body.journey-on .site-header {
   color: var(--color-brume);
   text-decoration: underline;
 }
+
+/* Emblème d'ouverture du Hero — la lumière née de la matière (bords fondus) */
+.j-emblem {
+  display: block;
+  width: clamp(150px, 22vw, 240px);
+  height: auto;
+  margin: 0 auto 24px;
+  -webkit-mask-image: radial-gradient(
+    circle at center,
+    #000 52%,
+    transparent 74%
+  );
+  mask-image: radial-gradient(circle at center, #000 52%, transparent 74%);
+}
+
+/* Signature persistante (le header étant masqué en immersion) */
+.journey-brand {
+  opacity: 0;
+  pointer-events: none;
+}
+.journey.is-active .journey-brand {
+  position: absolute;
+  top: 20px;
+  left: 22px;
+  z-index: 30;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--color-blanc);
+  text-decoration: none;
+  opacity: 1;
+  pointer-events: auto;
+}

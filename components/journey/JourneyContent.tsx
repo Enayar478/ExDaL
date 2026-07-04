@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { ImmersiveJourney } from "@/components/journey/ImmersiveJourney";
 
 /**
@@ -56,7 +57,9 @@ export function JourneyContent() {
   async function book() {
     setError(null);
     if (!form.name || !form.email || !form.role || !form.company)
-      return setError("Complétez votre identité au palier « faisons connaissance ».");
+      return setError(
+        "Complétez votre identité au palier « faisons connaissance ».",
+      );
     if (!form.pennylane) return setError("Indiquez votre usage de Pennylane.");
     if (!form.stage) return setError("Indiquez où vous en êtes.");
     if (form.website) return;
@@ -85,6 +88,14 @@ export function JourneyContent() {
     <ImmersiveJourney>
       {/* 0 — HERO */}
       <section aria-label="Introduction">
+        <Image
+          src="/emblem.png"
+          alt="Emblème ExDaL — un point de lumière né de la donnée"
+          width={240}
+          height={240}
+          priority
+          className="j-emblem"
+        />
         <p className="j-eyebrow">De la donnée · la lumière</p>
         <h1 className="j-h1">
           De la donnée comptable,
@@ -141,7 +152,8 @@ export function JourneyContent() {
           </div>
           <div className="j-offer j-offer-mid">
             <span className="j-offer-k">Le Pilotage</span>
-            La clarté en continu. Le choix de ceux qui n&rsquo;y reviennent plus.
+            La clarté en continu. Le choix de ceux qui n&rsquo;y reviennent
+            plus.
           </div>
           <div className="j-offer">
             <span className="j-offer-k">L&rsquo;Opération</span>
@@ -159,10 +171,31 @@ export function JourneyContent() {
         <p className="j-qlabel">01 — Faisons connaissance</p>
         <h2 className="j-h2">Vous êtes&hellip;</h2>
         <div className="j-fields">
-          <JField label="Nom" value={form.name} onChange={(v) => set("name", v)} autoComplete="name" />
-          <JField label="Email" type="email" value={form.email} onChange={(v) => set("email", v)} autoComplete="email" />
-          <JField label="Rôle" value={form.role} onChange={(v) => set("role", v)} autoComplete="organization-title" />
-          <JField label="Entreprise" value={form.company} onChange={(v) => set("company", v)} autoComplete="organization" />
+          <JField
+            label="Nom"
+            value={form.name}
+            onChange={(v) => set("name", v)}
+            autoComplete="name"
+          />
+          <JField
+            label="Email"
+            type="email"
+            value={form.email}
+            onChange={(v) => set("email", v)}
+            autoComplete="email"
+          />
+          <JField
+            label="Rôle"
+            value={form.role}
+            onChange={(v) => set("role", v)}
+            autoComplete="organization-title"
+          />
+          <JField
+            label="Entreprise"
+            value={form.company}
+            onChange={(v) => set("company", v)}
+            autoComplete="organization"
+          />
         </div>
         <input
           type="text"
