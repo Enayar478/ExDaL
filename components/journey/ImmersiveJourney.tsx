@@ -3,6 +3,7 @@
 import { Children, useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { getLenis } from "@/components/tunnel/lenis-store";
 
 /**
  * Voyage immersif — « vers la lumière, dans les profondeurs ».
@@ -17,7 +18,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
  */
 const Z_FAR = 3000; // éloignement d'arrivée
 const Z_NEAR = 900; // dépassement vers la caméra
-const LEAD = 0.5; // marge pour que le dernier palier arrive avant la fin
+const LEAD = 0; // chaque palier se cale sur un point de scroll exact (snap)
 
 export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -32,7 +33,9 @@ export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
 
     gsap.registerPlugin(ScrollTrigger);
     const clamp = gsap.utils.clamp;
-    const layers = Array.from(root.querySelectorAll<HTMLElement>(".journey-slab"));
+    const layers = Array.from(
+      root.querySelectorAll<HTMLElement>(".journey-slab"),
+    );
     const light = root.querySelector<HTMLElement>(".journey-light");
     const bar = root.querySelector<HTMLElement>(".journey-bar");
     const track = root.querySelector<HTMLElement>(".journey-track");
@@ -90,8 +93,39 @@ export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
       onUpdate: (self) => render(self.progress),
     });
 
+    // Snap magnétique : ça glisse librement entre les paliers, mais dès que le
+    // scroll s'arrête, on se cale en douceur sur le palier le plus proche —
+    // un point fixe, net et stable, pour lire ou remplir sans rester dans le flou.
+    const steps = n - 1;
+    const scrollableMax = () =>
+      Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    let snapTimer = 0;
+    const snapToNearest = () => {
+      if (steps <= 0) return;
+      const max = scrollableMax();
+      const idx = clamp(0, steps, Math.round((window.scrollY / max) * steps));
+      const targetY = (idx / steps) * max;
+      if (Math.abs(targetY - window.scrollY) < 3) return;
+      const lenis = getLenis();
+      if (lenis) {
+        lenis.scrollTo(targetY, {
+          duration: 0.5,
+          easing: (t: number) => 1 - Math.pow(1 - t, 3),
+        });
+      } else {
+        window.scrollTo({ top: targetY, behavior: "smooth" });
+      }
+    };
+    const onScrollIdle = () => {
+      window.clearTimeout(snapTimer);
+      snapTimer = window.setTimeout(snapToNearest, 150);
+    };
+    window.addEventListener("scroll", onScrollIdle, { passive: true });
+
     return () => {
       st.kill();
+      window.clearTimeout(snapTimer);
+      window.removeEventListener("scroll", onScrollIdle);
       if (raf) cancelAnimationFrame(raf);
       root.classList.remove("is-active");
       track.style.height = "";

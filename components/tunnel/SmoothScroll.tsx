@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { setLenis } from "@/components/tunnel/lenis-store";
 
 /**
  * Smooth scroll global (Lenis) synchronisé avec GSAP ScrollTrigger.
@@ -24,6 +25,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     });
 
     lenis.on("scroll", ScrollTrigger.update);
+    setLenis(lenis);
 
     // Exposé en dev uniquement (debug / tests visuels), jamais en production.
     if (process.env.NODE_ENV !== "production") {
@@ -36,6 +38,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
 
     return () => {
       gsap.ticker.remove(raf);
+      setLenis(null);
       lenis.destroy();
     };
   }, []);
