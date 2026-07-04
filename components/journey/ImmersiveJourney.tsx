@@ -128,24 +128,6 @@ export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
         step = target;
         animateTo(step);
       };
-      if (process.env.NODE_ENV !== "production") {
-        (window as unknown as { __journey?: unknown }).__journey = {
-          go,
-          jump: (s: number) => {
-            step = clamp(0, steps, s);
-            cur = step;
-            renderTravel(cur);
-          },
-          get travel() {
-            return cur;
-          },
-          get step() {
-            return step;
-          },
-          steps,
-        };
-      }
-
       let sx = 0,
         sy = 0,
         stime = 0;

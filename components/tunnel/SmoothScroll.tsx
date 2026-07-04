@@ -27,11 +27,6 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     lenis.on("scroll", ScrollTrigger.update);
     setLenis(lenis);
 
-    // Exposé en dev uniquement (debug / tests visuels), jamais en production.
-    if (process.env.NODE_ENV !== "production") {
-      (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
-    }
-
     const raf = (time: number) => lenis.raf(time * 1000);
     gsap.ticker.add(raf);
     gsap.ticker.lagSmoothing(0);
