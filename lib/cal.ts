@@ -24,10 +24,16 @@ function baseCalUrl(link: string): string {
 
 /**
  * Retourne l'URL Cal.com préremplie pour un prospect qualifié.
- * @param link  valeur de NEXT_PUBLIC_CAL_LINK
- * @param lead  données validées du formulaire de qualification
+ * @param link    valeur de NEXT_PUBLIC_CAL_LINK (slug ou URL complète)
+ * @param lead    données validées du formulaire de qualification
+ * @param leadId  identifiant Supabase du lead — transmis en metadata pour
+ *                une corrélation robuste dans le webhook (non basée sur l'email)
  */
-export function buildCalUrl(link: string, lead: LeadInput): string {
+export function buildCalUrl(
+  link: string,
+  lead: LeadInput,
+  leadId: string,
+): string {
   const url = new URL(baseCalUrl(link));
 
   const notes = [
@@ -40,8 +46,9 @@ export function buildCalUrl(link: string, lead: LeadInput): string {
   url.searchParams.set("name", lead.name);
   url.searchParams.set("email", lead.email);
   url.searchParams.set("notes", notes);
-  // Repère de corrélation retrouvé dans le webhook (recoupé sur l'email).
   url.searchParams.set("metadata[segment]", lead.segment ?? "");
+  // Corrélation lead↔booking côté webhook — résistant aux alias et à la casse.
+  url.searchParams.set("metadata[lead_id]", leadId);
 
   return url.toString();
 }
