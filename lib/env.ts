@@ -15,6 +15,9 @@ const serverEnvSchema = z.object({
   RESEND_FROM_EMAIL: z.string().email().optional(),
   NOTIFICATION_EMAIL: z.string().email().optional(),
   CAL_WEBHOOK_SECRET: z.string().optional(),
+  // Secret HMAC-SHA256 pour signer les tokens de confirmation newsletter.
+  // Générer avec : openssl rand -hex 32
+  NEWSLETTER_SECRET: z.string().min(16).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -35,6 +38,7 @@ export function getServerEnv(): ServerEnv {
     RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL,
     NOTIFICATION_EMAIL: process.env.NOTIFICATION_EMAIL,
     CAL_WEBHOOK_SECRET: process.env.CAL_WEBHOOK_SECRET,
+    NEWSLETTER_SECRET: process.env.NEWSLETTER_SECRET,
   });
 
   if (!parsed.success) {
