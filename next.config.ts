@@ -5,15 +5,18 @@ import type { NextConfig } from "next";
 // 'unsafe-inline' sur script-src est requis par Next.js (hydration inline).
 // TODO (P1) : durcir avec nonce généré par middleware une fois PostHog/analytics
 // intégrés (les domaines PostHog seront ajoutés à connect-src et script-src à ce stade).
+// En dev, Next/React exigent 'unsafe-eval' (debug) et un websocket pour le HMR.
+// En production, la politique reste stricte.
+const isDev = process.env.NODE_ENV !== "production";
 const csp = [
   "default-src 'self'",
   // Next.js exige 'unsafe-inline' pour l'hydration ; durcissement nonce = TODO P1.
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
   "img-src 'self' data: blob:",
   // TODO (P1) : ajouter les origines PostHog/analytics (ex. eu.posthog.com).
-  "connect-src 'self' https://*.supabase.co",
+  `connect-src 'self' https://*.supabase.co${isDev ? " ws: http://localhost:*" : ""}`,
   // Embed Cal.com éventuel (cal.eu + sous-domaines).
   "frame-src 'self' https://cal.eu https://*.cal.eu",
   "frame-ancestors 'none'",

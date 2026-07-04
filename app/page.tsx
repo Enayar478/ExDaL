@@ -1,23 +1,16 @@
 import { BookingProvider } from "@/components/booking/BookingProvider";
 import { SmoothScroll } from "@/components/tunnel/SmoothScroll";
-import { DepthTunnel } from "@/components/tunnel/DepthTunnel";
+import { JourneyContent } from "@/components/journey/JourneyContent";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { StructuredData } from "@/components/StructuredData";
-import { Hero } from "@/components/sections/Hero";
-import { Proof } from "@/components/sections/Proof";
-import { Problem } from "@/components/sections/Problem";
-import { PathSelector } from "@/components/sections/PathSelector";
-import { Offers } from "@/components/sections/Offers";
-import { Method } from "@/components/sections/Method";
-import { Why } from "@/components/sections/Why";
-import { Closing } from "@/components/sections/Closing";
 
 /**
- * Landing exdal.fr — les 8 sections du tunnel, dans l'ordre du brief.
- * Les 3 sections narratives d'ouverture (Hero, Preuve, Problème) sont traversées
- * en « tunnel de profondeur » (axe Z) ; on débouche ensuite sur le contenu dense
- * (sélecteur, offres, méthode…) en scroll classique pour préserver la lisibilité.
+ * Landing exdal.fr — un seul voyage immersif, du chaos vers la lumière.
+ * On ne scrolle pas verticalement : on s'enfonce sur l'axe Z, palier après
+ * palier, jusqu'à déboucher dans la lumière sur la prise de rendez-vous.
+ * Le formulaire de qualification fait partie du voyage. Fallback reduced-motion :
+ * scroll vertical classique, entièrement lisible et accessible.
  */
 export default function Home() {
   return (
@@ -26,16 +19,7 @@ export default function Home() {
         <StructuredData />
         <SiteHeader />
         <main>
-          <DepthTunnel>
-            <Hero />
-            <Proof />
-            <Problem />
-          </DepthTunnel>
-          <PathSelector />
-          <Offers />
-          <Method />
-          <Why />
-          <Closing />
+          <JourneyContent />
         </main>
         <SiteFooter />
       </SmoothScroll>
