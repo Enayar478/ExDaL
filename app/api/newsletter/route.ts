@@ -11,16 +11,33 @@ import { logger } from "@/lib/logger";
 import { maskEmail } from "@/lib/email/html";
 import { site } from "@/lib/site";
 
+// Taille maximale du corps (email + source + honeypot — quelques centaines d'octets).
+const MAX_BODY_BYTES = 2048; // 2 Ko
+
 /**
  * POST /api/newsletter
  * Inscription newsletter avec double opt-in RGPD.
- * Flow : Zod → honeypot → rate-limit → upsert (non confirmé) → email de confirmation.
+ * Flow : taille → Zod → honeypot → rate-limit → upsert (non confirmé) → email de confirmation.
+ *
+ * Note honeypot : Zod (website: max(0)) rejette les valeurs non vides avec un 422
+ * avant d'atteindre le check applicatif. Le check ici est une défense en profondeur
+ * ET sert à répondre 200 (neutre) aux bots plutôt que 422 (qui révèle la détection).
  */
 export async function POST(request: NextRequest) {
+  // 0. Limite de taille du corps
+  const contentLength = Number(request.headers.get("content-length") ?? 0);
+  if (contentLength > MAX_BODY_BYTES) {
+    return fail("Corps de la requête trop volumineux.", 413);
+  }
+
   // 1. Parse + validation Zod
   let body: unknown;
   try {
-    body = await request.json();
+    const raw = await request.text();
+    if (raw.length > MAX_BODY_BYTES) {
+      return fail("Corps de la requête trop volumineux.", 413);
+    }
+    body = JSON.parse(raw);
   } catch {
     return fail("Corps de la requête invalide.", 400);
   }
@@ -33,9 +50,10 @@ export async function POST(request: NextRequest) {
 
   const { email, website, source } = parsed.data;
 
-  // 2. Honeypot anti-bot — doit rester vide
+  // 2. Honeypot anti-bot — doit rester vide.
+  // Zod rejette déjà les valeurs non vides (422), mais on répond ici 200
+  // pour ne pas révéler le mécanisme aux bots (réponse neutre).
   if (website && website.length > 0) {
-    // On répond 200 pour ne pas trahir la détection aux bots.
     return ok({ queued: true });
   }
 

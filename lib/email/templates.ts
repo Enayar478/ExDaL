@@ -25,6 +25,17 @@ const BRUME = "#a9b0b6";
 const OR = "#d9b26a";
 const LINE = "#22262b";
 
+/**
+ * Sanitise un champ destiné à être utilisé dans un sujet d'email (en-tête SMTP).
+ * Les caractères CR (\r) et LF (\n) doivent être retirés pour prévenir
+ * l'injection d'en-têtes SMTP (email header injection).
+ * On retire également les tabulations (\t) qui peuvent être interprétées
+ * comme des séparateurs de continuation d'en-tête (RFC 5322 folding).
+ */
+function sanitizeSubjectField(value: string): string {
+  return value.replace(/[\r\n\t]/g, " ").trim();
+}
+
 function shell(inner: string): string {
   return `<!DOCTYPE html><html lang="fr"><body style="margin:0;background:#090a0c;padding:32px 0;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#090a0c;">
@@ -69,11 +80,15 @@ Vos chiffres savent déjà tout. À bientôt pour leur donner la parole.
 
 /** Email de confirmation double opt-in pour la newsletter « Lumen ». */
 export function newsletterConfirmation(confirmUrl: string): EmailContent {
+  // confirmUrl est généré côté serveur (HMAC signé) — on échappe quand même
+  // en défense pour prévenir toute injection si la logique évolue.
+  const safeConfirmUrl = escapeHtml(confirmUrl);
+
   const html = shell(`
     <h1 style="font-size:24px;font-weight:400;line-height:1.35;margin:0 0 18px;color:${BLANC};">Confirmez votre inscription à Lumen.</h1>
     <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0 0 20px;">Une idée par numéro. Bimensuelle. Ce que vos chiffres vous disent — si vous savez les lire.</p>
     <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0 0 28px;">Cliquez sur le lien ci-dessous pour confirmer. Il expire dans 24 heures.</p>
-    <a href="${confirmUrl}" style="display:inline-block;padding:12px 28px;background:${OR};color:#090a0c;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;">Confirmer mon inscription</a>
+    <a href="${safeConfirmUrl}" style="display:inline-block;padding:12px 28px;background:${OR};color:#090a0c;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;">Confirmer mon inscription</a>
     <p style="font-size:13px;line-height:1.6;color:#6f6858;margin:28px 0 0;">Si vous n'avez pas demandé cette inscription, ignorez simplement ce message.</p>
   `);
 
@@ -123,8 +138,15 @@ export function ownerNotification(details: BookingDetails): EmailContent {
 Nom : ${details.name}
 Email : ${details.email}${details.role ? `\nRôle : ${details.role}` : ""}${details.company ? `\nEntreprise : ${details.company}` : ""}${details.when ? `\nCréneau : ${details.when}` : ""}`;
 
+  // Sujet : les champs name et company proviennent du webhook Cal.com (données
+  // du prospect). On supprime CR/LF/tab pour prévenir l'injection d'en-tête SMTP.
+  const safeName = sanitizeSubjectField(details.name);
+  const safeCompany = details.company
+    ? sanitizeSubjectField(details.company)
+    : undefined;
+
   return {
-    subject: `Nouveau RDV — ${details.name}${details.company ? ` (${details.company})` : ""}`,
+    subject: `Nouveau RDV — ${safeName}${safeCompany ? ` (${safeCompany})` : ""}`,
     html,
     text,
   };
