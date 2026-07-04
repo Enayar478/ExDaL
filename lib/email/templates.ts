@@ -67,6 +67,36 @@ Vos chiffres savent déjà tout. À bientôt pour leur donner la parole.
   return { subject: "Votre échange avec ExDaL est confirmé", html, text };
 }
 
+/** Email de confirmation double opt-in pour la newsletter « Lumen ». */
+export function newsletterConfirmation(confirmUrl: string): EmailContent {
+  const html = shell(`
+    <h1 style="font-size:24px;font-weight:400;line-height:1.35;margin:0 0 18px;color:${BLANC};">Confirmez votre inscription à Lumen.</h1>
+    <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0 0 20px;">Une idée par numéro. Bimensuelle. Ce que vos chiffres vous disent — si vous savez les lire.</p>
+    <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0 0 28px;">Cliquez sur le lien ci-dessous pour confirmer. Il expire dans 24 heures.</p>
+    <a href="${confirmUrl}" style="display:inline-block;padding:12px 28px;background:${OR};color:#090a0c;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;">Confirmer mon inscription</a>
+    <p style="font-size:13px;line-height:1.6;color:#6f6858;margin:28px 0 0;">Si vous n'avez pas demandé cette inscription, ignorez simplement ce message.</p>
+  `);
+
+  const text = `Ex Datis Lumen — Lumen, la newsletter
+
+Confirmez votre inscription.
+
+Une idée par numéro. Bimensuelle. Ce que vos chiffres vous disent — si vous savez les lire.
+
+Confirmez votre inscription (lien valable 24h) :
+${confirmUrl}
+
+Si vous n'avez pas demandé cette inscription, ignorez simplement ce message.
+
+— ${site.url}`;
+
+  return {
+    subject: "Confirmez votre inscription à Lumen — ExDaL",
+    html,
+    text,
+  };
+}
+
 /** Notification interne au propriétaire à chaque nouvelle réservation. */
 export function ownerNotification(details: BookingDetails): EmailContent {
   const rows = [
