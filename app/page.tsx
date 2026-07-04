@@ -1,37 +1,28 @@
 import { BookingProvider } from "@/components/booking/BookingProvider";
+import { SmoothScroll } from "@/components/tunnel/SmoothScroll";
+import { JourneyContent } from "@/components/journey/JourneyContent";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { StructuredData } from "@/components/StructuredData";
-import { Hero } from "@/components/sections/Hero";
-import { Proof } from "@/components/sections/Proof";
-import { Problem } from "@/components/sections/Problem";
-import { PathSelector } from "@/components/sections/PathSelector";
-import { Offers } from "@/components/sections/Offers";
-import { Method } from "@/components/sections/Method";
-import { Why } from "@/components/sections/Why";
-import { Closing } from "@/components/sections/Closing";
 
 /**
- * Landing exdal.fr — les 8 sections du tunnel, dans l'ordre du brief.
- * Le tout enveloppé du BookingProvider : chaque CTA ouvre le même formulaire
- * de qualification, chaque porte du sélecteur alimente la segmentation.
+ * Landing exdal.fr — un seul voyage immersif, du chaos vers la lumière.
+ * On ne scrolle pas verticalement : on s'enfonce sur l'axe Z, palier après
+ * palier, jusqu'à déboucher dans la lumière sur la prise de rendez-vous.
+ * Le formulaire de qualification fait partie du voyage. Fallback reduced-motion :
+ * scroll vertical classique, entièrement lisible et accessible.
  */
 export default function Home() {
   return (
     <BookingProvider>
-      <StructuredData />
-      <SiteHeader />
-      <main>
-        <Hero />
-        <Proof />
-        <Problem />
-        <PathSelector />
-        <Offers />
-        <Method />
-        <Why />
-        <Closing />
-      </main>
-      <SiteFooter />
+      <SmoothScroll>
+        <StructuredData />
+        <SiteHeader />
+        <main>
+          <JourneyContent />
+        </main>
+        <SiteFooter />
+      </SmoothScroll>
     </BookingProvider>
   );
 }
