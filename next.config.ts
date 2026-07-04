@@ -7,6 +7,12 @@ import type { NextConfig } from "next";
 // intégrés (les domaines PostHog seront ajoutés à connect-src et script-src à ce stade).
 // En dev, Next/React exigent 'unsafe-eval' (debug) et un websocket pour le HMR.
 // En production, la politique reste stricte.
+//
+// connect-src : '*.supabase.co' autorise tous les projets Supabase.
+// La landing n'effectue aucun appel Supabase côté client (tout passe par les routes API
+// serveur) — la directive n'est donc là qu'en filet de sécurité.
+// TODO (P1) : remplacer par l'origine exacte du projet Supabase une fois l'URL
+// disponible en build env (ex. https://xxxxxxxxxxxx.supabase.co).
 const isDev = process.env.NODE_ENV !== "production";
 const csp = [
   "default-src 'self'",
@@ -21,7 +27,11 @@ const csp = [
   "frame-src 'self' https://cal.eu https://*.cal.eu",
   "frame-ancestors 'none'",
   "base-uri 'self'",
+  // form-action restreint les soumissions de formulaires à l'origine propre.
   "form-action 'self'",
+  // object-src bloque les plug-ins (Flash, etc.) — non requis par la DA mais
+  // recommandé par les guidelines OWASP CSP.
+  "object-src 'none'",
 ].join("; ");
 
 // En-têtes de sécurité appliqués à toutes les réponses.
@@ -38,12 +48,35 @@ const securityHeaders = [
     value: "max-age=63072000; includeSubDomains; preload",
   },
   { key: "Content-Security-Policy", value: csp },
+  // X-XSS-Protection : actif en mode block pour les navigateurs anciens qui
+  // ne supportent pas CSP (belt-and-suspenders). Les navigateurs modernes ignorent
+  // cet en-tête en faveur de CSP.
+  { key: "X-XSS-Protection", value: "1; mode=block" },
+  // Cache-Control par défaut : les pages publiques statiques peuvent être cachées.
+  // Les routes API sensibles surchargent cet en-tête (no-store) via middleware.
+  // Voir middleware.ts pour la politique spécifique aux routes /api/*.
+];
+
+// En-têtes supplémentaires pour les routes API sensibles (no-store + no-cache).
+const apiSecurityHeaders = [
+  ...securityHeaders,
+  {
+    key: "Cache-Control",
+    value: "no-store, no-cache, must-revalidate, proxy-revalidate",
+  },
+  { key: "Pragma", value: "no-cache" },
+  { key: "Surrogate-Control", value: "no-store" },
 ];
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      // Routes API sensibles : jamais mises en cache.
+      { source: "/api/:path*", headers: apiSecurityHeaders },
+      // Toutes les autres routes (pages statiques, assets).
+      { source: "/:path*", headers: securityHeaders },
+    ];
   },
 };
 

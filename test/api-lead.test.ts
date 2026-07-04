@@ -3,12 +3,25 @@
  *
  * On importe le handler Next.js directement et on le pilote avec de vraies
  * instances Request (cast en NextRequest), sans démarrer de serveur HTTP.
- * Les dépendances externes (Supabase, Cal.com, rate-limit) sont mockées.
+ * Les dépendances externes (Supabase, Cal.com, rate-limit, env) sont mockées.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { NextRequest } from "next/server";
 
 // --- Mocks déclarés AVANT l'import du handler ---
+
+// Environnement serveur complet (inclut CAL_LINK côté serveur uniquement).
+const { mockGetServerEnv } = vi.hoisted(() => {
+  return {
+    mockGetServerEnv: vi.fn().mockReturnValue({
+      SUPABASE_URL: "https://db.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "service_role_key_1234567890",
+      CAL_LINK: "exdal/20min",
+    }),
+  };
+});
+
+vi.mock("@/lib/env", () => ({ getServerEnv: mockGetServerEnv }));
 
 vi.mock("@/lib/leads/repository", () => ({
   insertLead: vi.fn().mockResolvedValue({ id: "lead-uuid-42" }),
@@ -38,25 +51,28 @@ function makeRequest(
   body: unknown,
   headers?: Record<string, string>,
 ): NextRequest {
+  const raw = JSON.stringify(body);
   return new Request("http://localhost/api/lead", {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...headers },
-    body: JSON.stringify(body),
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Length": String(raw.length),
+      ...headers,
+    },
+    body: raw,
   }) as unknown as NextRequest;
 }
 
 describe("POST /api/lead", () => {
-  const originalCalLink = process.env.NEXT_PUBLIC_CAL_LINK;
-
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(insertLead).mockResolvedValue({ id: "lead-uuid-42" });
     vi.mocked(rateLimit).mockReturnValue({ allowed: true, remaining: 4 });
-    process.env.NEXT_PUBLIC_CAL_LINK = "exdal/20min";
-  });
-
-  afterEach(() => {
-    process.env.NEXT_PUBLIC_CAL_LINK = originalCalLink;
+    mockGetServerEnv.mockReturnValue({
+      SUPABASE_URL: "https://db.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "service_role_key_1234567890",
+      CAL_LINK: "exdal/20min",
+    });
   });
 
   // --- Happy path ---
@@ -81,7 +97,6 @@ describe("POST /api/lead", () => {
   it("200 — segment déduit du stade quand absent du payload", async () => {
     const req = makeRequest({ ...validBody, stage: "pilotage" });
     const res = await POST(req);
-    const json = await res.json();
 
     expect(res.status).toBe(200);
     // insertLead doit avoir reçu segment:"pme" (déduit de stage:"pilotage")
@@ -111,10 +126,10 @@ describe("POST /api/lead", () => {
       body: "pas du json{{{",
     }) as unknown as NextRequest;
     const res = await POST(req);
-    const json = await res.json();
+    const body = await res.json();
 
     expect(res.status).toBe(400);
-    expect(json.success).toBe(false);
+    expect(body.success).toBe(false);
   });
 
   it("422 — email invalide", async () => {
@@ -159,10 +174,14 @@ describe("POST /api/lead", () => {
     expect(insertLead).not.toHaveBeenCalled();
   });
 
-  // --- Variable d'environnement manquante ---
+  // --- CAL_LINK manquant ---
 
-  it("503 — NEXT_PUBLIC_CAL_LINK absent", async () => {
-    delete process.env.NEXT_PUBLIC_CAL_LINK;
+  it("503 — CAL_LINK absent de l'env serveur", async () => {
+    mockGetServerEnv.mockReturnValue({
+      SUPABASE_URL: "https://db.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "service_role_key_1234567890",
+      CAL_LINK: undefined,
+    });
     const req = makeRequest(validBody);
     const res = await POST(req);
     const json = await res.json();
@@ -191,5 +210,22 @@ describe("POST /api/lead", () => {
     const res = await POST(req);
 
     expect(res.status).toBe(429);
+  });
+
+  // --- Limite de taille du corps ---
+
+  it("413 — corps trop volumineux (Content-Length)", async () => {
+    // Corps valide mais Content-Length truqué à une valeur > MAX_BODY_BYTES
+    const req = new Request("http://localhost/api/lead", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": String(9 * 1024), // 9 Ko > 8 Ko limit
+      },
+      body: JSON.stringify(validBody),
+    }) as unknown as NextRequest;
+    const res = await POST(req);
+
+    expect(res.status).toBe(413);
   });
 });

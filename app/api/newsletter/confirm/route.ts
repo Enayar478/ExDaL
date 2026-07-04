@@ -5,19 +5,42 @@ import { logger } from "@/lib/logger";
 import { site } from "@/lib/site";
 
 /**
+ * Ensemble statique des valeurs autorisées pour le paramètre `newsletter` de la
+ * redirection. Cela évite d'interpoler result.reason (chaîne externe, même si elle
+ * est issue de notre enum) directement dans l'URL sans validation explicite.
+ */
+const ALLOWED_NEWSLETTER_PARAMS = new Set([
+  "invalid",
+  "malformed",
+  "expired",
+  "invalid_signature",
+  "error",
+  "confirmed",
+] as const);
+
+type NewsletterParam = "invalid" | "malformed" | "expired" | "invalid_signature" | "error" | "confirmed";
+
+function redirectTo(param: NewsletterParam): NextResponse {
+  return NextResponse.redirect(
+    new URL(`/?newsletter=${param}`, site.url),
+    { status: 302 },
+  );
+}
+
+/**
  * GET /api/newsletter/confirm?token=…
  * Validation du double opt-in : vérifie le token HMAC, confirme l'abonné,
- * redirige vers la landing avec le paramètre `newsletter=confirmed`.
+ * redirige vers la landing avec le paramètre `newsletter=<état>`.
+ *
+ * Le paramètre de redirection est issu d'une liste autorisée explicite —
+ * jamais interpolé depuis l'entrée utilisateur ou une chaîne non validée.
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const token = searchParams.get("token");
 
   if (!token) {
-    return NextResponse.redirect(
-      new URL("/?newsletter=invalid", site.url),
-      { status: 302 },
-    );
+    return redirectTo("invalid");
   }
 
   const result = verifyConfirmToken(token);
@@ -26,10 +49,14 @@ export async function GET(request: NextRequest) {
     logger.warn("Token de confirmation newsletter invalide", {
       reason: result.reason,
     });
-    return NextResponse.redirect(
-      new URL(`/?newsletter=${result.reason}`, site.url),
-      { status: 302 },
-    );
+
+    // Valider que la raison fait partie de l'ensemble autorisé avant de la
+    // placer dans l'URL de redirection.
+    const safeReason = ALLOWED_NEWSLETTER_PARAMS.has(result.reason)
+      ? (result.reason as NewsletterParam)
+      : "invalid";
+
+    return redirectTo(safeReason);
   }
 
   try {
@@ -38,14 +65,8 @@ export async function GET(request: NextRequest) {
     logger.error("Confirmation newsletter échouée en base", {
       message: error instanceof Error ? error.message : String(error),
     });
-    return NextResponse.redirect(
-      new URL("/?newsletter=error", site.url),
-      { status: 302 },
-    );
+    return redirectTo("error");
   }
 
-  return NextResponse.redirect(
-    new URL("/?newsletter=confirmed", site.url),
-    { status: 302 },
-  );
+  return redirectTo("confirmed");
 }
