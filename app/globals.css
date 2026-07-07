@@ -393,6 +393,64 @@ body.journey-on .site-header {
   color: var(--color-gris);
 }
 
+/* Le gain — « grand livre » (partie double : gain à gauche, détail à droite).
+   Aucun chiffre inventé : les « figures » sont des mots (Des heures / Zéro /
+   Anticipé), l'or restant réservé à l'ancre 44 000 €. */
+.j-ledger {
+  margin: 30px auto 0;
+  padding: 0;
+  max-width: 52ch;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+.j-ledger-row {
+  display: grid;
+  grid-template-columns: minmax(88px, 150px) 1fr;
+  column-gap: 20px;
+  padding: 16px 0;
+  border-top: 1px solid var(--color-line);
+  align-items: baseline;
+}
+.j-ledger-row:last-child {
+  border-bottom: 1px solid var(--color-line);
+}
+.j-ledger-fig {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(1.1rem, 2.6vw, 1.5rem);
+  line-height: 1.2;
+  color: var(--color-or-dim);
+}
+.j-ledger-label {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--color-brume);
+}
+
+/* Reco d'entrée adaptative sous les offres (selon le profil choisi) */
+.j-guide {
+  margin: 22px auto 0;
+  max-width: 46ch;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--color-or-dim);
+}
+.j-guide strong {
+  color: var(--color-or);
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .j-ledger-row {
+    grid-template-columns: 1fr;
+    row-gap: 4px;
+  }
+}
+
 /* Bénéfice + badge des cartes d'offre */
 .j-offer-b {
   display: block;
