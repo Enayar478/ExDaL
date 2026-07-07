@@ -32,9 +32,9 @@ const pennylaneOptions = [
 ] as const;
 
 const stageOptions = [
-  { value: "pilotage", label: "Piloter au quotidien" },
-  { value: "cabinet", label: "Je suis un cabinet" },
-  { value: "operation", label: "Je prépare une levée ou une cession" },
+  { value: "pilotage", label: "Piloter mon activité au quotidien" },
+  { value: "cabinet", label: "Fiabiliser le reporting de mes clients" },
+  { value: "operation", label: "Préparer une levée ou une cession" },
 ] as const;
 
 export function QualificationModal({

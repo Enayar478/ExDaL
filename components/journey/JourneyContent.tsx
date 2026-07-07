@@ -48,8 +48,8 @@ const pennylaneOptions: { value: Pennylane; label: string }[] = [
 
 // La question de bifurcation : elle capte le profil et pilote tout l'adaptatif.
 const stageOptions: { value: Stage; label: string }[] = [
-  { value: "pilotage", label: "Piloter clair, au quotidien" },
-  { value: "cabinet", label: "Servir mes clients sous Pennylane" },
+  { value: "pilotage", label: "Piloter mon activité au quotidien" },
+  { value: "cabinet", label: "Fiabiliser le reporting de mes clients" },
   { value: "operation", label: "Préparer une levée ou une cession" },
 ];
 
