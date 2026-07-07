@@ -6,7 +6,7 @@ import { ImmersiveJourney } from "@/components/journey/ImmersiveJourney";
 
 /**
  * Le contenu du voyage : chaque palier reprend le copy validé (refonte tunnel).
- * Le formulaire de qualification EST le voyage — on s'enfonce en répondant, et
+ * Le formulaire de qualification EST le voyage : on s'enfonce en répondant, et
  * on débouche dans la lumière sur la prise de rendez-vous (POST /api/lead réel
  * puis redirection vers le créneau Cal.eu prérempli). En reduced-motion, les
  * paliers s'empilent en flux normal : tout reste lisible et navigable.
@@ -14,8 +14,8 @@ import { ImmersiveJourney } from "@/components/journey/ImmersiveJourney";
  * Parcours adaptatif : la BIFURCATION (palier 1) capte le profil du visiteur,
  * et les paliers suivants (Problème, reco d'offre) affichent le copy de SON
  * profil. Même parcours pour tous ; seul le texte s'ajuste.
- * Ordre : Hero → Bifurcation → Problème → Preuve → Le gain → Offres →
- * Méthode → Pourquoi → Identité → Pennylane → Arrivée.
+ * Ordre : Hero, Bifurcation, Problème, Preuve, Le gain, Offres,
+ * Méthode, Pourquoi, Identité, Pennylane, Arrivée.
  */
 type Pennylane = "oui" | "bientot" | "non";
 type Stage = "pilotage" | "cabinet" | "operation";
@@ -61,7 +61,7 @@ const symptoms: Record<Stage, string[]> = {
     "Vous décidez au ressenti, faute d'un tableau de bord fiable sous les yeux.",
   ],
   cabinet: [
-    "Chaque client réclame son reporting — et chacun repart d'un fichier refait à la main.",
+    "Chaque client réclame son reporting, et chacun repart d'un fichier refait à la main.",
     "Vos collaborateurs passent des heures à consolider ce que Pennylane pourrait sortir seul.",
     "Vous vendez du conseil, mais votre équipe produit surtout de la ressaisie.",
   ],
@@ -88,7 +88,7 @@ const steps: { k: string; title: string; body: string }[] = [
   {
     k: "02",
     title: "Le diagnostic",
-    body: "J'identifie où dort la donnée, ce qui est fiable, ce qui manque. Vous repartez avec une image claire — même sans suite.",
+    body: "J'identifie où dort la donnée, ce qui est fiable, ce qui manque. Vous repartez avec une image claire, même sans suite.",
   },
   {
     k: "03",
@@ -152,26 +152,24 @@ export function JourneyContent() {
       <section aria-label="Introduction">
         <Image
           src="/emblem.png"
-          alt="Emblème ExDaL — un point de lumière né de la donnée"
+          alt="Emblème ExDaL, un point de lumière né de la donnée"
           width={240}
           height={240}
           priority
           className="j-emblem"
         />
-        <p className="j-eyebrow">De la donnée · la lumière</p>
         <h1 className="j-h1">
-          De vos données Pennylane,
+          Pennylane tient vos comptes.
           <br />
-          des décisions — et des <em>dossiers qui tiennent</em>.
+          J&rsquo;en tire <em>vos décisions</em>.
         </h1>
         <p className="j-sub">
-          Analytics engineer spécialiste Pennylane — je lis un bilan aussi bien
-          qu&rsquo;une requête SQL.
+          Studio de data financière, spécialiste Pennylane.
         </p>
         <span className="j-shaft" aria-hidden="true" />
       </section>
 
-      {/* 1 — BIFURCATION (capte le profil → pilote l'adaptatif) */}
+      {/* 1 — BIFURCATION (capte le profil, pilote l'adaptatif) */}
       <section aria-label="Ce qui vous amène">
         <p className="j-eyebrow">Commençons par vous</p>
         <h2 className="j-h2">Qu&rsquo;est-ce qui vous amène ?</h2>
@@ -210,7 +208,7 @@ export function JourneyContent() {
         </p>
         <p className="j-sub">
           J&rsquo;ai préparé la donnée financière qui a servi à la cession
-          d&rsquo;une entreprise — ARR, MRR, current trading, cohortes — dans le
+          d&rsquo;une entreprise (ARR, MRR, current trading, cohortes), dans le
           calme, avant que l&rsquo;urgence impose son prix. La plupart des data
           engineers n&rsquo;ont jamais lu un compte de résultat. Je fais les
           deux : le pipeline et la finance. C&rsquo;est la seule raison pour
@@ -218,7 +216,7 @@ export function JourneyContent() {
         </p>
       </section>
 
-      {/* 4 — LE GAIN (grand livre honnête — aucun chiffre inventé) */}
+      {/* 4 — LE GAIN (grand livre honnête, aucun chiffre inventé) */}
       <section aria-label="Ce que ça change">
         <p className="j-eyebrow">Ce que ça change</p>
         <h2 className="j-h2">Le calcul est simple.</h2>
@@ -226,7 +224,7 @@ export function JourneyContent() {
           <div className="j-ledger-row">
             <dt className="j-ledger-fig">Des heures</dt>
             <dd className="j-ledger-label">
-              d&rsquo;analyse et de ressaisie en moins, chaque semaine — du temps
+              d&rsquo;analyse et de ressaisie en moins chaque semaine. Du temps
               rendu à vos équipes.
             </dd>
           </div>
@@ -241,7 +239,7 @@ export function JourneyContent() {
             <dt className="j-ledger-fig">Anticipé</dt>
             <dd className="j-ledger-label">
               le cabinet qu&rsquo;on appelle en urgence pour sortir les chiffres
-              à l&rsquo;instant T — le travail est déjà fait, en amont.
+              à l&rsquo;instant T. C&rsquo;est déjà fait, en amont.
             </dd>
           </div>
         </dl>
@@ -260,7 +258,7 @@ export function JourneyContent() {
         <p className="j-eyebrow">Trois manières de faire parler vos chiffres</p>
         <div className="j-offers">
           <div className="j-offer">
-            <span className="j-offer-k">Le Socle · Clarté</span>
+            <span className="j-offer-k">Le Socle</span>
             <span className="j-offer-b">
               Pour piloter enfin sur des données fiables.
             </span>
@@ -269,7 +267,7 @@ export function JourneyContent() {
           </div>
           <div className="j-offer j-offer-mid">
             <span className="j-offer-badge">Le choix évident</span>
-            <span className="j-offer-k">Le Pilotage · Maîtrise</span>
+            <span className="j-offer-k">Le Pilotage</span>
             <span className="j-offer-b">
               Pour que vos chiffres travaillent chaque mois.
             </span>
@@ -277,11 +275,11 @@ export function JourneyContent() {
             penser. Le choix de ceux qui n&rsquo;y reviennent plus.
           </div>
           <div className="j-offer">
-            <span className="j-offer-k">L&rsquo;Opération · Précision</span>
+            <span className="j-offer-k">L&rsquo;Opération</span>
             <span className="j-offer-b">
               Pour une levée ou une cession qui se tient.
             </span>
-            ARR, MRR, current trading, cohortes — les fichiers qu&rsquo;un
+            ARR, MRR, current trading, cohortes. Les fichiers qu&rsquo;un
             investisseur exige, construits avant qu&rsquo;il les réclame.
           </div>
         </div>
@@ -297,9 +295,9 @@ export function JourneyContent() {
       <section aria-label="La méthode">
         <p className="j-eyebrow">La méthode</p>
         <h2 className="j-h2">
-          Quatre temps. Un seul difficile —
+          Quatre temps. Un seul difficile.
           <br />
-          et il est <em>pour moi</em>.
+          Et il est <em>pour moi</em>.
         </h2>
         <ol className="j-steps">
           {steps.map((s) => (
@@ -324,9 +322,9 @@ export function JourneyContent() {
         <p className="j-signature">Ex Datis Lumen</p>
       </section>
 
-      {/* 8 — QUALIFICATION · identité */}
+      {/* 8 — QUALIFICATION identité */}
       <section aria-label="Qui êtes-vous">
-        <p className="j-qlabel">01 — Faisons connaissance</p>
+        <p className="j-qlabel">01. Faisons connaissance</p>
         <h2 className="j-h2">Vous êtes&hellip;</h2>
         <div className="j-fields">
           <JField
@@ -371,9 +369,9 @@ export function JourneyContent() {
         />
       </section>
 
-      {/* 9 — QUALIFICATION · Pennylane */}
+      {/* 9 — QUALIFICATION Pennylane */}
       <section aria-label="Usage de Pennylane">
-        <p className="j-qlabel">02 — Votre outil</p>
+        <p className="j-qlabel">02. Votre outil</p>
         <h2 className="j-h2">
           Vous utilisez <em>Pennylane</em> ?
         </h2>
@@ -391,7 +389,7 @@ export function JourneyContent() {
         <h2 className="j-h2">Parlons de vos chiffres.</h2>
         <p className="j-sub">
           Vingt minutes. Vous repartez avec une lecture claire de ce que votre
-          donnée peut vous dire — que l&rsquo;on travaille ensemble ou non.
+          donnée peut vous dire, que l&rsquo;on travaille ensemble ou non.
           L&rsquo;échange ne coûte rien. Le temps perdu chaque mois, si.
         </p>
         {error && (
@@ -408,9 +406,9 @@ export function JourneyContent() {
           {submitting ? "Un instant…" : "Réserver l'échange"}
         </button>
         <p className="j-consent">
-          Sans engagement · Pas de relance commerciale · Réponse sous 48h. En
-          continuant, vous acceptez le traitement de vos informations —{" "}
-          <a href="/mentions-legales">confidentialité</a>.
+          Sans engagement. Pas de relance commerciale. Réponse sous 48h. En
+          continuant, vous acceptez le traitement de vos informations.{" "}
+          <a href="/mentions-legales">Confidentialité</a>.
         </p>
       </section>
     </ImmersiveJourney>

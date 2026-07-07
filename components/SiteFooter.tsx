@@ -17,7 +17,7 @@ export function SiteFooter() {
             <div>
               <Logo size="sm" />
               <p className="mt-4 max-w-[42ch] font-serif text-sm italic text-brume">
-                {site.legalName} — de vos données, la clarté qui vous rend
+                {site.legalName}. De vos données, la clarté qui vous rend
                 puissant.
               </p>
             </div>
@@ -25,10 +25,10 @@ export function SiteFooter() {
             {/* Newsletter Lumen */}
             <div className="max-w-[320px]">
               <p className="mb-1 font-mono text-[11px] uppercase tracking-[0.12em] text-or-dim">
-                Lumen — la newsletter
+                Lumen, la newsletter
               </p>
               <p className="mb-3 font-serif text-sm italic text-brume">
-                Ce que vos chiffres vous disent — si vous savez les lire.
+                Ce que vos chiffres vous disent, si vous savez les lire.
                 Bimensuelle. Sobre.
               </p>
               <NewsletterForm source="footer" />
@@ -48,7 +48,7 @@ export function SiteFooter() {
               Mentions légales
             </a>
             <span>
-              {domain} · © {year}
+              © {year} {domain}
             </span>
           </div>
         </div>

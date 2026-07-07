@@ -130,7 +130,7 @@ export function QualificationModal({
         <div className="flex flex-col gap-7 px-7 py-7">
           <fieldset className="flex flex-col gap-3">
             <legend className="mb-1">
-              <MonoLabel tone="gris">1 · Qui êtes-vous ?</MonoLabel>
+              <MonoLabel tone="gris">1. Qui êtes-vous ?</MonoLabel>
             </legend>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field
@@ -162,7 +162,7 @@ export function QualificationModal({
           </fieldset>
 
           <ChoiceGroup
-            legend="2 · Utilisez-vous Pennylane ?"
+            legend="2. Utilisez-vous Pennylane ?"
             name="pennylane"
             options={pennylaneOptions}
             value={form.pennylane}
@@ -170,7 +170,7 @@ export function QualificationModal({
           />
 
           <ChoiceGroup
-            legend="3 · À quel stade êtes-vous ?"
+            legend="3. À quel stade êtes-vous ?"
             name="stage"
             options={stageOptions}
             value={effectiveStage}
@@ -205,7 +205,7 @@ export function QualificationModal({
             {submitting ? "Un instant…" : "Accéder au calendrier"}
           </button>
           <p className="text-center font-mono text-[11px] uppercase tracking-[0.12em] text-gris">
-            Sans engagement · 20 minutes · Réponse sous 48h
+            Sans engagement. 20 minutes. Réponse sous 48h.
           </p>
         </footer>
       </form>
