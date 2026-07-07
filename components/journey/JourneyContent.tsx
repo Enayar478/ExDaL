@@ -147,7 +147,7 @@ export function JourneyContent() {
   }
 
   return (
-    <ImmersiveJourney>
+    <ImmersiveJourney gateIndex={1} gateOpen={Boolean(form.stage)}>
       {/* 0 — HERO */}
       <section aria-label="Introduction">
         <Image
@@ -165,10 +165,8 @@ export function JourneyContent() {
           des décisions — et des <em>dossiers qui tiennent</em>.
         </h1>
         <p className="j-sub">
-          Analytics engineer spécialiste Pennylane. Je lis un bilan aussi bien
-          qu&rsquo;une requête SQL : vos ventes, votre compta et vos paiements
-          deviennent des tableaux de bord fiables — jusqu&rsquo;aux dossiers
-          qu&rsquo;un investisseur examine sans broncher.
+          Analytics engineer spécialiste Pennylane — je lis un bilan aussi bien
+          qu&rsquo;une requête SQL.
         </p>
         <span className="j-shaft" aria-hidden="true" />
       </section>

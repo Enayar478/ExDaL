@@ -22,12 +22,31 @@ import { getLenis } from "@/components/tunnel/lenis-store";
 const Z_FAR = 3000;
 const Z_NEAR = 900;
 
-export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
+export function ImmersiveJourney({
+  children,
+  gateIndex = -1,
+  gateOpen = true,
+}: {
+  children: React.ReactNode;
+  /** Palier au-delà duquel on bloque tant que `gateOpen` est faux (-1 = aucun). */
+  gateIndex?: number;
+  /** Le verrou est-il levé ? (ex. la bifurcation a reçu un choix) */
+  gateOpen?: boolean;
+}) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [touch, setTouch] = useState(false);
   const slabs = Children.toArray(children);
   const n = slabs.length;
+
+  // Refs lues par les closures de navigation : le verrou peut s'ouvrir sans
+  // recréer l'effet (dépendant de [n]). Synchronisées hors render.
+  const gateIndexRef = useRef(gateIndex);
+  const gateOpenRef = useRef(gateOpen);
+  useEffect(() => {
+    gateIndexRef.current = gateIndex;
+    gateOpenRef.current = gateOpen;
+  }, [gateIndex, gateOpen]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -46,9 +65,17 @@ export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
     const steps = n - 1;
     if (!track || !viewport || layers.length === 0) return;
 
+    // Profondeur maximale atteignable : bornée au verrou tant qu'il est fermé.
+    const maxTravel = () =>
+      gateIndexRef.current >= 0 && !gateOpenRef.current
+        ? Math.min(gateIndexRef.current, steps)
+        : steps;
+
     let rafId = 0;
     /** Positionne tous les paliers pour une profondeur `travel` ∈ [0, n-1]. */
     const renderTravel = (travel: number) => {
+      const cap = maxTravel();
+      if (travel > cap) travel = cap; // le verrou fige la scène sur le palier bloquant
       const ratio = steps > 0 ? clamp(0, 1, travel / steps) : 0;
       layers.forEach((layer, i) => {
         const p = travel - i;
@@ -123,7 +150,7 @@ export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
         animId = requestAnimationFrame(frame);
       };
       const go = (dir: number) => {
-        const target = clamp(0, steps, step + dir);
+        const target = clamp(0, maxTravel(), step + dir);
         if (target === step) return;
         step = target;
         animateTo(step);
@@ -212,7 +239,7 @@ export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
       const range = st.end - st.start;
       if (range <= 0) return;
       const prog = clamp(0, 1, (window.scrollY - st.start) / range);
-      const idx = clamp(0, steps, Math.round(prog * steps));
+      const idx = clamp(0, maxTravel(), Math.round(prog * steps));
       const targetY = st.start + (idx / steps) * range;
       if (Math.abs(targetY - window.scrollY) < 3) return;
       const lenis = getLenis();
