@@ -17,8 +17,7 @@ export function SiteFooter() {
             <div>
               <Logo size="sm" />
               <p className="mt-4 max-w-[42ch] font-serif text-sm italic text-brume">
-                {site.legalName}. De vos données, la clarté qui vous rend
-                puissant.
+                {site.legalName}. De vos données, la clarté.
               </p>
             </div>
 

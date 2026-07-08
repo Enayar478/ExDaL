@@ -373,10 +373,9 @@ body.journey-on .site-header {
   gap: 12px;
 }
 .j-tension {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  line-height: 1.5;
-  letter-spacing: 0.02em;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.55;
   color: var(--color-brume);
   padding-left: 16px;
   border-left: 1px solid var(--color-line);
@@ -420,7 +419,7 @@ body.journey-on .site-header {
   font-style: italic;
   font-size: clamp(1.1rem, 2.6vw, 1.5rem);
   line-height: 1.2;
-  color: var(--color-or-dim);
+  color: var(--color-blanc);
 }
 .j-ledger-label {
   margin: 0;

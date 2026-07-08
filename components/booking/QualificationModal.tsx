@@ -202,7 +202,7 @@ export function QualificationModal({
             disabled={submitting}
             className="w-full rounded-sm bg-or px-6 py-3 font-mono text-[13px] uppercase tracking-[0.1em] text-noir transition-opacity hover:opacity-90 disabled:opacity-60"
           >
-            {submitting ? "Un instant…" : "Accéder au calendrier"}
+            {submitting ? "Un instant…" : "Réserver l'échange"}
           </button>
           <p className="text-center font-mono text-[11px] uppercase tracking-[0.12em] text-gris">
             Sans engagement. 20 minutes. Réponse sous 48h.

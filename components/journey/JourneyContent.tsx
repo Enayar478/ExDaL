@@ -12,10 +12,11 @@ import { ImmersiveJourney } from "@/components/journey/ImmersiveJourney";
  * paliers s'empilent en flux normal : tout reste lisible et navigable.
  *
  * Parcours adaptatif : la BIFURCATION (palier 1) capte le profil du visiteur,
- * et les paliers suivants (Problème, reco d'offre) affichent le copy de SON
- * profil. Même parcours pour tous ; seul le texte s'ajuste.
- * Ordre : Hero, Bifurcation, Problème, Preuve, Le gain, Offres,
- * Méthode, Pourquoi, Identité, Pennylane, Arrivée.
+ * et les paliers suivants s'adaptent (titre + symptômes du Problème, illustration
+ * de la Preuve, ancre de valeur, offre recommandée). Même parcours pour tous ;
+ * seul le texte s'ajuste.
+ * Arc : Hero, Bifurcation, Problème (douleur), Le gain (espoir), Preuve
+ * (crédibilité), Offre, Méthode, Pourquoi, Identité, Pennylane, Arrivée.
  */
 type Pennylane = "oui" | "bientot" | "non";
 type Stage = "pilotage" | "cabinet" | "operation";
@@ -72,6 +73,41 @@ const symptoms: Record<Stage, string[]> = {
   ],
 };
 
+// Titre du palier Problème, propre à chaque profil (la 2e ligne, en or).
+const problemTitle: Record<Stage, { top: string; punch: string }> = {
+  pilotage: {
+    top: "Vos chiffres savent tout.",
+    punch: "Vous pilotez à l'aveugle.",
+  },
+  cabinet: {
+    top: "La donnée de vos clients est là.",
+    punch: "Votre équipe la ressaisit.",
+  },
+  operation: {
+    top: "Tout est dans vos chiffres.",
+    punch: "Rien n'est prêt pour l'investisseur.",
+  },
+};
+
+// Preuve : même vécu réel (une cession préparée pour de vrai), orienté profil.
+const proof: Record<Stage, string> = {
+  pilotage:
+    "La rigueur qu'exige une cession, où les chiffres tiennent sous le regard d'un investisseur, je la mets au service de votre pilotage.",
+  cabinet:
+    "La donnée que je produis a tenu face à une due diligence. C'est ce niveau de fiabilité que méritent les reportings de vos clients.",
+  operation:
+    "J'ai préparé la donnée financière qui a servi à la cession d'une entreprise : ARR, MRR, current trading, cohortes. Dans le calme, avant que l'urgence impose son prix.",
+};
+
+// Ancre de valeur, collée à l'offre. 44 000 € pour la cession (chiffre réel du
+// brief) ; ailleurs, une ancre d'aversion à la perte, sans chiffre inventé.
+const valueAnchorAlt: Record<"pilotage" | "cabinet", string> = {
+  pilotage:
+    "Chaque mois au ressenti coûte plus qu'on ne croit : des heures, des erreurs, des décisions prises trop tard.",
+  cabinet:
+    "La ressaisie de vos équipes coûte, mois après mois, plus qu'un reporting fiabilisé une bonne fois.",
+};
+
 // Les trois offres. Le parcours n'en met en avant qu'UNE, celle du profil ;
 // les deux autres sont évoquées en progression (jamais un menu à re-choisir).
 const offers: Record<string, { name: string; benefit: string; detail: string }> =
@@ -104,34 +140,18 @@ const recommendedOffer: Record<Stage, keyof typeof offers> = {
 // La gamme, présentée comme une progression (contexte), pas comme un choix.
 const offerLadder: Record<Stage, string> = {
   pilotage:
-    "Ça peut grandir : Le Pilotage (suivi mensuel), puis L'Opération (levée ou cession).",
+    "La suite, le moment venu : Le Pilotage pour un suivi mensuel, puis L'Opération pour une levée ou une cession.",
   cabinet:
-    "Le Pilotage part du Socle. Et pour une levée ou une cession, il y a L'Opération.",
+    "Le Pilotage part du Socle. Pour une levée ou une cession, il y a L'Opération.",
   operation:
     "L'Opération intègre tout le quotidien : Le Socle et Le Pilotage.",
-};
-
-// Titre du palier Problème, propre à chaque profil (la 2e ligne, en or).
-const problemTitle: Record<Stage, { top: string; punch: string }> = {
-  pilotage: {
-    top: "Vos chiffres savent tout.",
-    punch: "Vous pilotez à l'aveugle.",
-  },
-  cabinet: {
-    top: "La donnée de vos clients est là.",
-    punch: "Votre équipe la ressaisit.",
-  },
-  operation: {
-    top: "Tout est dans vos chiffres.",
-    punch: "Rien n'est prêt pour l'investisseur.",
-  },
 };
 
 const steps: { k: string; title: string; body: string }[] = [
   {
     k: "01",
     title: "L'échange",
-    body: "Vingt minutes pour comprendre votre situation. Sans engagement.",
+    body: "Comprendre votre situation, de vive voix.",
   },
   {
     k: "02",
@@ -221,7 +241,7 @@ export function JourneyContent() {
       {/* 1 — BIFURCATION (capte le profil, pilote l'adaptatif) */}
       <section aria-label="Ce qui vous amène">
         <p className="j-eyebrow">Commençons par vous</p>
-        <h2 className="j-h2">Qu&rsquo;est-ce qui vous amène ?</h2>
+        <h2 className="j-h2">Qu&rsquo;est-ce qui vous amène&nbsp;?</h2>
         <p className="j-sub">La suite s&rsquo;adapte à votre réponse.</p>
         <JChoice
           name="stage"
@@ -229,9 +249,13 @@ export function JourneyContent() {
           value={form.stage}
           onChange={(v) => set("stage", v as Stage)}
         />
+        <p className="j-fieldnote">
+          Un doute&nbsp;? Prenez le cas le plus proche, on affinera à
+          l&rsquo;échange.
+        </p>
       </section>
 
-      {/* 2 — PROBLÈME (symptômes adaptés au profil) */}
+      {/* 2 — PROBLÈME (douleur, adaptée au profil) */}
       <section aria-label="Le problème">
         <p className="j-eyebrow">Ce que je vois</p>
         <h2 className="j-h2">
@@ -248,24 +272,7 @@ export function JourneyContent() {
         </ul>
       </section>
 
-      {/* 3 — LA PREUVE (autorité + double compétence) */}
-      <section aria-label="La preuve">
-        <p className="j-eyebrow">Une compétence rare</p>
-        <p className="j-quote">
-          «&nbsp;J&rsquo;ai produit ces chiffres <em>pour de vrai</em>. Sous
-          pression.&nbsp;»
-        </p>
-        <p className="j-sub">
-          J&rsquo;ai préparé la donnée financière qui a servi à la cession
-          d&rsquo;une entreprise (ARR, MRR, current trading, cohortes), dans le
-          calme, avant que l&rsquo;urgence impose son prix. La plupart des data
-          engineers n&rsquo;ont jamais lu un compte de résultat. Je fais les
-          deux : le pipeline et la finance. C&rsquo;est la seule raison pour
-          laquelle ce que je produis tient le jour où ça compte.
-        </p>
-      </section>
-
-      {/* 4 — LE GAIN (grand livre honnête, aucun chiffre inventé) */}
+      {/* 3 — LE GAIN (l'espoir : ce que ça change, sans chiffre inventé) */}
       <section aria-label="Ce que ça change">
         <p className="j-eyebrow">Ce que ça change</p>
         <h2 className="j-h2">Le calcul est simple.</h2>
@@ -283,19 +290,29 @@ export function JourneyContent() {
             </dd>
           </div>
           <div className="j-ledger-row">
-            <dt className="j-ledger-fig">Anticipé</dt>
+            <dt className="j-ledger-fig">D&rsquo;avance</dt>
             <dd className="j-ledger-label">
               les chiffres qu&rsquo;on réclame en urgence sont déjà prêts.
             </dd>
           </div>
         </dl>
-        <p className="j-anchor">
-          Un cabinet de transaction facturait <em>44 000 €</em> pour un livrable
-          équivalent.
+      </section>
+
+      {/* 4 — LA PREUVE (crédibilité : même vécu réel, orienté profil) */}
+      <section aria-label="La preuve">
+        <p className="j-eyebrow">Une compétence rare</p>
+        <p className="j-quote">
+          «&nbsp;J&rsquo;ai produit ces chiffres <em>pour de vrai</em>. Sous
+          pression.&nbsp;»
+        </p>
+        <p className="j-sub">{proof[profile]}</p>
+        <p className="j-sub">
+          Data et finance : je fais les deux. C&rsquo;est ce qui fait
+          qu&rsquo;un dossier tient le jour où ça compte.
         </p>
       </section>
 
-      {/* 5 — OFFRE RECOMMANDÉE (répond au choix d'entrée) + gamme en progression */}
+      {/* 5 — OFFRE RECOMMANDÉE (répond au profil) + ancre + gamme */}
       <section aria-label="Votre offre">
         <p className="j-eyebrow">Ce que je vous recommande</p>
         <div className="j-offer-solo">
@@ -304,6 +321,16 @@ export function JourneyContent() {
           <span className="j-offer-b">{rec.benefit}</span>
           {rec.detail}
         </div>
+        {profile === "operation" ? (
+          <p className="j-anchor">
+            Un cabinet de transaction facturait <em>44&nbsp;000&nbsp;€</em> pour
+            le même dossier.
+          </p>
+        ) : (
+          <p className="j-anchor">
+            {valueAnchorAlt[profile as "pilotage" | "cabinet"]}
+          </p>
+        )}
         <p className="j-ladder">{offerLadder[profile]}</p>
         <p className="j-note">
           Je fiabilise la donnée ; la certification des comptes reste votre
@@ -393,7 +420,7 @@ export function JourneyContent() {
       <section aria-label="Usage de Pennylane">
         <p className="j-qlabel">02. Votre outil</p>
         <h2 className="j-h2">
-          Vous utilisez <em>Pennylane</em> ?
+          Vous utilisez <em>Pennylane</em>&nbsp;?
         </h2>
         <JChoice
           name="pennylane"
@@ -426,7 +453,7 @@ export function JourneyContent() {
           {submitting ? "Un instant…" : "Réserver l'échange"}
         </button>
         <p className="j-consent">
-          Sans engagement. Pas de relance commerciale. Réponse sous 48h. En
+          Sans engagement. Pas de relance commerciale. Réponse sous 48&nbsp;h. En
           continuant, vous acceptez le traitement de vos informations.{" "}
           <a href="/mentions-legales">Confidentialité</a>.
         </p>
