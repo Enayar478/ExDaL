@@ -79,6 +79,22 @@ const offerEntry: Record<Stage, string> = {
   operation: "L'Opération",
 };
 
+// Titre du palier Problème, propre à chaque profil (la 2e ligne, en or).
+const problemTitle: Record<Stage, { top: string; punch: string }> = {
+  pilotage: {
+    top: "Vos chiffres savent tout.",
+    punch: "Vous pilotez à l'aveugle.",
+  },
+  cabinet: {
+    top: "La donnée de vos clients est là.",
+    punch: "Votre équipe la ressaisit.",
+  },
+  operation: {
+    top: "Tout est dans vos chiffres.",
+    punch: "Rien n'est prêt pour l'investisseur.",
+  },
+};
+
 const steps: { k: string; title: string; body: string }[] = [
   {
     k: "01",
@@ -186,9 +202,9 @@ export function JourneyContent() {
       <section aria-label="Le problème">
         <p className="j-eyebrow">Ce que je vois</p>
         <h2 className="j-h2">
-          Votre donnée sait déjà tout.
+          {problemTitle[profile].top}
           <br />
-          <em>Elle ne vous dit rien.</em>
+          <em>{problemTitle[profile].punch}</em>
         </h2>
         <ul className="j-tensions">
           {symptoms[profile].map((s) => (
@@ -224,32 +240,25 @@ export function JourneyContent() {
           <div className="j-ledger-row">
             <dt className="j-ledger-fig">Des heures</dt>
             <dd className="j-ledger-label">
-              d&rsquo;analyse et de ressaisie en moins chaque semaine. Du temps
-              rendu à vos équipes.
+              d&rsquo;analyse et de ressaisie en moins, chaque semaine.
             </dd>
           </div>
           <div className="j-ledger-row">
             <dt className="j-ledger-fig">Zéro</dt>
             <dd className="j-ledger-label">
-              fichier tampon, aucune double-saisie : les erreurs qui coûtent
-              cher n&rsquo;ont plus où naître.
+              double-saisie, zéro fichier tampon. Fini les erreurs coûteuses.
             </dd>
           </div>
           <div className="j-ledger-row">
             <dt className="j-ledger-fig">Anticipé</dt>
             <dd className="j-ledger-label">
-              le cabinet qu&rsquo;on appelle en urgence pour sortir les chiffres
-              à l&rsquo;instant T. C&rsquo;est déjà fait, en amont.
+              les chiffres qu&rsquo;on réclame en urgence sont déjà prêts.
             </dd>
           </div>
         </dl>
         <p className="j-anchor">
           Un cabinet de transaction facturait <em>44 000 €</em> pour un livrable
           équivalent.
-        </p>
-        <p className="j-note">
-          Je produis et fiabilise la donnée. La certification des comptes reste
-          l&rsquo;affaire de votre expert-comptable.
         </p>
       </section>
 
@@ -260,27 +269,25 @@ export function JourneyContent() {
           <div className="j-offer">
             <span className="j-offer-k">Le Socle</span>
             <span className="j-offer-b">
-              Pour piloter enfin sur des données fiables.
+              Piloter sur des données fiables.
             </span>
-            Réconciliation Pennylane, CRM et paiements ; des tableaux de bord
-            que vous lisez en deux minutes.
+            Réconciliation Pennylane, CRM et paiements, en tableaux de bord
+            clairs.
           </div>
           <div className="j-offer j-offer-mid">
             <span className="j-offer-badge">Le choix évident</span>
             <span className="j-offer-k">Le Pilotage</span>
             <span className="j-offer-b">
-              Pour que vos chiffres travaillent chaque mois.
+              Vos chiffres à jour chaque mois.
             </span>
-            Le Socle, plus un suivi mensuel : vos métriques à jour sans y
-            penser. Le choix de ceux qui n&rsquo;y reviennent plus.
+            Le Socle, plus un suivi mensuel, sans y penser.
           </div>
           <div className="j-offer">
             <span className="j-offer-k">L&rsquo;Opération</span>
             <span className="j-offer-b">
-              Pour une levée ou une cession qui se tient.
+              Une levée ou une cession qui se tient.
             </span>
-            ARR, MRR, current trading, cohortes. Les fichiers qu&rsquo;un
-            investisseur exige, construits avant qu&rsquo;il les réclame.
+            ARR, MRR, cohortes : les fichiers qu&rsquo;un investisseur exige.
           </div>
         </div>
         {form.stage && (
@@ -289,6 +296,10 @@ export function JourneyContent() {
             <strong>{offerEntry[profile]}</strong>.
           </p>
         )}
+        <p className="j-note">
+          Je fiabilise la donnée ; la certification des comptes reste votre
+          expert-comptable.
+        </p>
       </section>
 
       {/* 6 — LA MÉTHODE */}
