@@ -444,6 +444,34 @@ body.journey-on .site-header {
   font-weight: 500;
 }
 
+/* Offre recommandée mise en avant (répond au choix d'entrée, pas un menu) */
+.j-offer-solo {
+  max-width: 340px;
+  margin: 30px auto 0;
+  border: 1px solid var(--color-or-dim);
+  background: rgba(217, 178, 106, 0.06);
+  padding: 22px 22px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--color-brume);
+  text-align: left;
+}
+.j-offer-solo .j-offer-k {
+  color: var(--color-or);
+}
+
+/* La gamme, en progression discrète (contexte, pas un choix) */
+.j-ladder {
+  margin: 20px auto 0;
+  max-width: 44ch;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: var(--color-gris);
+}
+
 @media (max-width: 600px) {
   .j-ledger-row {
     grid-template-columns: 1fr;

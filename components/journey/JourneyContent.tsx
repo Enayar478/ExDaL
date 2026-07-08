@@ -72,11 +72,43 @@ const symptoms: Record<Stage, string[]> = {
   ],
 };
 
-// L'offre d'entrée naturelle pour chaque profil (reco douce sous les cartes).
-const offerEntry: Record<Stage, string> = {
-  pilotage: "Le Socle",
-  cabinet: "Le Pilotage",
-  operation: "L'Opération",
+// Les trois offres. Le parcours n'en met en avant qu'UNE, celle du profil ;
+// les deux autres sont évoquées en progression (jamais un menu à re-choisir).
+const offers: Record<string, { name: string; benefit: string; detail: string }> =
+  {
+    socle: {
+      name: "Le Socle",
+      benefit: "Piloter sur des données fiables.",
+      detail:
+        "Réconciliation Pennylane, CRM et paiements, en tableaux de bord clairs.",
+    },
+    pilotage: {
+      name: "Le Pilotage",
+      benefit: "Vos chiffres à jour chaque mois.",
+      detail: "Le Socle, plus un suivi mensuel, sans y penser.",
+    },
+    operation: {
+      name: "L'Opération",
+      benefit: "Une levée ou une cession qui se tient.",
+      detail: "ARR, MRR, cohortes : les fichiers qu'un investisseur exige.",
+    },
+  };
+
+// L'offre recommandée pour chaque profil.
+const recommendedOffer: Record<Stage, keyof typeof offers> = {
+  pilotage: "socle",
+  cabinet: "pilotage",
+  operation: "operation",
+};
+
+// La gamme, présentée comme une progression (contexte), pas comme un choix.
+const offerLadder: Record<Stage, string> = {
+  pilotage:
+    "Ça peut grandir : Le Pilotage (suivi mensuel), puis L'Opération (levée ou cession).",
+  cabinet:
+    "Le Pilotage part du Socle. Et pour une levée ou une cession, il y a L'Opération.",
+  operation:
+    "L'Opération intègre tout le quotidien : Le Socle et Le Pilotage.",
 };
 
 // Titre du palier Problème, propre à chaque profil (la 2e ligne, en or).
@@ -128,6 +160,7 @@ export function JourneyContent() {
 
   // Profil retenu pour l'adaptatif (défaut : pilotage, le segment le plus large).
   const profile: Stage = form.stage || "pilotage";
+  const rec = offers[recommendedOffer[profile]];
 
   async function book() {
     setError(null);
@@ -262,40 +295,16 @@ export function JourneyContent() {
         </p>
       </section>
 
-      {/* 5 — OFFRES (+ reco d'entrée selon le profil) */}
-      <section aria-label="Les offres">
-        <p className="j-eyebrow">Trois manières de faire parler vos chiffres</p>
-        <div className="j-offers">
-          <div className="j-offer">
-            <span className="j-offer-k">Le Socle</span>
-            <span className="j-offer-b">
-              Piloter sur des données fiables.
-            </span>
-            Réconciliation Pennylane, CRM et paiements, en tableaux de bord
-            clairs.
-          </div>
-          <div className="j-offer j-offer-mid">
-            <span className="j-offer-badge">Le choix évident</span>
-            <span className="j-offer-k">Le Pilotage</span>
-            <span className="j-offer-b">
-              Vos chiffres à jour chaque mois.
-            </span>
-            Le Socle, plus un suivi mensuel, sans y penser.
-          </div>
-          <div className="j-offer">
-            <span className="j-offer-k">L&rsquo;Opération</span>
-            <span className="j-offer-b">
-              Une levée ou une cession qui se tient.
-            </span>
-            ARR, MRR, cohortes : les fichiers qu&rsquo;un investisseur exige.
-          </div>
+      {/* 5 — OFFRE RECOMMANDÉE (répond au choix d'entrée) + gamme en progression */}
+      <section aria-label="Votre offre">
+        <p className="j-eyebrow">Ce que je vous recommande</p>
+        <div className="j-offer-solo">
+          <span className="j-offer-badge">Pour vous</span>
+          <span className="j-offer-k">{rec.name}</span>
+          <span className="j-offer-b">{rec.benefit}</span>
+          {rec.detail}
         </div>
-        {form.stage && (
-          <p className="j-guide">
-            D&rsquo;après votre profil, l&rsquo;entrée naturelle :{" "}
-            <strong>{offerEntry[profile]}</strong>.
-          </p>
-        )}
+        <p className="j-ladder">{offerLadder[profile]}</p>
         <p className="j-note">
           Je fiabilise la donnée ; la certification des comptes reste votre
           expert-comptable.
