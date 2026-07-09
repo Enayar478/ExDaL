@@ -92,11 +92,11 @@ const problemTitle: Record<Stage, { top: string; punch: string }> = {
 // Preuve : même vécu réel (une cession préparée pour de vrai), orienté profil.
 const proof: Record<Stage, string> = {
   pilotage:
-    "La rigueur qu'exige une cession, où les chiffres tiennent sous le regard d'un investisseur, je la mets au service de votre pilotage.",
+    "Des chiffres justes, pas seulement présentables. Vous décidez sur du solide.",
   cabinet:
-    "La donnée que je produis a tenu face à une due diligence. C'est ce niveau de fiabilité que méritent les reportings de vos clients.",
+    "Une fiabilité de niveau audit, au service des reportings de vos clients.",
   operation:
-    "J'ai préparé la donnée financière qui a servi à la cession d'une entreprise : ARR, MRR, current trading, cohortes. Dans le calme, avant que l'urgence impose son prix.",
+    "J'ai préparé la donnée d'une cession réelle : ARR, MRR, current trading, cohortes. Au niveau qu'un investisseur exige.",
 };
 
 // Ancre de valeur, collée à l'offre. 44 000 € pour la cession (chiffre réel du
@@ -301,18 +301,16 @@ export function JourneyContent() {
         </dl>
       </section>
 
-      {/* 4 — LA PREUVE (crédibilité : même vécu réel, orienté profil) */}
+      {/* 4 — LA PREUVE (double compétence universelle + preuve propre au profil) */}
       <section aria-label="La preuve">
         <p className="j-eyebrow">Une compétence rare</p>
-        <p className="j-quote">
-          «&nbsp;J&rsquo;ai produit ces chiffres <em>pour de vrai</em>. Sous
-          pression.&nbsp;»
-        </p>
+        <h2 className="j-h2">
+          Construire la donnée,
+          <br />
+          <em>et lire un bilan</em>.
+        </h2>
+        <p className="j-sub">Les deux métiers à la fois. C&rsquo;est rare.</p>
         <p className="j-sub">{proof[profile]}</p>
-        <p className="j-sub">
-          Data et finance : je fais les deux. C&rsquo;est ce qui fait
-          qu&rsquo;un dossier tient le jour où ça compte.
-        </p>
       </section>
 
       {/* 5 — OFFRE RECOMMANDÉE (répond au profil) + ancre + gamme */}
