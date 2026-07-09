@@ -110,25 +110,27 @@ const valueAnchorAlt: Record<"pilotage" | "cabinet", string> = {
 
 // Les trois offres. Le parcours n'en met en avant qu'UNE, celle du profil ;
 // les deux autres sont évoquées en progression (jamais un menu à re-choisir).
-const offers: Record<string, { name: string; benefit: string; detail: string }> =
-  {
-    socle: {
-      name: "Le Socle",
-      benefit: "Piloter sur des données fiables.",
-      detail:
-        "Réconciliation Pennylane, CRM et paiements, en tableaux de bord clairs.",
-    },
-    pilotage: {
-      name: "Le Pilotage",
-      benefit: "Vos chiffres à jour chaque mois.",
-      detail: "Le Socle, plus un suivi mensuel, sans y penser.",
-    },
-    operation: {
-      name: "L'Opération",
-      benefit: "Une levée ou une cession qui se tient.",
-      detail: "ARR, MRR, cohortes : les fichiers qu'un investisseur exige.",
-    },
-  };
+const offers: Record<
+  string,
+  { name: string; benefit: string; detail: string }
+> = {
+  socle: {
+    name: "Le Socle",
+    benefit: "Piloter sur des données fiables.",
+    detail:
+      "Réconciliation Pennylane, CRM et paiements, en tableaux de bord clairs.",
+  },
+  pilotage: {
+    name: "Le Pilotage",
+    benefit: "Vos chiffres à jour chaque mois.",
+    detail: "Le Socle, plus un suivi mensuel, sans y penser.",
+  },
+  operation: {
+    name: "L'Opération",
+    benefit: "Une levée ou une cession qui se tient.",
+    detail: "ARR, MRR, cohortes : les fichiers qu'un investisseur exige.",
+  },
+};
 
 // L'offre recommandée pour chaque profil.
 const recommendedOffer: Record<Stage, keyof typeof offers> = {
@@ -143,8 +145,7 @@ const offerLadder: Record<Stage, string> = {
     "La suite, le moment venu : Le Pilotage pour un suivi mensuel, puis L'Opération pour une levée ou une cession.",
   cabinet:
     "Le Pilotage part du Socle. Pour une levée ou une cession, il y a L'Opération.",
-  operation:
-    "L'Opération intègre tout le quotidien : Le Socle et Le Pilotage.",
+  operation: "L'Opération intègre tout le quotidien : Le Socle et Le Pilotage.",
 };
 
 const steps: { k: string; title: string; body: string }[] = [
@@ -217,25 +218,27 @@ export function JourneyContent() {
 
   return (
     <ImmersiveJourney gateIndex={1} gateOpen={Boolean(form.stage)}>
-      {/* 0 — HERO */}
-      <section aria-label="Introduction">
+      {/* 0 — HERO (2 colonnes sur desktop : texte à gauche, emblème à droite) */}
+      <section aria-label="Introduction" className="j-hero">
         <Image
           src="/emblem.png"
           alt="Emblème ExDaL, un point de lumière né de la donnée"
           width={240}
           height={240}
           priority
-          className="j-emblem"
+          className="j-emblem j-hero-emblem"
         />
-        <h1 className="j-h1">
-          Pennylane tient vos comptes.
-          <br />
-          J&rsquo;en tire <em>vos décisions</em>.
-        </h1>
-        <p className="j-sub">
-          Studio de data financière, spécialiste Pennylane.
-        </p>
-        <span className="j-shaft" aria-hidden="true" />
+        <div className="j-hero-text">
+          <h1 className="j-h1">
+            Pennylane tient vos comptes.
+            <br />
+            J&rsquo;en tire <em>vos décisions</em>.
+          </h1>
+          <p className="j-sub">
+            Studio de data financière, spécialiste Pennylane.
+          </p>
+          <span className="j-shaft" aria-hidden="true" />
+        </div>
       </section>
 
       {/* 1 — BIFURCATION (capte le profil, pilote l'adaptatif) */}
@@ -453,8 +456,8 @@ export function JourneyContent() {
           {submitting ? "Un instant…" : "Réserver l'échange"}
         </button>
         <p className="j-consent">
-          Sans engagement. Pas de relance commerciale. Réponse sous 48&nbsp;h. En
-          continuant, vous acceptez le traitement de vos informations.{" "}
+          Sans engagement. Pas de relance commerciale. Réponse sous 48&nbsp;h.
+          En continuant, vous acceptez le traitement de vos informations.{" "}
           <a href="/mentions-legales">Confidentialité</a>.
         </p>
       </section>

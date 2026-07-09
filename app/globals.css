@@ -691,6 +691,41 @@ body.journey-on .site-header {
   mask-image: radial-gradient(circle at center, #000 52%, transparent 74%);
 }
 
+/* Hero en 2 colonnes sur desktop : texte à gauche, emblème à droite.
+   En tactile / < 821px on garde la pile centrée (emblème au-dessus). Le seuil
+   821px correspond à la bascule desktop du moteur de navigation. */
+@media (min-width: 821px) {
+  .journey.is-active .journey-slab[data-index="0"] {
+    width: min(94vw, 1040px);
+  }
+  .j-hero {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: clamp(32px, 6vw, 88px);
+    text-align: left;
+  }
+  .j-hero-text {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+  .j-hero .j-sub {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .j-hero .j-shaft {
+    margin-left: 2px;
+    margin-right: auto;
+  }
+  .j-hero-emblem {
+    grid-column: 2;
+    grid-row: 1;
+    width: clamp(240px, 26vw, 360px);
+    margin: 0;
+  }
+}
+
 /* Signature persistante (le header étant masqué en immersion) */
 .journey-brand {
   opacity: 0;
