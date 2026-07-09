@@ -180,21 +180,22 @@ export function ImmersiveJourney({
       else go(dx < 0 ? 1 : -1);
     };
 
-    // — Desktop : molette / trackpad (un cran par geste, anti-rebond momentum) —
+    // — Desktop : molette / trackpad (un cran par geste) —
+    // Verrou de durée FIXE, calé sur l'animation. On NE le prolonge PAS avec les
+    // événements suivants : un trackpad émet un flux continu (geste + inertie), et
+    // repousser le déverrouillage à chaque événement le figerait indéfiniment.
     let wheelLock = false;
-    let wheelIdle = 0;
+    let wheelUnlock = 0;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
+      if (wheelLock) return;
       const d = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-      // Tant que le geste (et son inertie) dure, on repousse le déverrouillage :
-      // une seule impulsion = un seul cran, même avec un trackpad qui « traîne ».
-      window.clearTimeout(wheelIdle);
-      wheelIdle = window.setTimeout(() => {
-        wheelLock = false;
-      }, 200);
-      if (wheelLock || Math.abs(d) < 6) return;
+      if (Math.abs(d) < 8) return; // ignore les micro-frémissements du pad
       wheelLock = true;
       go(d > 0 ? 1 : -1);
+      wheelUnlock = window.setTimeout(() => {
+        wheelLock = false;
+      }, 720);
     };
 
     const onHint = () => go(1);
@@ -227,7 +228,7 @@ export function ImmersiveJourney({
     return () => {
       cancelAnimationFrame(animId);
       if (rafId) cancelAnimationFrame(rafId);
-      window.clearTimeout(wheelIdle);
+      window.clearTimeout(wheelUnlock);
       viewport.removeEventListener("touchstart", onStart);
       viewport.removeEventListener("touchend", onEnd);
       viewport.removeEventListener("wheel", onWheel);

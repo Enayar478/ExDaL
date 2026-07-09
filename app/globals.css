@@ -714,9 +714,10 @@ body.journey-on .site-header {
     margin-left: 0;
     margin-right: 0;
   }
+  /* Le trait d'or vertical flotte mal dans la mise en page 2 colonnes et fait
+     doublon avec l'indice « Avancez vers la lumière » en bas → masqué desktop. */
   .j-hero .j-shaft {
-    margin-left: 2px;
-    margin-right: auto;
+    display: none;
   }
   .j-hero-emblem {
     grid-column: 2;
