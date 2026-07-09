@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
   // 3. Rate-limit par IP (3 tentatives / 10 min)
   const ip = clientIp(request.headers);
-  const rl = rateLimit(`newsletter:${ip}`, 3, 10 * 60_000);
+  const rl = await rateLimit(`newsletter:${ip}`, 3, 10 * 60_000);
   if (!rl.allowed) {
     return fail("Trop de tentatives. Réessayez dans quelques minutes.", 429);
   }

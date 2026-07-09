@@ -36,7 +36,9 @@ export async function POST(request: NextRequest) {
   const env = getServerEnv();
 
   // Rate-limit permissif : Cal.com peut envoyer des bursts légitimes.
-  if (!rateLimit(`cal-webhook:${clientIp(request.headers)}`, 30).allowed) {
+  if (
+    !(await rateLimit(`cal-webhook:${clientIp(request.headers)}`, 30)).allowed
+  ) {
     return fail("Trop de requêtes.", 429);
   }
 

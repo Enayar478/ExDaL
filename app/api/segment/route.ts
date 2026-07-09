@@ -17,7 +17,7 @@ const MAX_BODY_BYTES = 1024; // 1 Ko
  */
 export async function POST(request: NextRequest) {
   const ip = clientIp(request.headers);
-  if (!rateLimit(`segment:${ip}`, 20).allowed) {
+  if (!(await rateLimit(`segment:${ip}`, 20)).allowed) {
     return fail("Trop de requêtes.", 429);
   }
 

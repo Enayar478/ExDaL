@@ -44,7 +44,7 @@ function redirectTo(param: NewsletterParam): NextResponse {
 export async function GET(request: NextRequest) {
   // Garde-fou volumétrique, cohérent avec les autres routes publiques.
   const ip = clientIp(request.headers);
-  if (!rateLimit(`newsletter-confirm:${ip}`, 10, 60_000).allowed) {
+  if (!(await rateLimit(`newsletter-confirm:${ip}`, 10, 60_000)).allowed) {
     return new NextResponse("Trop de requêtes.", { status: 429 });
   }
 

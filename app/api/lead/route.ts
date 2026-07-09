@@ -27,7 +27,7 @@ const MAX_BODY_BYTES = 8 * 1024; // 8 Ko
  */
 export async function POST(request: NextRequest) {
   const ip = clientIp(request.headers);
-  if (!rateLimit(`lead:${ip}`).allowed) {
+  if (!(await rateLimit(`lead:${ip}`)).allowed) {
     return fail("Trop de tentatives. Réessayez dans un instant.", 429);
   }
 
