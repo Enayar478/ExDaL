@@ -343,9 +343,9 @@ export function JourneyContent() {
       <section aria-label="La méthode">
         <p className="j-eyebrow">La méthode</p>
         <h2 className="j-h2">
-          Quatre temps. Un seul difficile.
+          Vingt minutes de votre temps.
           <br />
-          Et il est <em>pour moi</em>.
+          <em>Le reste, c&rsquo;est mon travail.</em>
         </h2>
         <ol className="j-steps">
           {steps.map((s) => (
