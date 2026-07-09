@@ -3,18 +3,17 @@
 import { Children, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { getLenis } from "@/components/tunnel/lenis-store";
 
 /**
  * Voyage immersif — « vers la lumière, dans les profondeurs ».
  *
- * Deux modes selon l'appareil :
- *  • Desktop (pointeur fin) : scroll fluide piloté (Lenis + ScrollTrigger) avec
- *    snap magnétique — on glisse dans la profondeur puis on se cale sur un palier.
- *  • Tactile (mobile/tablette) : scroll verrouillé (plus de barre de navigateur
- *    qui saute), navigation au SWIPE (haut/bas ou gauche/droite) palier par
- *    palier, chaque arrêt net à 100 % — franc et lisible. Barre de progression.
+ * Navigation « pas à pas » verrouillée, IDENTIQUE sur desktop et tactile : le
+ * scroll de page est bloqué et l'on avance palier par palier, chaque arrêt net
+ * à 100 % — franc et lisible (sur desktop, le scroll libre partait vite en
+ * vrille). Les gestes diffèrent seulement selon l'appareil :
+ *  • Desktop (pointeur fin) : molette / trackpad + clavier.
+ *  • Tactile (mobile/tablette) : swipe (haut/bas ou gauche/droite) + clavier.
  *
  * Couche visuelle : le HTML/copie est inchangé (SEO/a11y intacts). En
  * `prefers-reduced-motion`, aucun effet : scroll vertical classique, accessible.
@@ -22,19 +21,37 @@ import { getLenis } from "@/components/tunnel/lenis-store";
 const Z_FAR = 3000;
 const Z_NEAR = 900;
 
-export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
+export function ImmersiveJourney({
+  children,
+  gateIndex = -1,
+  gateOpen = true,
+}: {
+  children: React.ReactNode;
+  /** Palier au-delà duquel on bloque tant que `gateOpen` est faux (-1 = aucun). */
+  gateIndex?: number;
+  /** Le verrou est-il levé ? (ex. la bifurcation a reçu un choix) */
+  gateOpen?: boolean;
+}) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [touch, setTouch] = useState(false);
   const slabs = Children.toArray(children);
   const n = slabs.length;
 
+  // Refs lues par les closures de navigation : le verrou peut s'ouvrir sans
+  // recréer l'effet (dépendant de [n]). Synchronisées hors render.
+  const gateIndexRef = useRef(gateIndex);
+  const gateOpenRef = useRef(gateOpen);
+  useEffect(() => {
+    gateIndexRef.current = gateIndex;
+    gateOpenRef.current = gateOpen;
+  }, [gateIndex, gateOpen]);
+
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    gsap.registerPlugin(ScrollTrigger);
     const clamp = gsap.utils.clamp;
     const layers = Array.from(
       root.querySelectorAll<HTMLElement>(".journey-slab"),
@@ -46,9 +63,17 @@ export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
     const steps = n - 1;
     if (!track || !viewport || layers.length === 0) return;
 
+    // Profondeur maximale atteignable : bornée au verrou tant qu'il est fermé.
+    const maxTravel = () =>
+      gateIndexRef.current >= 0 && !gateOpenRef.current
+        ? Math.min(gateIndexRef.current, steps)
+        : steps;
+
     let rafId = 0;
     /** Positionne tous les paliers pour une profondeur `travel` ∈ [0, n-1]. */
     const renderTravel = (travel: number) => {
+      const cap = maxTravel();
+      if (travel > cap) travel = cap; // le verrou fige la scène sur le palier bloquant
       const ratio = steps > 0 ? clamp(0, 1, travel / steps) : 0;
       layers.forEach((layer, i) => {
         const p = travel - i;
@@ -87,155 +112,133 @@ export function ImmersiveJourney({ children }: { children: React.ReactNode }) {
     document.body.classList.add("journey-on");
     renderTravel(0);
 
-    const isTouch =
+    setTouch(
       window.matchMedia("(pointer: coarse)").matches ||
-      window.matchMedia("(max-width: 820px)").matches;
-    setTouch(isTouch);
+        window.matchMedia("(max-width: 820px)").matches,
+    );
 
-    // ── Mode TACTILE : scroll verrouillé + navigation au swipe ──────────────
-    if (isTouch) {
-      const html = document.documentElement;
-      const prevHtmlOverflow = html.style.overflow;
-      const prevBodyOverflow = document.body.style.overflow;
-      const prevOverscroll = html.style.overscrollBehavior;
-      html.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
-      html.style.overscrollBehavior = "none";
-      viewport.style.touchAction = "none";
-      track.style.height = "0px";
+    // ── Navigation « pas à pas » verrouillée (desktop + tactile) ─────────────
+    const html = document.documentElement;
+    const prevHtmlOverflow = html.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevOverscroll = html.style.overscrollBehavior;
+    html.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    html.style.overscrollBehavior = "none";
+    viewport.style.touchAction = "none";
+    track.style.height = "0px";
 
-      let step = 0;
-      let cur = 0; // profondeur courante (animée à la main, sans dépendance ticker)
-      let animId = 0;
-      const easeInOut = (t: number) =>
-        t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-      const animateTo = (targetTravel: number) => {
-        cancelAnimationFrame(animId);
-        const from = cur;
-        const startTime = performance.now();
-        const duration = 620;
-        const frame = (now: number) => {
-          const k = Math.min(1, (now - startTime) / duration);
-          cur = from + (targetTravel - from) * easeInOut(k);
-          renderTravel(cur);
-          if (k < 1) animId = requestAnimationFrame(frame);
-        };
-        animId = requestAnimationFrame(frame);
+    // Lenis (scroll fluide global) doit relâcher la molette pendant l'immersion,
+    // sinon il se bat avec notre navigation pas à pas.
+    const lenis = getLenis();
+    lenis?.stop();
+
+    let step = 0;
+    let cur = 0; // profondeur courante (animée à la main, sans dépendance ticker)
+    let animId = 0;
+    const easeInOut = (t: number) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const animateTo = (targetTravel: number) => {
+      cancelAnimationFrame(animId);
+      const from = cur;
+      const startTime = performance.now();
+      const duration = 620;
+      const frame = (now: number) => {
+        const k = Math.min(1, (now - startTime) / duration);
+        cur = from + (targetTravel - from) * easeInOut(k);
+        renderTravel(cur);
+        if (k < 1) animId = requestAnimationFrame(frame);
       };
-      const go = (dir: number) => {
-        const target = clamp(0, steps, step + dir);
-        if (target === step) return;
-        step = target;
-        animateTo(step);
-      };
-      let sx = 0,
-        sy = 0,
-        stime = 0;
-      const onStart = (e: TouchEvent) => {
-        const t = e.touches[0];
-        sx = t.clientX;
-        sy = t.clientY;
-        stime = Date.now();
-      };
-      const onEnd = (e: TouchEvent) => {
-        const t = e.changedTouches[0];
-        const dx = t.clientX - sx;
-        const dy = t.clientY - sy;
-        if (Date.now() - stime > 900) return;
-        const adx = Math.abs(dx);
-        const ady = Math.abs(dy);
-        if (Math.max(adx, ady) < 42) return; // simple tap → ignoré
-        // vertical prioritaire ; sinon horizontal. Vers le haut / la gauche = avancer.
-        if (ady >= adx) go(dy < 0 ? 1 : -1);
-        else go(dx < 0 ? 1 : -1);
-      };
-      const onHint = () => go(1);
+      animId = requestAnimationFrame(frame);
+    };
+    const go = (dir: number) => {
+      const target = clamp(0, maxTravel(), step + dir);
+      if (target === step) return;
+      step = target;
+      animateTo(step);
+    };
 
-      // Navigation clavier (accessibilité + flèches/PageUp-Down)
-      const onKey = (e: KeyboardEvent) => {
-        const target = e.target as HTMLElement | null;
-        // On laisse les champs de saisie tranquilles.
-        if (
-          target &&
-          (target.tagName === "INPUT" || target.tagName === "TEXTAREA")
-        )
-          return;
-        if (["ArrowDown", "ArrowRight", "PageDown", " "].includes(e.key)) {
-          e.preventDefault();
-          go(1);
-        } else if (["ArrowUp", "ArrowLeft", "PageUp"].includes(e.key)) {
-          e.preventDefault();
-          go(-1);
-        }
-      };
+    // — Tactile : swipe (vertical prioritaire ; haut / gauche = avancer) —
+    let sx = 0,
+      sy = 0,
+      stime = 0;
+    const onStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      sx = t.clientX;
+      sy = t.clientY;
+      stime = Date.now();
+    };
+    const onEnd = (e: TouchEvent) => {
+      const t = e.changedTouches[0];
+      const dx = t.clientX - sx;
+      const dy = t.clientY - sy;
+      if (Date.now() - stime > 900) return;
+      const adx = Math.abs(dx);
+      const ady = Math.abs(dy);
+      if (Math.max(adx, ady) < 42) return; // simple tap → ignoré
+      if (ady >= adx) go(dy < 0 ? 1 : -1);
+      else go(dx < 0 ? 1 : -1);
+    };
 
-      viewport.addEventListener("touchstart", onStart, { passive: true });
-      viewport.addEventListener("touchend", onEnd, { passive: true });
-      window.addEventListener("keydown", onKey);
-      const hint = root.querySelector<HTMLElement>(".journey-hint");
-      hint?.addEventListener("click", onHint);
+    // — Desktop : molette / trackpad (un cran par geste) —
+    // Verrou de durée FIXE, calé sur l'animation. On NE le prolonge PAS avec les
+    // événements suivants : un trackpad émet un flux continu (geste + inertie), et
+    // repousser le déverrouillage à chaque événement le figerait indéfiniment.
+    let wheelLock = false;
+    let wheelUnlock = 0;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      if (wheelLock) return;
+      const d = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (Math.abs(d) < 8) return; // ignore les micro-frémissements du pad
+      wheelLock = true;
+      go(d > 0 ? 1 : -1);
+      wheelUnlock = window.setTimeout(() => {
+        wheelLock = false;
+      }, 720);
+    };
 
-      return () => {
-        cancelAnimationFrame(animId);
-        if (rafId) cancelAnimationFrame(rafId);
-        viewport.removeEventListener("touchstart", onStart);
-        viewport.removeEventListener("touchend", onEnd);
-        window.removeEventListener("keydown", onKey);
-        hint?.removeEventListener("click", onHint);
-        html.style.overflow = prevHtmlOverflow;
-        document.body.style.overflow = prevBodyOverflow;
-        html.style.overscrollBehavior = prevOverscroll;
-        viewport.style.touchAction = "";
-        root.classList.remove("is-active");
-        track.style.height = "";
-        layers.forEach((l) => (l.style.cssText = ""));
-      };
-    }
+    const onHint = () => go(1);
 
-    // ── Mode DESKTOP : scroll fluide + snap magnétique ──────────────────────
-    track.style.height = `${n * 100}svh`;
-    const st = ScrollTrigger.create({
-      trigger: root,
-      start: "top top",
-      end: "bottom bottom",
-      scrub: true,
-      invalidateOnRefresh: true,
-      onUpdate: (self) => renderTravel(self.progress * steps),
-    });
-
-    let snapTimer = 0;
-    const snapToNearest = () => {
-      if (steps <= 0) return;
-      // On se cale sur la plage EXACTE de ScrollTrigger (pas la hauteur du
-      // document, qui inclut header/footer) → le palier arrive pile au centre,
-      // parfaitement net, sans se figer entre deux vues.
-      const range = st.end - st.start;
-      if (range <= 0) return;
-      const prog = clamp(0, 1, (window.scrollY - st.start) / range);
-      const idx = clamp(0, steps, Math.round(prog * steps));
-      const targetY = st.start + (idx / steps) * range;
-      if (Math.abs(targetY - window.scrollY) < 3) return;
-      const lenis = getLenis();
-      if (lenis) {
-        lenis.scrollTo(targetY, {
-          duration: 0.5,
-          easing: (t: number) => 1 - Math.pow(1 - t, 3),
-        });
-      } else {
-        window.scrollTo({ top: targetY, behavior: "smooth" });
+    // Navigation clavier (accessibilité + flèches / PageUp-Down)
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      // On laisse les champs de saisie tranquilles.
+      if (
+        target &&
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA")
+      )
+        return;
+      if (["ArrowDown", "ArrowRight", "PageDown", " "].includes(e.key)) {
+        e.preventDefault();
+        go(1);
+      } else if (["ArrowUp", "ArrowLeft", "PageUp"].includes(e.key)) {
+        e.preventDefault();
+        go(-1);
       }
     };
-    const onScrollIdle = () => {
-      window.clearTimeout(snapTimer);
-      snapTimer = window.setTimeout(snapToNearest, 150);
-    };
-    window.addEventListener("scroll", onScrollIdle, { passive: true });
+
+    viewport.addEventListener("touchstart", onStart, { passive: true });
+    viewport.addEventListener("touchend", onEnd, { passive: true });
+    viewport.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("keydown", onKey);
+    const hint = root.querySelector<HTMLElement>(".journey-hint");
+    hint?.addEventListener("click", onHint);
 
     return () => {
-      st.kill();
-      window.clearTimeout(snapTimer);
-      window.removeEventListener("scroll", onScrollIdle);
+      cancelAnimationFrame(animId);
       if (rafId) cancelAnimationFrame(rafId);
+      window.clearTimeout(wheelUnlock);
+      viewport.removeEventListener("touchstart", onStart);
+      viewport.removeEventListener("touchend", onEnd);
+      viewport.removeEventListener("wheel", onWheel);
+      window.removeEventListener("keydown", onKey);
+      hint?.removeEventListener("click", onHint);
+      html.style.overflow = prevHtmlOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+      html.style.overscrollBehavior = prevOverscroll;
+      viewport.style.touchAction = "";
+      lenis?.start();
       root.classList.remove("is-active");
       document.body.classList.remove("journey-on");
       track.style.height = "";

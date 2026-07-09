@@ -5,13 +5,20 @@ import Image from "next/image";
 import { ImmersiveJourney } from "@/components/journey/ImmersiveJourney";
 
 /**
- * Le contenu du voyage : chaque palier reprend le copy du brief, mot pour mot.
- * Le formulaire de qualification EST le voyage — on s'enfonce en répondant, et
+ * Le contenu du voyage : chaque palier reprend le copy validé (refonte tunnel).
+ * Le formulaire de qualification EST le voyage : on s'enfonce en répondant, et
  * on débouche dans la lumière sur la prise de rendez-vous (POST /api/lead réel
  * puis redirection vers le créneau Cal.eu prérempli). En reduced-motion, les
  * paliers s'empilent en flux normal : tout reste lisible et navigable.
+ *
+ * Parcours adaptatif : la BIFURCATION (palier 1) capte le profil du visiteur,
+ * et les paliers suivants s'adaptent (titre + symptômes du Problème, illustration
+ * de la Preuve, ancre de valeur, offre recommandée). Même parcours pour tous ;
+ * seul le texte s'ajuste.
+ * Arc : Hero, Bifurcation, Problème (douleur), Le gain (espoir), Preuve
+ * (crédibilité), Offre, Méthode, Pourquoi, Identité, Pennylane, Arrivée.
  */
-type Pennylane = "oui" | "non" | "bientot";
+type Pennylane = "oui" | "bientot" | "non";
 type Stage = "pilotage" | "cabinet" | "operation";
 
 interface FormState {
@@ -35,15 +42,133 @@ const empty: FormState = {
 };
 
 const pennylaneOptions: { value: Pennylane; label: string }[] = [
-  { value: "oui", label: "Oui" },
-  { value: "non", label: "Pas encore" },
-  { value: "bientot", label: "Je l'envisage" },
+  { value: "oui", label: "Oui, notre outil principal" },
+  { value: "bientot", label: "Pas encore, je l'envisage" },
+  { value: "non", label: "Nous utilisons autre chose" },
 ];
 
+// La question de bifurcation : elle capte le profil et pilote tout l'adaptatif.
 const stageOptions: { value: Stage; label: string }[] = [
-  { value: "pilotage", label: "Piloter au quotidien" },
-  { value: "cabinet", label: "Je sers des clients sous Pennylane" },
-  { value: "operation", label: "Je prépare une levée ou une vente" },
+  { value: "pilotage", label: "Piloter mon activité au quotidien" },
+  { value: "cabinet", label: "Fiabiliser le reporting de mes clients" },
+  { value: "operation", label: "Préparer une levée ou une cession" },
+];
+
+// Symptômes concrets, propres à chaque profil (le visiteur doit se reconnaître).
+const symptoms: Record<Stage, string[]> = {
+  pilotage: [
+    "Vos exports Pennylane finissent dans un Excel rafistolé, chaque fin de mois.",
+    "Vos équipes ressaisissent à la main des chiffres déjà présents dans votre CRM ou vos paiements.",
+    "Vous décidez au ressenti, faute d'un tableau de bord fiable sous les yeux.",
+  ],
+  cabinet: [
+    "Chaque client réclame son reporting, et chacun repart d'un fichier refait à la main.",
+    "Vos collaborateurs passent des heures à consolider ce que Pennylane pourrait sortir seul.",
+    "Vous vendez du conseil, mais votre équipe produit surtout de la ressaisie.",
+  ],
+  operation: [
+    "Impossible de sortir un ARR ou une cohorte propre sans y passer la nuit.",
+    "La due diligence approche, et rien n'est prêt : ni le current trading, ni l'historique fiable.",
+    "Sans dossier qui tient, vous négociez la valeur de l'entreprise à l'aveugle.",
+  ],
+};
+
+// Titre du palier Problème, propre à chaque profil (la 2e ligne, en or).
+const problemTitle: Record<Stage, { top: string; punch: string }> = {
+  pilotage: {
+    top: "Vos chiffres savent tout.",
+    punch: "Vous pilotez à l'aveugle.",
+  },
+  cabinet: {
+    top: "La donnée de vos clients est là.",
+    punch: "Votre équipe la ressaisit.",
+  },
+  operation: {
+    top: "Tout est dans vos chiffres.",
+    punch: "Rien n'est prêt pour l'investisseur.",
+  },
+};
+
+// Preuve : même vécu réel (une cession préparée pour de vrai), orienté profil.
+const proof: Record<Stage, string> = {
+  pilotage:
+    "Des chiffres justes, pas seulement présentables. Vous décidez sur du solide.",
+  cabinet:
+    "Une fiabilité de niveau audit, au service des reportings de vos clients.",
+  operation:
+    "J'ai préparé la donnée d'une cession réelle : ARR, MRR, current trading, cohortes. Au niveau qu'un investisseur exige.",
+};
+
+// Ancre de valeur, collée à l'offre. 44 000 € pour la cession (chiffre réel du
+// brief) ; ailleurs, une ancre d'aversion à la perte, sans chiffre inventé.
+const valueAnchorAlt: Record<"pilotage" | "cabinet", string> = {
+  pilotage:
+    "Chaque mois au ressenti coûte plus qu'on ne croit : des heures, des erreurs, des décisions prises trop tard.",
+  cabinet:
+    "La ressaisie de vos équipes coûte, mois après mois, plus qu'un reporting fiabilisé une bonne fois.",
+};
+
+// Les trois offres. Le parcours n'en met en avant qu'UNE, celle du profil ;
+// les deux autres sont évoquées en progression (jamais un menu à re-choisir).
+const offers: Record<
+  string,
+  { name: string; benefit: string; detail: string }
+> = {
+  socle: {
+    name: "Le Socle",
+    benefit: "Piloter sur des données fiables.",
+    detail:
+      "Réconciliation Pennylane, CRM et paiements, en tableaux de bord clairs.",
+  },
+  pilotage: {
+    name: "Le Pilotage",
+    benefit: "Vos chiffres à jour chaque mois.",
+    detail: "Le Socle, plus un suivi mensuel, sans y penser.",
+  },
+  operation: {
+    name: "L'Opération",
+    benefit: "Une levée ou une cession qui se tient.",
+    detail: "ARR, MRR, cohortes : les fichiers qu'un investisseur exige.",
+  },
+};
+
+// L'offre recommandée pour chaque profil.
+const recommendedOffer: Record<Stage, keyof typeof offers> = {
+  pilotage: "socle",
+  cabinet: "pilotage",
+  operation: "operation",
+};
+
+// La gamme, présentée comme une progression (contexte), pas comme un choix.
+const offerLadder: Record<Stage, string> = {
+  pilotage:
+    "La suite, le moment venu : Le Pilotage pour un suivi mensuel, puis L'Opération pour une levée ou une cession.",
+  cabinet:
+    "Le Pilotage part du Socle. Pour une levée ou une cession, il y a L'Opération.",
+  operation: "L'Opération intègre tout le quotidien : Le Socle et Le Pilotage.",
+};
+
+const steps: { k: string; title: string; body: string }[] = [
+  {
+    k: "01",
+    title: "L'échange",
+    body: "Comprendre votre situation, de vive voix.",
+  },
+  {
+    k: "02",
+    title: "Le diagnostic",
+    body: "J'identifie où dort la donnée, ce qui est fiable, ce qui manque. Vous repartez avec une image claire, même sans suite.",
+  },
+  {
+    k: "03",
+    title: "La construction",
+    body: "Le travail invisible : pipelines, réconciliation, fiabilisation.",
+  },
+  {
+    k: "04",
+    title: "La lumière",
+    body: "Une clarté qui tient seule. Et, si vous le souhaitez, je veille dessus.",
+  },
 ];
 
 export function JourneyContent() {
@@ -54,14 +179,21 @@ export function JourneyContent() {
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));
 
+  // Profil retenu pour l'adaptatif (défaut : pilotage, le segment le plus large).
+  const profile: Stage = form.stage || "pilotage";
+  const rec = offers[recommendedOffer[profile]];
+
   async function book() {
     setError(null);
+    if (!form.stage)
+      return setError(
+        "Dites-moi d'abord ce qui vous amène, au tout début du parcours.",
+      );
     if (!form.name || !form.email || !form.role || !form.company)
       return setError(
         "Complétez votre identité au palier « faisons connaissance ».",
       );
     if (!form.pennylane) return setError("Indiquez votre usage de Pennylane.");
-    if (!form.stage) return setError("Indiquez où vous en êtes.");
     if (form.website) return;
 
     setSubmitting(true);
@@ -85,90 +217,162 @@ export function JourneyContent() {
   }
 
   return (
-    <ImmersiveJourney>
-      {/* 0 — HERO */}
-      <section aria-label="Introduction">
+    <ImmersiveJourney gateIndex={1} gateOpen={Boolean(form.stage)}>
+      {/* 0 — HERO (2 colonnes sur desktop : texte à gauche, emblème à droite) */}
+      <section aria-label="Introduction" className="j-hero">
         <Image
           src="/emblem.png"
-          alt="Emblème ExDaL — un point de lumière né de la donnée"
+          alt="Emblème ExDaL, un point de lumière né de la donnée"
           width={240}
           height={240}
           priority
-          className="j-emblem"
+          className="j-emblem j-hero-emblem"
         />
-        <p className="j-eyebrow">De la donnée · la lumière</p>
-        <h1 className="j-h1">
-          De la donnée comptable,
-          <br />
-          des fichiers dignes d&rsquo;une <em>cession</em>.
-        </h1>
-        <span className="j-shaft" aria-hidden="true" />
-      </section>
-
-      {/* 1 — PROBLÈME */}
-      <section aria-label="Le problème">
-        <h2 className="j-h2">
-          Votre donnée sait déjà tout.
-          <br />
-          <em>Elle ne vous dit rien.</em>
-        </h2>
-        <p className="j-sub">
-          Vos ventes dans un outil, votre compta dans Pennylane, vos paiements
-          ailleurs. Chacun a raison dans son coin — ensemble, ils ne vous disent
-          rien de clair.
-        </p>
-      </section>
-
-      {/* 2 — LA PREUVE */}
-      <section aria-label="La preuve">
-        <p className="j-quote">
-          «&nbsp;J&rsquo;ai préparé la donnée financière qui a servi à la{" "}
-          <em>cession d&rsquo;une entreprise</em>. Je connais les chiffres
-          qu&rsquo;un investisseur exige — parce que je les ai produits, sous
-          pression, pour de vrai.&nbsp;»
-        </p>
-      </section>
-
-      {/* 3 — LE POURQUOI */}
-      <section aria-label="Le pourquoi">
-        <h2 className="j-h2">
-          Et si vos chiffres vous rendaient <em>puissant</em> ?
-        </h2>
-        <p className="j-sub">
-          Une entreprise ne devrait jamais avancer à l&rsquo;aveugle. La donnée
-          qui vous rend puissant existe déjà.
-          <br />
-          Elle attend seulement qu&rsquo;on lui donne la parole.
-        </p>
-      </section>
-
-      {/* 4 — OFFRES (ancre de valeur 44 000 €) */}
-      <section aria-label="Les offres">
-        <h2 className="j-h2">Trois manières de faire parler vos chiffres.</h2>
-        <div className="j-offers">
-          <div className="j-offer">
-            <span className="j-offer-k">Le Socle</span>
-            Votre donnée, enfin lisible — au quotidien.
-          </div>
-          <div className="j-offer j-offer-mid">
-            <span className="j-offer-k">Le Pilotage</span>
-            La clarté en continu. Le choix de ceux qui n&rsquo;y reviennent
-            plus.
-          </div>
-          <div className="j-offer">
-            <span className="j-offer-k">L&rsquo;Opération</span>
-            Vos chiffres prêts pour l&rsquo;investisseur.
-          </div>
+        <div className="j-hero-text">
+          <h1 className="j-h1">
+            Pennylane tient vos comptes.
+            <br />
+            J&rsquo;en tire <em>vos décisions</em>.
+          </h1>
+          <p className="j-sub">
+            Studio de data financière, spécialiste Pennylane.
+          </p>
+          <span className="j-shaft" aria-hidden="true" />
         </div>
-        <p className="j-anchor">
-          Un cabinet de transaction facturait <em>44 000 €</em> pour un livrable
-          équivalent.
+      </section>
+
+      {/* 1 — BIFURCATION (capte le profil, pilote l'adaptatif) */}
+      <section aria-label="Ce qui vous amène">
+        <p className="j-eyebrow">Commençons par vous</p>
+        <h2 className="j-h2">Qu&rsquo;est-ce qui vous amène&nbsp;?</h2>
+        <p className="j-sub">La suite s&rsquo;adapte à votre réponse.</p>
+        <JChoice
+          name="stage"
+          options={stageOptions}
+          value={form.stage}
+          onChange={(v) => set("stage", v as Stage)}
+        />
+        <p className="j-fieldnote">
+          Un doute&nbsp;? Prenez le cas le plus proche, on affinera à
+          l&rsquo;échange.
         </p>
       </section>
 
-      {/* 5 — QUALIFICATION · identité */}
+      {/* 2 — PROBLÈME (douleur, adaptée au profil) */}
+      <section aria-label="Le problème">
+        <p className="j-eyebrow">Ce que je vois</p>
+        <h2 className="j-h2">
+          {problemTitle[profile].top}
+          <br />
+          <em>{problemTitle[profile].punch}</em>
+        </h2>
+        <ul className="j-tensions">
+          {symptoms[profile].map((s) => (
+            <li key={s} className="j-tension">
+              {s}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* 3 — LE GAIN (l'espoir : ce que ça change, sans chiffre inventé) */}
+      <section aria-label="Ce que ça change">
+        <p className="j-eyebrow">Ce que ça change</p>
+        <h2 className="j-h2">Le calcul est simple.</h2>
+        <dl className="j-ledger">
+          <div className="j-ledger-row">
+            <dt className="j-ledger-fig">Des heures</dt>
+            <dd className="j-ledger-label">
+              d&rsquo;analyse et de ressaisie en moins, chaque semaine.
+            </dd>
+          </div>
+          <div className="j-ledger-row">
+            <dt className="j-ledger-fig">Zéro</dt>
+            <dd className="j-ledger-label">
+              double-saisie, zéro fichier tampon. Fini les erreurs coûteuses.
+            </dd>
+          </div>
+          <div className="j-ledger-row">
+            <dt className="j-ledger-fig">D&rsquo;avance</dt>
+            <dd className="j-ledger-label">
+              les chiffres qu&rsquo;on réclame en urgence sont déjà prêts.
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      {/* 4 — LA PREUVE (double compétence universelle + preuve propre au profil) */}
+      <section aria-label="La preuve">
+        <p className="j-eyebrow">Une compétence rare</p>
+        <h2 className="j-h2">
+          Construire la donnée,
+          <br />
+          <em>et lire un bilan</em>.
+        </h2>
+        <p className="j-sub">Les deux métiers à la fois. C&rsquo;est rare.</p>
+        <p className="j-sub">{proof[profile]}</p>
+      </section>
+
+      {/* 5 — OFFRE RECOMMANDÉE (répond au profil) + ancre + gamme */}
+      <section aria-label="Votre offre">
+        <p className="j-eyebrow">Ce que je vous recommande</p>
+        <div className="j-offer-solo">
+          <span className="j-offer-badge">Pour vous</span>
+          <span className="j-offer-k">{rec.name}</span>
+          <span className="j-offer-b">{rec.benefit}</span>
+          {rec.detail}
+        </div>
+        {profile === "operation" ? (
+          <p className="j-anchor">
+            Un cabinet de transaction facturait <em>44&nbsp;000&nbsp;€</em> pour
+            le même dossier.
+          </p>
+        ) : (
+          <p className="j-anchor">
+            {valueAnchorAlt[profile as "pilotage" | "cabinet"]}
+          </p>
+        )}
+        <p className="j-ladder">{offerLadder[profile]}</p>
+        <p className="j-note">
+          Je fiabilise la donnée ; la certification des comptes reste votre
+          expert-comptable.
+        </p>
+      </section>
+
+      {/* 6 — LA MÉTHODE */}
+      <section aria-label="La méthode">
+        <p className="j-eyebrow">La méthode</p>
+        <h2 className="j-h2">
+          Vingt minutes de votre temps.
+          <br />
+          <em>Le reste, c&rsquo;est mon travail.</em>
+        </h2>
+        <ol className="j-steps">
+          {steps.map((s) => (
+            <li key={s.k} className="j-step">
+              <span className="j-step-k">{s.k}</span>
+              <span className="j-step-t">{s.title}</span>
+              <span className="j-step-b">{s.body}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* 7 — LE POURQUOI (pic émotionnel) */}
+      <section aria-label="Le pourquoi">
+        <p className="j-manifesto">
+          Une entreprise ne devrait jamais avancer à l&rsquo;aveugle. Ni au
+          quotidien, ni le jour décisif où elle se vend.
+          <br />
+          La donnée qui vous rend puissant existe déjà. Elle attend seulement
+          qu&rsquo;on lui donne la parole.
+        </p>
+        <p className="j-signature">Ex Datis Lumen</p>
+      </section>
+
+      {/* 8 — QUALIFICATION identité */}
       <section aria-label="Qui êtes-vous">
-        <p className="j-qlabel">01 — Faisons connaissance</p>
+        <p className="j-qlabel">01. Faisons connaissance</p>
         <h2 className="j-h2">Vous êtes&hellip;</h2>
         <div className="j-fields">
           <JField
@@ -197,6 +401,10 @@ export function JourneyContent() {
             autoComplete="organization"
           />
         </div>
+        <p className="j-fieldnote">
+          Ces informations préparent notre échange, pour que les vingt minutes
+          vous appartiennent.
+        </p>
         <input
           type="text"
           name="website"
@@ -209,11 +417,11 @@ export function JourneyContent() {
         />
       </section>
 
-      {/* 6 — QUALIFICATION · Pennylane */}
+      {/* 9 — QUALIFICATION Pennylane */}
       <section aria-label="Usage de Pennylane">
-        <p className="j-qlabel">02 — Votre outil</p>
+        <p className="j-qlabel">02. Votre outil</p>
         <h2 className="j-h2">
-          Vous utilisez <em>Pennylane</em> ?
+          Vous utilisez <em>Pennylane</em>&nbsp;?
         </h2>
         <JChoice
           name="pennylane"
@@ -223,25 +431,14 @@ export function JourneyContent() {
         />
       </section>
 
-      {/* 7 — QUALIFICATION · stade */}
-      <section aria-label="Votre moment">
-        <p className="j-qlabel">03 — Votre moment</p>
-        <h2 className="j-h2">Où en êtes-vous ?</h2>
-        <JChoice
-          name="stage"
-          options={stageOptions}
-          value={form.stage}
-          onChange={(v) => set("stage", v as Stage)}
-        />
-      </section>
-
-      {/* 8 — ARRIVÉE DANS LA LUMIÈRE */}
+      {/* 10 — ARRIVÉE DANS LA LUMIÈRE */}
       <section aria-label="Prendre rendez-vous" className="j-arrival">
-        <p className="j-qlabel j-arrived">Vous êtes arrivé</p>
+        <p className="j-qlabel j-arrived">La lumière</p>
         <h2 className="j-h2">Parlons de vos chiffres.</h2>
         <p className="j-sub">
-          Vingt minutes. Vous repartez avec une idée claire de ce que votre
-          donnée peut vous dire — que l&rsquo;on travaille ensemble ou non.
+          Vingt minutes. Vous repartez avec une lecture claire de ce que votre
+          donnée peut vous dire, que l&rsquo;on travaille ensemble ou non.
+          L&rsquo;échange ne coûte rien. Le temps perdu chaque mois, si.
         </p>
         {error && (
           <p role="alert" className="j-error">
@@ -254,12 +451,12 @@ export function JourneyContent() {
           disabled={submitting}
           className="j-btn"
         >
-          {submitting ? "Un instant…" : "Accéder au calendrier"}
+          {submitting ? "Un instant…" : "Réserver l'échange"}
         </button>
         <p className="j-consent">
-          Sans engagement · 20 minutes · Réponse sous 48h. En continuant, vous
-          acceptez le traitement de vos informations —{" "}
-          <a href="/mentions-legales">confidentialité</a>.
+          Sans engagement. Pas de relance commerciale. Réponse sous 48&nbsp;h.
+          En continuant, vous acceptez le traitement de vos informations.{" "}
+          <a href="/mentions-legales">Confidentialité</a>.
         </p>
       </section>
     </ImmersiveJourney>

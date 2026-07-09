@@ -361,6 +361,210 @@ body.journey-on .site-header {
   color: var(--color-gris);
 }
 
+/* Trois tensions du problème (Von Restorff — isolées, sobres) */
+.j-tensions {
+  list-style: none;
+  margin: 28px auto 0;
+  padding: 0;
+  max-width: 46ch;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.j-tension {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--color-brume);
+  padding-left: 16px;
+  border-left: 1px solid var(--color-line);
+}
+
+/* Note discrète (ex. mention expert-comptable sous les offres) */
+.j-note {
+  margin: 24px auto 0;
+  max-width: 44ch;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: var(--color-gris);
+}
+
+/* Le gain — « grand livre » (partie double : gain à gauche, détail à droite).
+   Aucun chiffre inventé : les « figures » sont des mots (Des heures / Zéro /
+   Anticipé), l'or restant réservé à l'ancre 44 000 €. */
+.j-ledger {
+  margin: 30px auto 0;
+  padding: 0;
+  max-width: 52ch;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+.j-ledger-row {
+  display: grid;
+  grid-template-columns: minmax(88px, 150px) 1fr;
+  column-gap: 20px;
+  padding: 16px 0;
+  border-top: 1px solid var(--color-line);
+  align-items: baseline;
+}
+.j-ledger-row:last-child {
+  border-bottom: 1px solid var(--color-line);
+}
+.j-ledger-fig {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(1.1rem, 2.6vw, 1.5rem);
+  line-height: 1.2;
+  color: var(--color-blanc);
+}
+.j-ledger-label {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--color-brume);
+}
+
+/* Reco d'entrée adaptative sous les offres (selon le profil choisi) */
+.j-guide {
+  margin: 22px auto 0;
+  max-width: 46ch;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--color-or-dim);
+}
+.j-guide strong {
+  color: var(--color-or);
+  font-weight: 500;
+}
+
+/* Offre recommandée mise en avant (répond au choix d'entrée, pas un menu) */
+.j-offer-solo {
+  max-width: 340px;
+  margin: 30px auto 0;
+  border: 1px solid var(--color-or-dim);
+  background: rgba(217, 178, 106, 0.06);
+  padding: 22px 22px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--color-brume);
+  text-align: left;
+}
+.j-offer-solo .j-offer-k {
+  color: var(--color-or);
+}
+
+/* La gamme, en progression discrète (contexte, pas un choix) */
+.j-ladder {
+  margin: 20px auto 0;
+  max-width: 44ch;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: var(--color-gris);
+}
+
+@media (max-width: 600px) {
+  .j-ledger-row {
+    grid-template-columns: 1fr;
+    row-gap: 4px;
+  }
+}
+
+/* Bénéfice + badge des cartes d'offre */
+.j-offer-b {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--color-blanc);
+  margin-bottom: 8px;
+}
+.j-offer-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-noir);
+  background: var(--color-or);
+  padding: 3px 8px;
+  margin-bottom: 12px;
+}
+
+/* La méthode — quatre temps */
+.j-steps {
+  list-style: none;
+  margin: 30px auto 0;
+  padding: 0;
+  max-width: 52ch;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.j-step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 16px;
+  row-gap: 2px;
+  align-items: baseline;
+}
+.j-step-k {
+  grid-row: span 2;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: var(--color-or-dim);
+}
+.j-step-t {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  color: var(--color-blanc);
+}
+.j-step-b {
+  font-family: var(--font-serif);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--color-brume);
+}
+
+/* Le pourquoi — manifeste (pic émotionnel) + signature */
+.j-manifesto {
+  font-family: var(--font-serif);
+  font-size: clamp(1.3rem, 3vw, 1.9rem);
+  line-height: 1.45;
+  color: var(--color-blanc);
+  max-width: 26ch;
+  margin: 0 auto;
+}
+.j-signature {
+  margin-top: 26px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-or);
+}
+
+/* Note sous les champs d'identité */
+.j-fieldnote {
+  margin: 18px auto 0;
+  max-width: 42ch;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: var(--color-gris);
+}
+
 /* Champs d'identité */
 .j-fields {
   display: grid;
@@ -487,6 +691,42 @@ body.journey-on .site-header {
   mask-image: radial-gradient(circle at center, #000 52%, transparent 74%);
 }
 
+/* Hero en 2 colonnes sur desktop : texte à gauche, emblème à droite.
+   En tactile / < 821px on garde la pile centrée (emblème au-dessus). Le seuil
+   821px correspond à la bascule desktop du moteur de navigation. */
+@media (min-width: 821px) {
+  .journey.is-active .journey-slab[data-index="0"] {
+    width: min(94vw, 1040px);
+  }
+  .j-hero {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: clamp(32px, 6vw, 88px);
+    text-align: left;
+  }
+  .j-hero-text {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+  .j-hero .j-sub {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  /* Le trait d'or vertical flotte mal dans la mise en page 2 colonnes et fait
+     doublon avec l'indice « Avancez vers la lumière » en bas → masqué desktop. */
+  .j-hero .j-shaft {
+    display: none;
+  }
+  .j-hero-emblem {
+    grid-column: 2;
+    grid-row: 1;
+    width: clamp(240px, 26vw, 360px);
+    margin: 0;
+  }
+}
+
 /* Signature persistante (le header étant masqué en immersion) */
 .journey-brand {
   opacity: 0;
@@ -506,4 +746,46 @@ body.journey-on .site-header {
   text-decoration: none;
   opacity: 1;
   pointer-events: auto;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Discipline typographique — lisibilité (surtout desktop)
+   Trop de registres se télescopaient : des phrases entières en
+   police MONO, gris pâle, pleine largeur. Règle unique :
+     • MONO = seulement les micro-libellés en capitales
+       (eyebrows, clés d'offre/d'étape, signature).
+     • Toute PHRASE se lit en SERIF, contraste « brume », largeur
+       mesurée. Un seul point d'or par palier.
+   ───────────────────────────────────────────────────────────── */
+
+/* Notes secondaires ramenées à UN seul registre calme et lisible. */
+.j-anchor,
+.j-ladder,
+.j-note,
+.j-fieldnote {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--color-brume);
+  max-width: 46ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+/* Seul point d'or de ces notes : le chiffre d'ancrage (44 000 €). */
+.j-anchor em {
+  color: var(--color-or);
+  font-style: italic;
+}
+/* La mention légale reste la plus discrète (un cran sous les autres). */
+.j-note {
+  font-size: 0.85rem;
+  color: var(--color-gris);
+}
+
+/* Carte d'offre : un seul or (le badge « Pour vous »). Le nom de
+   l'offre repasse en libellé sobre pour ne pas multiplier les ors. */
+.j-offer-solo .j-offer-k {
+  color: var(--color-or-dim);
 }

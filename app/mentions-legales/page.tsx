@@ -16,7 +16,7 @@ export default function MentionsLegalesPage() {
       <Section as="section" className="pt-28 sm:pt-36">
         {/* En-tête */}
         <MonoLabel tone="or-dim" className="block mb-6">
-          Conformité · RGPD
+          Conformité RGPD
         </MonoLabel>
         <h1 className="font-serif text-3xl font-light text-blanc sm:text-4xl">
           Mentions légales &amp; Politique de confidentialité
@@ -226,7 +226,7 @@ export default function MentionsLegalesPage() {
                     <p className="font-mono text-[11px] text-gris mt-1">
                       {st.location}
                       {st.transfer
-                        ? ` · Transfert hors UE encadré par des clauses contractuelles types (${st.transfer})`
+                        ? `. Transfert hors UE encadré par des clauses contractuelles types (${st.transfer})`
                         : null}
                     </p>
                   </div>
@@ -383,7 +383,7 @@ export default function MentionsLegalesPage() {
 
           {/* Note de bas de page */}
           <p className="font-mono text-[11px] text-gris">
-            {site.name} · {site.legalName} · {site.url}
+            {site.name}. {site.legalName}. {site.url}
           </p>
         </article>
       </Section>

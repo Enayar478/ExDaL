@@ -32,9 +32,9 @@ const pennylaneOptions = [
 ] as const;
 
 const stageOptions = [
-  { value: "pilotage", label: "Piloter au quotidien" },
-  { value: "cabinet", label: "Je suis un cabinet" },
-  { value: "operation", label: "Je prépare une levée ou une cession" },
+  { value: "pilotage", label: "Piloter mon activité au quotidien" },
+  { value: "cabinet", label: "Fiabiliser le reporting de mes clients" },
+  { value: "operation", label: "Préparer une levée ou une cession" },
 ] as const;
 
 export function QualificationModal({
@@ -130,7 +130,7 @@ export function QualificationModal({
         <div className="flex flex-col gap-7 px-7 py-7">
           <fieldset className="flex flex-col gap-3">
             <legend className="mb-1">
-              <MonoLabel tone="gris">1 · Qui êtes-vous ?</MonoLabel>
+              <MonoLabel tone="gris">1. Qui êtes-vous ?</MonoLabel>
             </legend>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field
@@ -162,7 +162,7 @@ export function QualificationModal({
           </fieldset>
 
           <ChoiceGroup
-            legend="2 · Utilisez-vous Pennylane ?"
+            legend="2. Utilisez-vous Pennylane ?"
             name="pennylane"
             options={pennylaneOptions}
             value={form.pennylane}
@@ -170,7 +170,7 @@ export function QualificationModal({
           />
 
           <ChoiceGroup
-            legend="3 · À quel stade êtes-vous ?"
+            legend="3. À quel stade êtes-vous ?"
             name="stage"
             options={stageOptions}
             value={effectiveStage}
@@ -202,10 +202,10 @@ export function QualificationModal({
             disabled={submitting}
             className="w-full rounded-sm bg-or px-6 py-3 font-mono text-[13px] uppercase tracking-[0.1em] text-noir transition-opacity hover:opacity-90 disabled:opacity-60"
           >
-            {submitting ? "Un instant…" : "Accéder au calendrier"}
+            {submitting ? "Un instant…" : "Réserver l'échange"}
           </button>
           <p className="text-center font-mono text-[11px] uppercase tracking-[0.12em] text-gris">
-            Sans engagement · 20 minutes · Réponse sous 48h
+            Sans engagement. 20 minutes. Réponse sous 48h.
           </p>
         </footer>
       </form>
