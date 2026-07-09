@@ -3,6 +3,7 @@ import { verifyConfirmToken } from "@/lib/newsletter/token";
 import { confirmSubscriber } from "@/lib/newsletter/repository";
 import { logger } from "@/lib/logger";
 import { site } from "@/lib/site";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 /**
  * Ensemble statique des valeurs autorisées pour le paramètre `newsletter` de la
@@ -18,13 +19,18 @@ const ALLOWED_NEWSLETTER_PARAMS = new Set([
   "confirmed",
 ] as const);
 
-type NewsletterParam = "invalid" | "malformed" | "expired" | "invalid_signature" | "error" | "confirmed";
+type NewsletterParam =
+  | "invalid"
+  | "malformed"
+  | "expired"
+  | "invalid_signature"
+  | "error"
+  | "confirmed";
 
 function redirectTo(param: NewsletterParam): NextResponse {
-  return NextResponse.redirect(
-    new URL(`/?newsletter=${param}`, site.url),
-    { status: 302 },
-  );
+  return NextResponse.redirect(new URL(`/?newsletter=${param}`, site.url), {
+    status: 302,
+  });
 }
 
 /**
@@ -36,6 +42,12 @@ function redirectTo(param: NewsletterParam): NextResponse {
  * jamais interpolé depuis l'entrée utilisateur ou une chaîne non validée.
  */
 export async function GET(request: NextRequest) {
+  // Garde-fou volumétrique, cohérent avec les autres routes publiques.
+  const ip = clientIp(request.headers);
+  if (!rateLimit(`newsletter-confirm:${ip}`, 10, 60_000).allowed) {
+    return new NextResponse("Trop de requêtes.", { status: 429 });
+  }
+
   const { searchParams } = new URL(request.url);
   const token = searchParams.get("token");
 
