@@ -746,3 +746,45 @@ body.journey-on .site-header {
   opacity: 1;
   pointer-events: auto;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Discipline typographique — lisibilité (surtout desktop)
+   Trop de registres se télescopaient : des phrases entières en
+   police MONO, gris pâle, pleine largeur. Règle unique :
+     • MONO = seulement les micro-libellés en capitales
+       (eyebrows, clés d'offre/d'étape, signature).
+     • Toute PHRASE se lit en SERIF, contraste « brume », largeur
+       mesurée. Un seul point d'or par palier.
+   ───────────────────────────────────────────────────────────── */
+
+/* Notes secondaires ramenées à UN seul registre calme et lisible. */
+.j-anchor,
+.j-ladder,
+.j-note,
+.j-fieldnote {
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--color-brume);
+  max-width: 46ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+/* Seul point d'or de ces notes : le chiffre d'ancrage (44 000 €). */
+.j-anchor em {
+  color: var(--color-or);
+  font-style: italic;
+}
+/* La mention légale reste la plus discrète (un cran sous les autres). */
+.j-note {
+  font-size: 0.85rem;
+  color: var(--color-gris);
+}
+
+/* Carte d'offre : un seul or (le badge « Pour vous »). Le nom de
+   l'offre repasse en libellé sobre pour ne pas multiplier les ors. */
+.j-offer-solo .j-offer-k {
+  color: var(--color-or-dim);
+}
