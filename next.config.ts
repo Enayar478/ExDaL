@@ -52,9 +52,8 @@ const securityHeaders = [
   // ne supportent pas CSP (belt-and-suspenders). Les navigateurs modernes ignorent
   // cet en-tête en faveur de CSP.
   { key: "X-XSS-Protection", value: "1; mode=block" },
-  // Cache-Control par défaut : les pages publiques statiques peuvent être cachées.
-  // Les routes API sensibles surchargent cet en-tête (no-store) via middleware.
-  // Voir middleware.ts pour la politique spécifique aux routes /api/*.
+  // Cache-Control : les pages publiques statiques peuvent être cachées. Les routes
+  // API sensibles surchargent cet en-tête (no-store) via `apiSecurityHeaders` (ci-dessous).
 ];
 
 // En-têtes supplémentaires pour les routes API sensibles (no-store + no-cache).

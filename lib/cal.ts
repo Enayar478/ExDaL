@@ -2,7 +2,7 @@ import type { LeadInput } from "@/lib/validation/lead";
 
 /**
  * Construction de l'URL de réservation Cal.com avec préremplissage.
- * Utilise NEXT_PUBLIC_CAL_LINK : soit un slug « user/event », soit une URL complète.
+ * Utilise CAL_LINK : soit un slug « user/event », soit une URL complète.
  * Le créneau lui-même (durée 20 min) est configuré dans Cal.com.
  */
 const stageLabels: Record<LeadInput["stage"], string> = {
@@ -24,7 +24,7 @@ function baseCalUrl(link: string): string {
 
 /**
  * Retourne l'URL Cal.com préremplie pour un prospect qualifié.
- * @param link    valeur de NEXT_PUBLIC_CAL_LINK (slug ou URL complète)
+ * @param link    valeur de CAL_LINK (slug ou URL complète)
  * @param lead    données validées du formulaire de qualification
  * @param leadId  identifiant Supabase du lead — transmis en metadata pour
  *                une corrélation robuste dans le webhook (non basée sur l'email)

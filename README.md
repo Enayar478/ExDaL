@@ -109,7 +109,7 @@ chaque valeur. Résumé :
 | Variable                     | Public | Rôle                                       |
 | ---------------------------- | :----: | ------------------------------------------ |
 | `NEXT_PUBLIC_SITE_URL`       |   ✅   | URL canonique (SEO, sitemap)               |
-| `NEXT_PUBLIC_CAL_LINK`       |   ✅   | lien Cal.com (slug ou URL)                 |
+| `CAL_LINK`       |   ✅   | lien Cal.com (slug ou URL)                 |
 | `SUPABASE_URL`               |   —    | projet Supabase                            |
 | `SUPABASE_SERVICE_ROLE_KEY`  |   —    | clé service_role (SECRET)                  |
 | `RESEND_API_KEY`             |   —    | envoi d'emails                             |
@@ -135,7 +135,7 @@ Alternative CLI : `supabase link` puis `supabase db push`.
 
 1. Créez un compte sur [cal.com](https://cal.com) et un **Event Type** de **20 min**
    (ex. « Échanger sur votre situation »).
-2. Copiez son lien → `NEXT_PUBLIC_CAL_LINK` (slug `exdal/echange-20min` ou URL).
+2. Copiez son lien → `CAL_LINK` (slug `exdal/echange-20min` ou URL).
 3. **Webhook** : Settings → Developer → Webhooks → New.
    - URL : `https://exdal.fr/api/cal-webhook`
    - Événement : `BOOKING_CREATED`
