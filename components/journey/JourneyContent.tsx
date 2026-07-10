@@ -175,6 +175,8 @@ export function JourneyContent() {
   const [form, setForm] = useState<FormState>(empty);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // Incrémenté à chaque choix sur la bifurcation → déclenche l'enchaînement auto.
+  const [advanceKey, setAdvanceKey] = useState(0);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));
@@ -217,7 +219,11 @@ export function JourneyContent() {
   }
 
   return (
-    <ImmersiveJourney gateIndex={1} gateOpen={Boolean(form.stage)}>
+    <ImmersiveJourney
+      gateIndex={1}
+      gateOpen={Boolean(form.stage)}
+      advanceOn={advanceKey}
+    >
       {/* 0 — HERO (2 colonnes sur desktop : texte à gauche, emblème à droite) */}
       <section aria-label="Introduction" className="j-hero">
         <Image
@@ -250,7 +256,11 @@ export function JourneyContent() {
           name="stage"
           options={stageOptions}
           value={form.stage}
-          onChange={(v) => set("stage", v as Stage)}
+          onChange={(v) => {
+            set("stage", v as Stage);
+            // Un choix validé enchaîne automatiquement vers le palier suivant.
+            setAdvanceKey((k) => k + 1);
+          }}
         />
         <p className="j-fieldnote">
           Un doute&nbsp;? Prenez le cas le plus proche, on affinera à

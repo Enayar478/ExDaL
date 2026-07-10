@@ -25,12 +25,16 @@ export function ImmersiveJourney({
   children,
   gateIndex = -1,
   gateOpen = true,
+  advanceOn = 0,
 }: {
   children: React.ReactNode;
   /** Palier au-delà duquel on bloque tant que `gateOpen` est faux (-1 = aucun). */
   gateIndex?: number;
   /** Le verrou est-il levé ? (ex. la bifurcation a reçu un choix) */
   gateOpen?: boolean;
+  /** Compteur impératif : à chaque incrément, on glisse d'un palier si l'on est
+   *  posé sur le verrou (ex. un choix validé sur la bifurcation → enchaînement auto). */
+  advanceOn?: number;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
@@ -46,6 +50,21 @@ export function ImmersiveJourney({
     gateIndexRef.current = gateIndex;
     gateOpenRef.current = gateOpen;
   }, [gateIndex, gateOpen]);
+
+  // Pont impératif vers la navigation interne (définie dans l'effet [n]) :
+  // permet au contenu de demander un enchaînement sans connaître l'état du moteur.
+  const goRef = useRef<((dir: number) => void) | null>(null);
+  const stepRef = useRef(0);
+
+  // Enchaînement automatique : à chaque incrément de `advanceOn` (un choix validé),
+  // si l'on est posé sur le palier-verrou, on glisse vers le suivant. Court délai
+  // pour laisser le choix s'afficher avant de partir. No-op en reduced-motion.
+  useEffect(() => {
+    if (advanceOn <= 0) return;
+    if (gateIndex >= 0 && stepRef.current !== gateIndex) return;
+    const t = window.setTimeout(() => goRef.current?.(1), 320);
+    return () => window.clearTimeout(t);
+  }, [advanceOn, gateIndex]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -134,6 +153,7 @@ export function ImmersiveJourney({
     lenis?.stop();
 
     let step = 0;
+    stepRef.current = 0;
     let cur = 0; // profondeur courante (animée à la main, sans dépendance ticker)
     let animId = 0;
     const easeInOut = (t: number) =>
@@ -155,8 +175,10 @@ export function ImmersiveJourney({
       const target = clamp(0, maxTravel(), step + dir);
       if (target === step) return;
       step = target;
+      stepRef.current = step;
       animateTo(step);
     };
+    goRef.current = go;
 
     // — Tactile : swipe (vertical prioritaire ; haut / gauche = avancer) —
     let sx = 0,
@@ -229,6 +251,7 @@ export function ImmersiveJourney({
       cancelAnimationFrame(animId);
       if (rafId) cancelAnimationFrame(rafId);
       window.clearTimeout(wheelUnlock);
+      goRef.current = null;
       viewport.removeEventListener("touchstart", onStart);
       viewport.removeEventListener("touchend", onEnd);
       viewport.removeEventListener("wheel", onWheel);
