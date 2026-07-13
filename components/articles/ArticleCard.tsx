@@ -8,7 +8,7 @@ import type { Article } from "@/lib/articles/types";
 export function ArticleCard({ article }: { article: Article }) {
   return (
     <Link
-      href={`/articles/${article.slug}`}
+      href={`/journal/${article.slug}`}
       className="group block border-t border-line py-8 transition-colors hover:border-or-dim"
     >
       <MonoLabel tone="or-dim" className="block">

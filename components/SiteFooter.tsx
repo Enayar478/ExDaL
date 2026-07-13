@@ -42,7 +42,7 @@ export function SiteFooter() {
               {site.email}
             </a>
             <Link
-              href="/articles"
+              href="/journal"
               className="transition-colors hover:text-blanc"
             >
               Journal

@@ -1,28 +1,28 @@
-import { BookingProvider } from "@/components/booking/BookingProvider";
-import { SmoothScroll } from "@/components/tunnel/SmoothScroll";
-import { JourneyContent } from "@/components/journey/JourneyContent";
-import { SiteHeader } from "@/components/SiteHeader";
-import { SiteFooter } from "@/components/SiteFooter";
+import type { Metadata } from "next";
+import { Manifesto } from "@/components/manifesto/Manifesto";
 import { StructuredData } from "@/components/StructuredData";
 
 /**
- * Landing exdal.fr — un seul voyage immersif, du chaos vers la lumière.
- * On ne scrolle pas verticalement : on s'enfonce sur l'axe Z, palier après
- * palier, jusqu'à déboucher dans la lumière sur la prise de rendez-vous.
- * Le formulaire de qualification fait partie du voyage. Fallback reduced-motion :
- * scroll vertical classique, entièrement lisible et accessible.
+ * Accueil exdal.fr — le hall d'entrée manifeste. Rendu côté serveur : le titre
+ * et la promesse sont dans le HTML servi (le fond canvas est purement décoratif,
+ * aria-hidden), donc le SEO reste propre. Canonical « / ».
  */
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    title: "ExDaL. Vos chiffres savent déjà tout",
+    description:
+      "Studio de data financière, spécialiste Pennylane. Vos chiffres savent déjà tout — donnons-leur la parole.",
+  },
+};
+
 export default function Home() {
   return (
-    <BookingProvider>
-      <SmoothScroll>
-        <StructuredData />
-        <SiteHeader />
-        <main>
-          <JourneyContent />
-        </main>
-        <SiteFooter />
-      </SmoothScroll>
-    </BookingProvider>
+    <>
+      <StructuredData />
+      <Manifesto />
+    </>
   );
 }

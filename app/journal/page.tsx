@@ -14,10 +14,10 @@ export const metadata: Metadata = {
   title: "Journal",
   description:
     "Data financière, Pennylane, préparation d'une levée ou d'une cession : nos articles pour lire ce que vos chiffres vous disent.",
-  alternates: { canonical: "/articles" },
+  alternates: { canonical: "/journal" },
   openGraph: {
     type: "website",
-    url: "/articles",
+    url: "/journal",
     title: "Journal. ExDaL",
     description:
       "Data financière, Pennylane, préparation d'une levée ou d'une cession — nos articles de fond.",

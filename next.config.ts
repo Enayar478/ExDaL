@@ -69,6 +69,19 @@ const apiSecurityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Le Journal a migré de /articles vers /journal (refonte accueil manifeste).
+  // Redirections permanentes (308) pour préserver le SEO déjà en ligne : anciennes
+  // URLs indexées et liens entrants suivent vers la nouvelle arborescence.
+  async redirects() {
+    return [
+      { source: "/articles", destination: "/journal", permanent: true },
+      {
+        source: "/articles/:slug",
+        destination: "/journal/:slug",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       // Routes API sensibles : jamais mises en cache.
