@@ -125,6 +125,7 @@ export default function MentionsLegalesPage() {
                   "Nom de l'entreprise",
                   "Usage de Pennylane",
                   "Stade du projet (levée, cession, pilotage courant…)",
+                  "Réponses au diagnostic « Score de Préparation » et score associé, lorsque vous demandez à recevoir votre plan par email",
                 ].map((item) => (
                   <li key={item} className="flex gap-2 items-start">
                     <span className="text-or-dim mt-px">—</span>
@@ -272,6 +273,16 @@ export default function MentionsLegalesPage() {
                     : données conservées 3 ans à compter de la date du
                     rendez-vous, conformément aux obligations légales liées à la
                     relation commerciale.
+                  </span>
+                </li>
+                <li className="flex gap-2 items-start">
+                  <span className="text-or-dim mt-px">—</span>
+                  <span>
+                    <strong className="font-medium text-blanc">
+                      Réponses au diagnostic « Score de Préparation »
+                    </strong>{" "}
+                    : conservées 12 mois à compter de la soumission, puis
+                    supprimées.
                   </span>
                 </li>
               </ul>

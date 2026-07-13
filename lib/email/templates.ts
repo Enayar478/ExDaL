@@ -112,6 +112,67 @@ Si vous n'avez pas demandé cette inscription, ignorez simplement ce message.
   };
 }
 
+interface ScorePlanDetails {
+  score: number;
+  verdictTitle: string;
+  verdictBody: string;
+  recommendations: ReadonlyArray<{ label: string; text: string }>;
+}
+
+/**
+ * Plan de préparation personnalisé envoyé après le diagnostic « Score de
+ * Préparation à la Cession ». Contenu transactionnel : le dirigeant l'a
+ * explicitement demandé en soumettant son email sur la page de résultat.
+ */
+export function scorePlan(details: ScorePlanDetails): EmailContent {
+  const recoBlock =
+    details.recommendations.length > 0
+      ? `<div style="border-top:1px solid ${LINE};margin-top:28px;padding-top:8px;">
+          ${details.recommendations
+            .map(
+              (reco) => `<div style="margin-top:20px;">
+                <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:${OR};margin-bottom:6px;">${escapeHtml(reco.label)}</div>
+                <div style="font-size:15px;line-height:1.55;color:${BRUME};">${escapeHtml(reco.text)}</div>
+              </div>`,
+            )
+            .join("")}
+        </div>`
+      : `<p style="font-size:16px;line-height:1.6;color:${BRUME};margin:24px 0 0;">Vos chiffres tiennent déjà l'examen. Il ne reste qu'à choisir le bon moment.</p>`;
+
+  const html = shell(`
+    <h1 style="font-size:24px;font-weight:400;line-height:1.35;margin:0 0 6px;color:${BLANC};">Votre plan de préparation</h1>
+    <p style="font-family:'Courier New',monospace;font-size:12px;letter-spacing:.1em;color:#6f6858;margin:0 0 22px;">Votre score : <span style="color:${OR};">${details.score} / 100</span></p>
+    <h2 style="font-size:20px;font-weight:400;line-height:1.35;margin:0 0 12px;color:${BLANC};">${escapeHtml(details.verdictTitle)}</h2>
+    <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0;">${escapeHtml(details.verdictBody)}</p>
+    ${recoBlock}
+    <p style="font-size:16px;line-height:1.6;color:${BLANC};margin:32px 0 0;">Quand vous voudrez transformer ce constat en feuille de route, nous prendrons vingt minutes pour en parler.</p>
+    <a href="${escapeHtml(site.url)}" style="display:inline-block;margin-top:20px;padding:12px 28px;background:${OR};color:#090a0c;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;">Échanger sur votre situation</a>
+  `);
+
+  const recoText =
+    details.recommendations.length > 0
+      ? details.recommendations
+          .map((reco) => `\n\n${reco.label}\n${reco.text}`)
+          .join("")
+      : "\n\nVos chiffres tiennent déjà l'examen. Il ne reste qu'à choisir le bon moment.";
+
+  const text = `Ex Datis Lumen — Votre plan de préparation
+
+Votre score : ${details.score} / 100
+
+${details.verdictTitle}
+${details.verdictBody}${recoText}
+
+Quand vous voudrez transformer ce constat en feuille de route, nous prendrons vingt minutes pour en parler.
+${site.url}`;
+
+  return {
+    subject: `Votre plan de préparation — ${details.score}/100`,
+    html,
+    text,
+  };
+}
+
 /** Notification interne au propriétaire à chaque nouvelle réservation. */
 export function ownerNotification(details: BookingDetails): EmailContent {
   const rows = [
