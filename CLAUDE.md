@@ -1,4 +1,4 @@
-# CLAUDE.md — ExDaL (Ex Datis Lumen)
+# CLAUDE.md · ExDaL (Ex Datis Lumen)
 
 Contexte projet pour toute session Claude Code sur ce dépôt. À lire avant d'agir.
 
@@ -6,7 +6,7 @@ Contexte projet pour toute session Claude Code sur ce dépôt. À lire avant d'a
 
 ## 1. Ce qu'est ExDaL
 
-**Ex Datis Lumen** — « De la donnée, la lumière ». Studio d'expertise en **data
+**Ex Datis Lumen**, « De la donnée, la lumière ». Studio d'expertise en **data
 financière**, spécialiste **Pennylane**. Un analytics engineer indépendant qui a la
 **double compétence rare data + finance** : construit le pipeline ET comprend un
 compte de résultat, une due diligence, les métriques qu'exige un investisseur.
@@ -23,7 +23,7 @@ De la donnée Pennylane brute jusqu'au dossier qui vaut des millions le jour de 
 - **North Star :** nombre de clients récurrents actifs.
 - **Métriques du tunnel :** calls de qualification bookés/semaine · taux call→mission ·
   taux mission→récurrent.
-- **Revenus :** Socle TJM 550–600 € (missions courtes → **maintenance mensuelle
+- **Revenus :** Socle TJM 550 à 600 € (missions courtes → **maintenance mensuelle
   récurrente**) ; Opération = forfait par levée/cession (ancre de valeur : 44 000 €
   déjà facturés par un cabinet pour un livrable équivalent).
 - **Objectif court terme :** ~2 300 € net/mois (matelas de départ). **Long terme :**
@@ -35,11 +35,11 @@ De la donnée Pennylane brute jusqu'au dossier qui vaut des millions le jour de 
 3. **Dirigeants en levée / cession** → premium (L'Opération).
 
 ### Offres (jamais plus de 3 ; celle du milieu au centre)
-- **Le Socle · Clarté** — réconciliation Pennylane + CRM + paiements, dashboards fiables.
-- **Le Pilotage · au centre** — Socle + suivi mensuel récurrent. *Le choix évident.*
-- **L'Opération · Maîtrise** — fichiers d'une levée/cession (ARR, MRR, current trading, cohortes).
+- **Le Socle · Clarté** : réconciliation Pennylane + CRM + paiements, dashboards fiables.
+- **Le Pilotage · au centre** : Socle + suivi mensuel récurrent. *Le choix évident.*
+- **L'Opération · Maîtrise** : fichiers d'une levée/cession (ARR, MRR, current trading, cohortes).
 
-## 3. Direction artistique (STRICTE — ne pas réinterpréter)
+## 3. Direction artistique (STRICTE, ne pas réinterpréter)
 
 Clair-obscur, luxe austère, beaucoup d'espace négatif. Le calme et la maîtrise,
 jamais l'agressivité commerciale.
@@ -67,7 +67,12 @@ Calme et sûr (un expert qui n'a rien à prouver) · précis, jamais jargonneux 
 (jamais « révolutionnaire / innovant / leader ») · **on en dit moins pour signifier
 plus**. Le luxe austère jusque dans les mots.
 
-## 5. Copy — source de vérité
+- **INTERDIT ABSOLU : le tiret cadratin (—) et le demi-cadratin (–).** Jamais, nulle
+  part : ni dans la copy visible, ni dans les titres, ni dans les commentaires de code.
+  À la place : virgule, deux-points, parenthèses ou point. Le point médian « · » reste
+  autorisé pour les listes inline (eyebrows, mentions). Cette règle est non négociable.
+
+## 5. Copy · source de vérité
 
 Le copywriting définitif vit dans `/brief` (checkout principal, non commité) :
 `exdal-marque.html` (plateforme de marque), `exdal-lean-canvas.html`,
@@ -99,9 +104,9 @@ enregistre un signal de segmentation et pré-remplit le stade.
 ## 7. Conventions de code (voir aussi ~/.claude/rules)
 
 - **Immuabilité** : jamais de mutation, toujours de nouveaux objets (spread).
-- **Petits fichiers** cohérents (200–400 lignes typiques, 800 max).
+- **Petits fichiers** cohérents (200 à 400 lignes typiques, 800 max).
 - **Validation Zod** à toute frontière (entrée API, webhook, env).
-- **Aucun secret en dur** — tout en variables d'environnement (`lib/env.ts`, fail-fast).
+- **Aucun secret en dur** : tout en variables d'environnement (`lib/env.ts`, fail-fast).
 - **Gestion d'erreurs** explicite ; messages user-friendly côté UI, log détaillé serveur
   (`lib/logger.ts`). Pas de `console.log` en prod.
 - **Enveloppe API** cohérente `{ success, data?, error? }` (`lib/api.ts`).
@@ -126,9 +131,9 @@ Commandes : `pnpm dev` · `pnpm build` · `pnpm test` · `pnpm lint`.
 ## 9. Garde-fous (important)
 
 - **Rester dans le périmètre demandé.** Ne pas explorer Drive/Notion/sources externes
-  sans consigne explicite. (Le CEO y tient — cf. mémoire `scope-discipline`.)
+  sans consigne explicite. (Le CEO y tient, cf. mémoire `scope-discipline`.)
 - **Ne pas inventer la roue** : les systèmes de conversion, biais cognitifs et leviers
-  marketing sont connus et documentés — les appliquer à bon escient, pas les réinventer.
+  marketing sont connus et documentés : les appliquer à bon escient, pas les réinventer.
 - **Chirurgical** : précis, rigoureux, créatif dans le cadre de la DA. Chaque ajout se
   justifie par un gain de lead/clarté, sinon on ne l'ajoute pas (espace négatif = valeur).
 
