@@ -16,6 +16,8 @@ export const connecterPennylaneTableauDeBord: Article = {
   segment: "pme",
   publishedAt: "2026-07-13",
   ctaVariant: "qualification",
+  // Pont vers la grappe premium : la donnée propre en amont sert le jour de l'opération.
+  relatedSlugs: ["preparer-chiffres-levee-cession"],
   blocks: [
     {
       type: "p",

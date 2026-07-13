@@ -9,10 +9,31 @@ import type { ReactNode } from "react";
 const PATTERN = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*/g;
 
 function isSafeHref(href: string): boolean {
-  return /^https?:\/\//.test(href) || href.startsWith("/") || href.startsWith("#");
+  return (
+    /^https?:\/\//.test(href) || href.startsWith("/") || href.startsWith("#")
+  );
 }
 
-export function renderInline(text: string): ReactNode[] {
+/**
+ * Un lien interne vers un article (`/articles/<slug>`) n'est rendu comme lien que
+ * si l'article cible est publié. Sinon → texte simple. Le maillage se forge donc
+ * à l'avance (cocon) sans jamais créer de lien mort : chaque lien s'active tout
+ * seul quand sa cible sort (la revalidation ISR reconstruit la page). Les liens
+ * externes et les liens internes hors-articles (ex. /score) passent toujours.
+ */
+function isBrokenArticleLink(
+  href: string,
+  publishedSlugs?: ReadonlySet<string>,
+): boolean {
+  const match = /^\/articles\/([^/#?]+)/.exec(href);
+  if (!match) return false;
+  return !publishedSlugs?.has(match[1]);
+}
+
+export function renderInline(
+  text: string,
+  publishedSlugs?: ReadonlySet<string>,
+): ReactNode[] {
   const nodes: ReactNode[] = [];
   let lastIndex = 0;
   let key = 0;
@@ -27,7 +48,10 @@ export function renderInline(text: string): ReactNode[] {
 
     const [, linkLabel, linkHref, bold] = match;
     if (linkLabel !== undefined && linkHref !== undefined) {
-      if (isSafeHref(linkHref)) {
+      if (
+        isSafeHref(linkHref) &&
+        !isBrokenArticleLink(linkHref, publishedSlugs)
+      ) {
         const external = /^https?:\/\//.test(linkHref);
         nodes.push(
           <a

@@ -7,22 +7,35 @@ import type { ArticleBlock } from "@/lib/articles/types";
  * bloc `stat` (un seul par article). Titres et emphase en blanc, corps en brume,
  * mono réservé aux micro-libellés (attribution de citation).
  */
-export function ArticleBody({ blocks }: { blocks: readonly ArticleBlock[] }) {
+export function ArticleBody({
+  blocks,
+  publishedSlugs,
+}: {
+  blocks: readonly ArticleBlock[];
+  /** Slugs d'articles publiés — un lien vers un slug absent est rendu en texte. */
+  publishedSlugs?: ReadonlySet<string>;
+}) {
   return (
     <div className="article-body">
       {blocks.map((block, index) => (
-        <Block key={index} block={block} />
+        <Block key={index} block={block} publishedSlugs={publishedSlugs} />
       ))}
     </div>
   );
 }
 
-function Block({ block }: { block: ArticleBlock }) {
+function Block({
+  block,
+  publishedSlugs,
+}: {
+  block: ArticleBlock;
+  publishedSlugs?: ReadonlySet<string>;
+}) {
   switch (block.type) {
     case "p":
       return (
         <p className="mt-6 font-serif text-[17px] leading-[1.8] text-brume first:mt-0 sm:text-[18px]">
-          {renderInline(block.text)}
+          {renderInline(block.text, publishedSlugs)}
         </p>
       );
 
@@ -59,7 +72,7 @@ function Block({ block }: { block: ArticleBlock }) {
                 {block.ordered ? `${i + 1}.` : "—"}
               </span>
               <span className="font-serif text-[17px] leading-[1.7] text-brume sm:text-[18px]">
-                {renderInline(item)}
+                {renderInline(item, publishedSlugs)}
               </span>
             </li>
           ))}
@@ -71,7 +84,7 @@ function Block({ block }: { block: ArticleBlock }) {
       return (
         <blockquote className="mt-8 border-l border-line pl-6">
           <p className="font-serif text-xl italic leading-[1.6] text-blanc sm:text-2xl">
-            {renderInline(block.text)}
+            {renderInline(block.text, publishedSlugs)}
           </p>
           {block.attribution && (
             <cite className="mt-3 block font-mono text-[11px] uppercase not-italic tracking-[0.14em] text-gris">

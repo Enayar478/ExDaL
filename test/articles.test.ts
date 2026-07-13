@@ -11,6 +11,8 @@ import {
   countWords,
   estimateReadingMinutes,
 } from "@/lib/articles/reading-time";
+import { renderInline } from "@/components/articles/inline";
+import { isValidElement } from "react";
 
 /** Fabrique un article minimal valide, surchargeable pour les cas de test. */
 function makeArticle(overrides: Partial<Article> = {}): Article {
@@ -91,6 +93,39 @@ describe("estimateReadingMinutes", () => {
     const minutes = estimateReadingMinutes(ARTICLES[0].blocks);
     expect(minutes).toBeGreaterThanOrEqual(6);
     expect(minutes).toBeLessThanOrEqual(9);
+  });
+});
+
+describe("renderInline — liens auto-cicatrisants du cocon", () => {
+  it("rend un lien vers un article PUBLIÉ", () => {
+    const nodes = renderInline(
+      "voir [le guide](/articles/foo)",
+      new Set(["foo"]),
+    );
+    const link = nodes.find(isValidElement) as {
+      type?: string;
+      props?: { href?: string };
+    };
+    expect(link?.type).toBe("a");
+    expect(link?.props?.href).toBe("/articles/foo");
+  });
+
+  it("rend en TEXTE simple un lien vers un article non publié (pas de lien mort)", () => {
+    const nodes = renderInline("voir [le guide](/articles/foo)", new Set());
+    expect(nodes.some(isValidElement)).toBe(false);
+    expect(nodes.join("")).toBe("voir le guide");
+  });
+
+  it("laisse toujours passer les liens internes hors-articles (ex. /score)", () => {
+    const nodes = renderInline("faites le [test](/score)", new Set());
+    const link = nodes.find(isValidElement) as { props?: { href?: string } };
+    expect(link?.props?.href).toBe("/score");
+  });
+
+  it("laisse toujours passer les liens externes", () => {
+    const nodes = renderInline("voir [la doc](https://x.fr)", new Set());
+    const link = nodes.find(isValidElement) as { props?: { target?: string } };
+    expect(link?.props?.target).toBe("_blank");
   });
 });
 
