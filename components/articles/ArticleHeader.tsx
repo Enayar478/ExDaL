@@ -1,5 +1,6 @@
 import { MonoLabel } from "@/components/ui/MonoLabel";
 import { formatArticleDate } from "@/lib/articles/format";
+import { estimateReadingMinutes } from "@/lib/articles/reading-time";
 import type { Article } from "@/lib/articles/types";
 
 /** En-tête d'article : sur-titre mono, H1 serif, ligne méta (date · lecture). */
@@ -15,7 +16,7 @@ export function ArticleHeader({ article }: { article: Article }) {
       <p className="mt-5 font-mono text-[12px] uppercase tracking-[0.12em] text-gris">
         {formatArticleDate(article.publishedAt)}
         <span className="mx-2 text-line">·</span>
-        {article.readingMinutes} min de lecture
+        {estimateReadingMinutes(article.blocks)} min de lecture
       </p>
     </header>
   );

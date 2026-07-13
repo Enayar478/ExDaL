@@ -15,8 +15,16 @@ export type ArticleBlock =
   | { readonly type: "p"; readonly text: string }
   | { readonly type: "h2"; readonly id: string; readonly text: string }
   | { readonly type: "h3"; readonly id: string; readonly text: string }
-  | { readonly type: "list"; readonly items: readonly string[]; readonly ordered?: boolean }
-  | { readonly type: "quote"; readonly text: string; readonly attribution?: string }
+  | {
+      readonly type: "list";
+      readonly items: readonly string[];
+      readonly ordered?: boolean;
+    }
+  | {
+      readonly type: "quote";
+      readonly text: string;
+      readonly attribution?: string;
+    }
   | { readonly type: "stat"; readonly value: string; readonly label: string };
 
 export interface Article {
@@ -42,8 +50,6 @@ export interface Article {
   readonly publishedAt: string;
   /** Dernière modification (ISO 8601), pour le JSON-LD. */
   readonly updatedAt?: string;
-  /** Temps de lecture estimé, en minutes. */
-  readonly readingMinutes: number;
   /** Brouillon : jamais construit ni exposé, même si publishedAt est passé. */
   readonly draft?: boolean;
   /** Maillage interne : slugs d'articles liés (cocon sémantique). */

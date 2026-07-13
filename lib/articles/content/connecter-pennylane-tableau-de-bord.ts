@@ -15,7 +15,6 @@ export const connecterPennylaneTableauDeBord: Article = {
   eyebrow: "Pilotage Pennylane",
   segment: "pme",
   publishedAt: "2026-07-13",
-  readingMinutes: 10,
   ctaVariant: "qualification",
   blocks: [
     {

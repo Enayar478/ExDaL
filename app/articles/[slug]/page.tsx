@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Section } from "@/components/ui/Section";
 import { Rule } from "@/components/ui/Rule";
+import { ReadingProgress } from "@/components/articles/ReadingProgress";
 import { ArticleHeader } from "@/components/articles/ArticleHeader";
 import { ArticleBody } from "@/components/articles/ArticleBody";
 import { ArticleCta } from "@/components/articles/ArticleCta";
@@ -72,6 +73,7 @@ export default async function ArticlePage({
   return (
     <BookingProvider>
       <ArticleStructuredData article={article} />
+      <ReadingProgress />
       <SiteHeader />
       <main>
         <Section as="section" className="pt-28 sm:pt-36" width="reading">

@@ -4,7 +4,6 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Section } from "@/components/ui/Section";
 import { MonoLabel } from "@/components/ui/MonoLabel";
-import { Rule } from "@/components/ui/Rule";
 import { ArticleCard } from "@/components/articles/ArticleCard";
 import { getPublishedArticles } from "@/lib/articles/get-article";
 
@@ -45,10 +44,8 @@ export default function ArticlesIndexPage() {
             la mission.
           </p>
 
-          <Rule className="mt-12" />
-
           {articles.length > 0 ? (
-            <div className="mt-2">
+            <div className="mt-12">
               {articles.map((article) => (
                 <ArticleCard key={article.slug} article={article} />
               ))}

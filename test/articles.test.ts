@@ -7,6 +7,10 @@ import {
   getArticleBySlug,
   getBuildableSlugs,
 } from "@/lib/articles/get-article";
+import {
+  countWords,
+  estimateReadingMinutes,
+} from "@/lib/articles/reading-time";
 
 /** Fabrique un article minimal valide, surchargeable pour les cas de test. */
 function makeArticle(overrides: Partial<Article> = {}): Article {
@@ -18,7 +22,6 @@ function makeArticle(overrides: Partial<Article> = {}): Article {
     excerpt: "Extrait de test.",
     eyebrow: "Test",
     publishedAt: "2026-01-01",
-    readingMinutes: 5,
     ctaVariant: "qualification",
     blocks: [{ type: "p", text: "Contenu." }],
     ...overrides,
@@ -62,15 +65,48 @@ describe("intégrité du registre d'articles", () => {
   });
 });
 
+describe("estimateReadingMinutes", () => {
+  it("compte les mots des paragraphes, listes et stats", () => {
+    const words = countWords([
+      { type: "p", text: "un deux trois" },
+      { type: "list", items: ["quatre cinq", "six"] },
+      { type: "stat", value: "sept", label: "huit neuf dix" },
+    ]);
+    expect(words).toBe(10);
+  });
+
+  it("retire le balisage inline du décompte", () => {
+    expect(
+      countWords([
+        { type: "p", text: "voir la [documentation](https://x.fr) **ici**" },
+      ]),
+    ).toBe(4); // voir / la / documentation / ici
+  });
+
+  it("renvoie au moins 1 minute", () => {
+    expect(estimateReadingMinutes([{ type: "p", text: "court" }])).toBe(1);
+  });
+
+  it("estime un temps cohérent pour un article réel", () => {
+    const minutes = estimateReadingMinutes(ARTICLES[0].blocks);
+    expect(minutes).toBeGreaterThanOrEqual(6);
+    expect(minutes).toBeLessThanOrEqual(9);
+  });
+});
+
 describe("isPublished (scheduler)", () => {
   const now = new Date("2026-06-15T12:00:00Z");
 
   it("publie un article dont la date est passée", () => {
-    expect(isPublished(makeArticle({ publishedAt: "2026-06-01" }), now)).toBe(true);
+    expect(isPublished(makeArticle({ publishedAt: "2026-06-01" }), now)).toBe(
+      true,
+    );
   });
 
   it("masque un article programmé dans le futur", () => {
-    expect(isPublished(makeArticle({ publishedAt: "2026-12-01" }), now)).toBe(false);
+    expect(isPublished(makeArticle({ publishedAt: "2026-12-01" }), now)).toBe(
+      false,
+    );
   });
 
   it("masque un brouillon même si sa date est passée", () => {
@@ -89,8 +125,12 @@ describe("isPublished (scheduler)", () => {
 
 describe("accès au registre avec now injecté", () => {
   const article = ARTICLES[0];
-  const dayBefore = new Date(new Date(article.publishedAt).getTime() - 86_400_000);
-  const dayAfter = new Date(new Date(article.publishedAt).getTime() + 86_400_000);
+  const dayBefore = new Date(
+    new Date(article.publishedAt).getTime() - 86_400_000,
+  );
+  const dayAfter = new Date(
+    new Date(article.publishedAt).getTime() + 86_400_000,
+  );
 
   it("exclut l'article tant que sa date n'est pas atteinte", () => {
     expect(getArticleBySlug(article.slug, dayBefore)).toBeUndefined();
@@ -99,7 +139,9 @@ describe("accès au registre avec now injecté", () => {
 
   it("expose l'article une fois la date atteinte", () => {
     expect(getArticleBySlug(article.slug, dayAfter)?.slug).toBe(article.slug);
-    expect(getPublishedArticles(dayAfter).map((a) => a.slug)).toContain(article.slug);
+    expect(getPublishedArticles(dayAfter).map((a) => a.slug)).toContain(
+      article.slug,
+    );
   });
 
   it("renvoie undefined pour un slug inconnu", () => {

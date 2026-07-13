@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MonoLabel } from "@/components/ui/MonoLabel";
 import { formatArticleDate } from "@/lib/articles/format";
+import { estimateReadingMinutes } from "@/lib/articles/reading-time";
 import type { Article } from "@/lib/articles/types";
 
 /** Carte d'article pour la page d'index — sobre, cliquable en entier. */
@@ -22,7 +23,7 @@ export function ArticleCard({ article }: { article: Article }) {
       <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.12em] text-gris">
         {formatArticleDate(article.publishedAt)}
         <span className="mx-2 text-line">·</span>
-        {article.readingMinutes} min
+        {estimateReadingMinutes(article.blocks)} min
       </p>
     </Link>
   );
