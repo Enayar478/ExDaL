@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { Rule } from "@/components/ui/Rule";
 import { Container } from "@/components/ui/Container";
@@ -40,6 +41,12 @@ export function SiteFooter() {
             >
               {site.email}
             </a>
+            <Link
+              href="/articles"
+              className="transition-colors hover:text-blanc"
+            >
+              Journal
+            </Link>
             <a
               href="/mentions-legales"
               className="transition-colors hover:text-blanc"
