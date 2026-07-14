@@ -37,7 +37,7 @@ export function getArticleBySlug(
 
 /**
  * Slugs à pré-générer (`generateStaticParams`) : tous les non-brouillons, y
- * compris ceux programmés dans le futur — leurs chemins existent, la page les
+ * compris ceux programmés dans le futur, leurs chemins existent, la page les
  * garde en 404 jusqu'à `publishedAt`, puis la revalidation les ouvre.
  */
 export function getBuildableSlugs(): string[] {

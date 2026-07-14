@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 /**
  * Rendu inline SÛR d'un texte d'article : `[libellé](url)` → lien,
  * `**gras**` → emphase. Le texte vient de nos fichiers TS (source de confiance),
- * mais on le transforme en nœuds React — JAMAIS en HTML brut — et on n'autorise
+ * mais on le transforme en nœuds React, JAMAIS en HTML brut, et on n'autorise
  * que les URL http(s) ou internes (`/...`). Toute autre cible retombe en texte.
  */
 const PATTERN = /\[([^\]]+)\]\(([^)]+)\)|\*\*([^*]+)\*\*/g;

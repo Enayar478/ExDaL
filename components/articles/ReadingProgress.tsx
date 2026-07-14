@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 /**
- * Barre de progression de lecture — filet d'or en haut de page qui se remplit
+ * Barre de progression de lecture, filet d'or en haut de page qui se remplit
  * au scroll, reprend le motif de la home. Throttlé par requestAnimationFrame ;
  * aucun setState synchrone dans l'effet (init différé en rAF).
  */

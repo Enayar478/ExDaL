@@ -3,7 +3,7 @@ import type { ArticleBlock } from "@/lib/articles/types";
 
 /**
  * Rend les blocs d'un article dans la DA (clair-obscur, or rare).
- * Server Component : zéro JS envoyé. Discipline DA — l'or n'apparaît QUE sur le
+ * Server Component : zéro JS envoyé. Discipline DA, l'or n'apparaît QUE sur le
  * bloc `stat` (un seul par article). Titres et emphase en blanc, corps en brume,
  * mono réservé aux micro-libellés (attribution de citation).
  */
@@ -12,7 +12,7 @@ export function ArticleBody({
   publishedSlugs,
 }: {
   blocks: readonly ArticleBlock[];
-  /** Slugs d'articles publiés — un lien vers un slug absent est rendu en texte. */
+  /** Slugs d'articles publiés, un lien vers un slug absent est rendu en texte. */
   publishedSlugs?: ReadonlySet<string>;
 }) {
   return (
@@ -69,7 +69,7 @@ function Block({
                 aria-hidden="true"
                 className="mt-[0.55em] font-mono text-[11px] text-or-dim"
               >
-                {block.ordered ? `${i + 1}.` : "—"}
+                {block.ordered ? `${i + 1}.` : "·"}
               </span>
               <span className="font-serif text-[17px] leading-[1.7] text-brume sm:text-[18px]">
                 {renderInline(item, publishedSlugs)}
@@ -95,7 +95,7 @@ function Block({
       );
 
     case "stat":
-      // Le seul point d'or du corps — un chiffre d'ancrage par article.
+      // Le seul point d'or du corps, un chiffre d'ancrage par article.
       return (
         <div className="my-10 border-y border-line py-6 text-center">
           <div className="font-serif text-4xl font-light text-or sm:text-5xl">

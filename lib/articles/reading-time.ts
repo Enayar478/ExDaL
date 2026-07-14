@@ -1,7 +1,7 @@
 import type { ArticleBlock } from "@/lib/articles/types";
 
 /**
- * Estimation du temps de lecture — calculée depuis le contenu, jamais saisie à la
+ * Estimation du temps de lecture, calculée depuis le contenu, jamais saisie à la
  * main. 238 mots/minute = vitesse moyenne de lecture silencieuse d'un adulte
  * (méta-analyse Brysbaert, 2019), rate raisonnable pour de la prose non-fiction.
  */

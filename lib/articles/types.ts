@@ -1,7 +1,7 @@
 import type { Segment } from "@/lib/validation/lead";
 
 /**
- * Système d'articles piliers — contenu-comme-données typé (pas de MDX).
+ * Système d'articles piliers, contenu-comme-données typé (pas de MDX).
  * Un article = un objet `Article` immuable ; le rendu (DA) vit dans les
  * composants `components/articles/*`, jamais dans la donnée. Réplique le pattern
  * de `lib/score/content.ts`.
@@ -40,11 +40,11 @@ export interface Article {
   readonly excerpt: string;
   /** Sur-titre mono (ex. « Pilotage Pennylane »). */
   readonly eyebrow: string;
-  /** Porte du tunnel visée — pré-remplit la qualification depuis le CTA. */
+  /** Porte du tunnel visée, pré-remplit la qualification depuis le CTA. */
   readonly segment?: Segment;
   /**
    * Date de publication programmée (ISO 8601). L'article n'est visible
-   * (index, sitemap, page) qu'une fois cette date atteinte — c'est le
+   * (index, sitemap, page) qu'une fois cette date atteinte, c'est le
    * cœur du scheduler d'auto-publication échelonnée.
    */
   readonly publishedAt: string;
