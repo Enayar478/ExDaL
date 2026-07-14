@@ -110,18 +110,52 @@
   display: block;
 }
 
-.mf-top-journal {
+/* Bouton loupe (droite de l'en-tête) — ouvre la recherche du Journal. */
+.mf-search-btn {
   justify-self: end;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-brume);
-  text-decoration: none;
-  transition: color 0.4s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
-.mf-top-journal:hover {
-  color: var(--color-or);
+.mf-search-icon {
+  position: relative;
+  width: 15px;
+  height: 15px;
+}
+.mf-search-icon::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 11px;
+  height: 11px;
+  border: 1px solid var(--color-blanc);
+  border-radius: 50%;
+  transition: border-color 0.4s;
+}
+.mf-search-icon::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 7px;
+  height: 1px;
+  background: var(--color-blanc);
+  transform: rotate(45deg);
+  transform-origin: right;
+  transition: background 0.4s;
+}
+.mf-search-btn:hover .mf-search-icon::before {
+  border-color: var(--color-or);
+}
+.mf-search-btn:hover .mf-search-icon::after {
+  background: var(--color-or);
 }
 
 /* ── Le manifeste — placé bas-gauche, l'em en or (unique point de lumière) ── */
@@ -457,6 +491,173 @@
   color: var(--color-or);
 }
 
+/* ── Recherche du Journal (loupe) ──────────────────────────────────────── */
+.mf-search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  visibility: hidden;
+  pointer-events: none;
+}
+.mf-search-overlay.is-open {
+  visibility: visible;
+  pointer-events: auto;
+}
+.mf-search-scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  cursor: pointer;
+  background: rgba(6, 7, 9, 0.72);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.mf-search-overlay.is-open .mf-search-scrim {
+  opacity: 1;
+}
+.mf-search-panel {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(680px, 92vw);
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  background: var(--color-noir-2);
+  border: 1px solid var(--color-line);
+  border-top: none;
+  transform: translate(-50%, -104%);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mf-search-overlay.is-open .mf-search-panel {
+  transform: translate(-50%, 0);
+}
+.mf-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-line);
+}
+.mf-search-glyph {
+  position: relative;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+.mf-search-glyph::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--color-or-dim);
+  border-radius: 50%;
+}
+.mf-search-glyph::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 7px;
+  height: 1px;
+  background: var(--color-or-dim);
+  transform: rotate(45deg);
+  transform-origin: right;
+}
+.mf-search-input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--color-blanc);
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: 22px;
+}
+.mf-search-input::placeholder {
+  color: var(--color-gris);
+}
+.mf-search-close {
+  position: relative;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.mf-search-close span {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 20px;
+  height: 1px;
+  background: var(--color-brume);
+  transition: background 0.4s;
+}
+.mf-search-close span:nth-child(1) {
+  transform: rotate(45deg);
+}
+.mf-search-close span:nth-child(2) {
+  transform: rotate(-45deg);
+}
+.mf-search-close:hover span {
+  background: var(--color-or);
+}
+.mf-search-results {
+  overflow-y: auto;
+  margin-top: 8px;
+}
+.mf-search-hint,
+.mf-search-empty {
+  padding: 22px 2px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--color-gris);
+}
+.mf-search-hit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 2px;
+  border-bottom: 1px solid var(--color-line);
+  text-decoration: none;
+}
+.mf-search-hit:hover {
+  background: rgba(217, 178, 106, 0.03);
+}
+.mf-search-hit-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-or-dim);
+}
+.mf-search-hit-title {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: 19px;
+  color: var(--color-blanc);
+  transition: color 0.4s;
+}
+.mf-search-hit:hover .mf-search-hit-title {
+  color: var(--color-or);
+}
+.mf-search-hit-excerpt {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-brume);
+}
+
 /* ── Responsive ────────────────────────────────────────────────────────── */
 @media (max-width: 760px) {
   .mf-wrap {
@@ -467,9 +668,6 @@
   }
   .mf-h1 {
     font-size: clamp(24px, 6.4vw, 34px);
-  }
-  .mf-top-journal {
-    display: none;
   }
   .mf-mark {
     font-size: 11px;
@@ -542,7 +740,9 @@
     opacity: 0.7;
   }
   .mf-menu-scrim,
-  .mf-menu-panel {
+  .mf-menu-panel,
+  .mf-search-scrim,
+  .mf-search-panel {
     transition: none;
   }
 }

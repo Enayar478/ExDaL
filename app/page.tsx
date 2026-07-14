@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Manifesto } from "@/components/manifesto/Manifesto";
 import { StructuredData } from "@/components/StructuredData";
+import { getPublishedArticles } from "@/lib/articles/get-article";
+import type { SearchItem } from "@/components/manifesto/ManifestoSearch";
 
 /**
  * Accueil exdal.fr — le hall d'entrée manifeste. Rendu côté serveur : le titre
@@ -18,11 +20,23 @@ export const metadata: Metadata = {
   },
 };
 
+// L'accueil suit le scheduler du Journal : la recherche voit les articles
+// programmés à leur échéance (revalidation horaire, comme l'index du Journal).
+export const revalidate = 3600;
+
 export default function Home() {
+  // Index minimal du Journal, sérialisable, passé à la recherche client-side.
+  const searchItems: SearchItem[] = getPublishedArticles().map((article) => ({
+    slug: article.slug,
+    title: article.title,
+    excerpt: article.excerpt,
+    eyebrow: article.eyebrow,
+  }));
+
   return (
     <>
       <StructuredData />
-      <Manifesto />
+      <Manifesto searchItems={searchItems} />
     </>
   );
 }

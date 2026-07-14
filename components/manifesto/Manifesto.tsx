@@ -5,17 +5,23 @@ import Link from "next/link";
 import Image from "next/image";
 import { CrystalCanvas } from "@/components/manifesto/CrystalCanvas";
 import { ManifestoMenu } from "@/components/manifesto/ManifestoMenu";
+import {
+  ManifestoSearch,
+  type SearchItem,
+} from "@/components/manifesto/ManifestoSearch";
 import { site } from "@/lib/site";
 
 /**
  * L'accueil — le hall d'entrée du studio. Pas de vente : de l'atmosphère, le
  * manifeste, et des portes vers le reste. Le fond cristallise la donnée en cube
  * de lumière ; par-dessus, en HTML natif (lisible sans le canvas), la promesse
- * de marque et les deux portes maîtresses : « Entrer » (le parcours) et le
- * Journal. La navigation complète vit dans le panneau du burger.
+ * de marque et la porte maîtresse « Entrer » (le parcours). L'en-tête offre la
+ * carte (burger) et la recherche du Journal ; la navigation complète vit dans
+ * le panneau du burger.
  */
-export function Manifesto() {
+export function Manifesto({ searchItems }: { searchItems: SearchItem[] }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const year = new Date().getFullYear();
 
   return (
@@ -25,7 +31,7 @@ export function Manifesto() {
       <div className="mf-vignette" aria-hidden="true" />
 
       <div className="mf-wrap">
-        {/* En-tête : burger (carte) · logotype cérémonial · porte du Journal */}
+        {/* En-tête : burger (carte) · logotype cérémonial · recherche du Journal */}
         <header className="mf-top">
           <button
             type="button"
@@ -47,9 +53,15 @@ export function Manifesto() {
             <span className="mf-mark-l2">Lumen</span>
           </Link>
 
-          <Link href="/journal" className="mf-top-journal">
-            Journal
-          </Link>
+          <button
+            type="button"
+            className="mf-search-btn"
+            aria-label="Rechercher dans le Journal"
+            aria-expanded={searchOpen}
+            onClick={() => setSearchOpen(true)}
+          >
+            <span className="mf-search-icon" aria-hidden="true" />
+          </button>
         </header>
 
         {/* Le manifeste — la promesse, en HTML natif (SEO/a11y) */}
@@ -96,21 +108,22 @@ export function Manifesto() {
                 Studio de data financière · spécialiste Pennylane
               </p>
             </div>
-            {/* LinkedIn à rebrancher dès que l'URL de la page société est connue
-                (aucune URL vérifiée dans le repo — on ne publie pas de lien mort
-                sur une landing de génération de leads). Les trois portes ci-dessous
-                pointent toutes vers des destinations réelles. */}
             <div className="mf-socials">
+              {/* Placeholder : l'URL réelle de la page société sera branchée
+                  plus tard (pas de navigation tant qu'elle est inconnue). */}
+              <a
+                href="#"
+                aria-label="LinkedIn (bientôt)"
+                onClick={(e) => e.preventDefault()}
+              >
+                in
+              </a>
               <Link href="/journal" aria-label="Le Journal">
                 J
               </Link>
-              <button
-                type="button"
-                onClick={() => setMenuOpen(true)}
-                aria-label="Newsletter Lumen"
-              >
+              <Link href="/newsletter" aria-label="Newsletter Lumen">
                 N
-              </button>
+              </Link>
               <a href={`mailto:${site.email}`} aria-label="Contact">
                 @
               </a>
@@ -123,9 +136,7 @@ export function Manifesto() {
             <div className="mf-foot-links">
               <Link href="/journal">Journal</Link>
               <Link href="/score">Le Score</Link>
-              <button type="button" onClick={() => setMenuOpen(true)}>
-                Newsletter
-              </button>
+              <Link href="/newsletter">Newsletter</Link>
               <Link href="/mentions-legales">Mentions légales</Link>
             </div>
           </div>
@@ -133,6 +144,11 @@ export function Manifesto() {
       </div>
 
       <ManifestoMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <ManifestoSearch
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        items={searchItems}
+      />
     </div>
   );
 }

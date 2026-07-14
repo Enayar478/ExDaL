@@ -4,6 +4,7 @@ import { Rule } from "@/components/ui/Rule";
 import { Container } from "@/components/ui/Container";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { site } from "@/lib/site";
+import { LUMEN } from "@/lib/newsletters";
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -24,12 +25,14 @@ export function SiteFooter() {
 
             {/* Newsletter Lumen */}
             <div className="max-w-[320px]">
-              <p className="mb-1 font-mono text-[11px] uppercase tracking-[0.12em] text-or-dim">
+              <Link
+                href="/newsletter"
+                className="mb-1 inline-block font-mono text-[11px] uppercase tracking-[0.12em] text-or-dim transition-colors hover:text-or"
+              >
                 Lumen, la newsletter
-              </p>
+              </Link>
               <p className="mb-3 font-serif text-sm italic text-brume">
-                Ce que vos chiffres vous disent, si vous savez les lire.
-                Bimensuelle. Sobre.
+                {LUMEN.tagline}
               </p>
               <NewsletterForm source="footer" />
             </div>

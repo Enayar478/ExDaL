@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { NewsletterForm } from "@/components/NewsletterForm";
 import { site } from "@/lib/site";
 
 interface NavLink {
@@ -14,9 +13,26 @@ interface NavLink {
 // Les portes du hall. « Le parcours » (conversion) et « Le Journal » (découverte)
 // sont les deux voies maîtresses ; le reste complète la carte.
 const LINKS: readonly NavLink[] = [
-  { href: "/tunnel", label: "Le parcours", note: "De vos chiffres à vos décisions" },
-  { href: "/journal", label: "Le Journal", note: "Ce que vos chiffres vous disent" },
-  { href: "/score", label: "Le Score", note: "Votre préparation à la cession" },
+  {
+    href: "/tunnel",
+    label: "Le parcours",
+    note: "De vos chiffres à vos décisions",
+  },
+  {
+    href: "/journal",
+    label: "Le Journal",
+    note: "Notes sur la donnée financière",
+  },
+  {
+    href: "/score",
+    label: "Le Score",
+    note: "Votre maturité data et pilotage",
+  },
+  {
+    href: "/newsletter",
+    label: "La newsletter",
+    note: "Lumen, deux fois par mois",
+  },
 ];
 
 /**
@@ -88,14 +104,7 @@ export function ManifestoMenu({
         </nav>
 
         <div className="mf-menu-foot">
-          <p className="mf-menu-eyebrow">Lumen, la newsletter</p>
-          <p className="mf-menu-lede">
-            Ce que vos chiffres vous disent, si vous savez les lire. Bimensuelle.
-            Sobre.
-          </p>
-          <div className="mf-menu-news">
-            <NewsletterForm source="accueil" />
-          </div>
+          <p className="mf-menu-eyebrow">Écrire</p>
           <a
             href={`mailto:${site.email}`}
             className="mf-menu-contact"

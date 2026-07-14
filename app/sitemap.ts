@@ -35,6 +35,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.6,
     },
+    {
+      url: `${site.url}/newsletter`,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
     ...articles,
   ];
 }
