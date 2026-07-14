@@ -8,7 +8,7 @@ import { getSupabaseAdmin } from "@/lib/supabase/server";
 
 /**
  * Insère ou met à jour un abonné en état « en attente de confirmation ».
- * Si l'email existe déjà (confirmé ou non), on ne réinitialise pas confirmed_at —
+ * Si l'email existe déjà (confirmé ou non), on ne réinitialise pas confirmed_at ·
  * on se contente de renvoyer un email de confirmation silencieusement.
  */
 export async function upsertSubscriber(params: {

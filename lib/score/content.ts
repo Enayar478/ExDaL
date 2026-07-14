@@ -1,22 +1,22 @@
 /**
- * Score de Préparation à la Cession — source unique de la copy et de la donnée.
+ * Score de Préparation à la Cession, source unique de la copy et de la donnée.
  *
  * Lead magnet inbound : 10 questions fermées → score /100 → verdict → recommandations.
  * La logique (calcul, paliers, recos) vit dans `scoring.ts` ; ici, uniquement la
  * donnée et le texte (copy validée par l'agent thot-content, ton de marque ExDaL :
- * calme, sobre, sans superlatif ni jugement — un constat d'expert).
+ * calme, sobre, sans superlatif ni jugement, un constat d'expert).
  *
  * Contrat structurel figé :
  *   - 10 questions, chacune avec 3 réponses ORDONNÉES du pire au meilleur (0 / 5 / 10 pts).
  *   - 4 dimensions de préparation (2 + 3 + 2 + 3 questions = 100 points au total).
- *   - 4 paliers de verdict couvrant 0–100 sans trou ni chevauchement.
+ *   - 4 paliers de verdict couvrant 0-100 sans trou ni chevauchement.
  *   - 1 recommandation par dimension (affichée quand la dimension ressort faible).
  */
 
 /** Les quatre dimensions de la préparation à une opération (levée / cession). */
 export type DimensionKey = "comptes" | "metriques" | "tracabilite" | "dataroom";
 
-/** Points d'une réponse — l'échelle est volontairement discrète et lisible. */
+/** Points d'une réponse, l'échelle est volontairement discrète et lisible. */
 type AnswerPoints = 0 | 5 | 10;
 
 interface ScoreAnswer {
@@ -24,7 +24,7 @@ interface ScoreAnswer {
   readonly value: string;
   /** Libellé présenté au dirigeant. */
   readonly label: string;
-  /** Poids de préparation — les réponses sont ordonnées pire → meilleur. */
+  /** Poids de préparation, les réponses sont ordonnées pire → meilleur. */
   readonly points: AnswerPoints;
 }
 
@@ -59,7 +59,7 @@ export const DIMENSION_LABELS: Record<DimensionKey, string> = {
  * l'index sert de barème (0 / 5 / 10). Ne pas réordonner sans ajuster les points.
  */
 export const QUESTIONS: readonly ScoreQuestion[] = [
-  // — Dimension A : Comptes & clôture ——————————————————————————————
+  //, Dimension A : Comptes & clôture ·
   {
     id: "q1",
     dimension: "comptes",
@@ -90,7 +90,7 @@ export const QUESTIONS: readonly ScoreQuestion[] = [
       },
     ],
   },
-  // — Dimension B : Métriques de valorisation ——————————————————————
+  //, Dimension B : Métriques de valorisation ·
   {
     id: "q3",
     dimension: "metriques",
@@ -155,7 +155,7 @@ export const QUESTIONS: readonly ScoreQuestion[] = [
       },
     ],
   },
-  // — Dimension C : Traçabilité & réconciliation ———————————————————
+  //, Dimension C : Traçabilité & réconciliation ·
   {
     id: "q6",
     dimension: "tracabilite",
@@ -202,7 +202,7 @@ export const QUESTIONS: readonly ScoreQuestion[] = [
       },
     ],
   },
-  // — Dimension D : Data room & due diligence ——————————————————————
+  //, Dimension D : Data room & due diligence ·
   {
     id: "q8",
     dimension: "dataroom",
@@ -271,7 +271,7 @@ export const QUESTIONS: readonly ScoreQuestion[] = [
   },
 ];
 
-/** Score total maximal atteignable — dérivé de la donnée, jamais codé en dur. */
+/** Score total maximal atteignable, dérivé de la donnée, jamais codé en dur. */
 export const MAX_SCORE = QUESTIONS.reduce(
   (total, question) =>
     total + Math.max(...question.answers.map((answer) => answer.points)),
@@ -279,8 +279,8 @@ export const MAX_SCORE = QUESTIONS.reduce(
 );
 
 /**
- * Quatre paliers couvrant 0–100. Bornes inclusives contiguës :
- * 0–40 / 41–70 / 71–90 / 91–100 (aucun trou, aucun chevauchement).
+ * Quatre paliers couvrant 0-100. Bornes inclusives contiguës :
+ * 0-40 / 41-70 / 71-90 / 91-100 (aucun trou, aucun chevauchement).
  */
 export const VERDICT_TIERS: readonly VerdictTier[] = [
   {
@@ -318,19 +318,19 @@ export const DIMENSION_RECOMMENDATIONS: Record<DimensionKey, string> = {
   comptes:
     "Automatisez votre clôture mensuelle pour la faire tenir en moins de dix jours ouvrés : c'est la première preuve de sérieux qu'un investisseur regarde.",
   metriques:
-    "Isolez votre MRR et votre churn dans un tableau dédié, recalculé chaque mois selon une définition stable — pas réinventé à chaque fois qu'on vous le demande.",
+    "Isolez votre MRR et votre churn dans un tableau dédié, recalculé chaque mois selon une définition stable, pas réinventé à chaque fois qu'on vous le demande.",
   tracabilite:
     "Réconciliez CRM, comptabilité et paiements dans un entrepôt unique : un chiffre qui ne se retrace pas en quelques minutes est un chiffre qui inquiète.",
   dataroom:
     "Constituez votre data room avant qu'on vous la demande : la liste des documents attendus est connue, rassemblez-la maintenant plutôt que dans l'urgence.",
 };
 
-/** Textes de la page (en-tête, résultat, CTA) — centralisés pour la relecture éditoriale. */
+/** Textes de la page (en-tête, résultat, CTA), centralisés pour la relecture éditoriale. */
 export const SCORE_COPY = {
   eyebrow: "Diagnostic · 3 minutes",
   title: "Êtes-vous prêt pour l'examen ?",
   subtitle:
-    "Dix questions sur vos comptes, vos métriques et votre traçabilité — pour savoir, avant qu'un investisseur ne le fasse à votre place, où se situe réellement votre dossier.",
+    "Dix questions sur vos comptes, vos métriques et votre traçabilité, pour savoir, avant qu'un investisseur ne le fasse à votre place, où se situe réellement votre dossier.",
   reassurance:
     "10 questions fermées. Résultat immédiat. Aucune donnée conservée sans votre accord.",
   startCta: "Commencer le diagnostic",

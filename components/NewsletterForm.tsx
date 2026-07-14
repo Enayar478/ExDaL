@@ -64,7 +64,7 @@ export function NewsletterForm({ source = "footer" }: NewsletterFormProps) {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
-      {/* Honeypot — masqué visuellement et pour les lecteurs d'écran */}
+      {/* Honeypot, masqué visuellement et pour les lecteurs d'écran */}
       <input
         type="text"
         name="website"

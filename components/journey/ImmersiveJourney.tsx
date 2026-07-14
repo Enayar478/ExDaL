@@ -6,11 +6,11 @@ import { gsap } from "gsap";
 import { getLenis } from "@/components/tunnel/lenis-store";
 
 /**
- * Voyage immersif — « vers la lumière, dans les profondeurs ».
+ * Voyage immersif, « vers la lumière, dans les profondeurs ».
  *
  * Navigation « pas à pas » verrouillée, IDENTIQUE sur desktop et tactile : le
  * scroll de page est bloqué et l'on avance palier par palier, chaque arrêt net
- * à 100 % — franc et lisible (sur desktop, le scroll libre partait vite en
+ * à 100 %, franc et lisible (sur desktop, le scroll libre partait vite en
  * vrille). Les gestes diffèrent seulement selon l'appareil :
  *  • Desktop (pointeur fin) : molette / trackpad + clavier.
  *  • Tactile (mobile/tablette) : swipe (haut/bas ou gauche/droite) + clavier.
@@ -180,7 +180,7 @@ export function ImmersiveJourney({
     };
     goRef.current = go;
 
-    // — Tactile : swipe (vertical prioritaire ; haut / gauche = avancer) —
+    //, Tactile : swipe (vertical prioritaire ; haut / gauche = avancer) ·
     let sx = 0,
       sy = 0,
       stime = 0;
@@ -202,7 +202,7 @@ export function ImmersiveJourney({
       else go(dx < 0 ? 1 : -1);
     };
 
-    // — Desktop : molette / trackpad (un cran par geste) —
+    //, Desktop : molette / trackpad (un cran par geste) ·
     // Verrou de durée FIXE, calé sur l'animation. On NE le prolonge PAS avec les
     // événements suivants : un trackpad émet un flux continu (geste + inertie), et
     // repousser le déverrouillage à chaque événement le figerait indéfiniment.
@@ -273,7 +273,7 @@ export function ImmersiveJourney({
     <div className="journey" ref={rootRef}>
       <div className="journey-viewport">
         <div className="journey-light" aria-hidden="true" />
-        <Link href="/" className="journey-brand" aria-label="ExDaL — accueil">
+        <Link href="/" className="journey-brand" aria-label="ExDaL, accueil">
           Ex<span className="lum-gradient">DaL</span>
         </Link>
         <div className="journey-stage">

@@ -1,5 +1,5 @@
 /**
- * Gabarits d'email — ton de marque ExDaL : calme, sobre, précis.
+ * Gabarits d'email, ton de marque ExDaL : calme, sobre, précis.
  * Styles inline (compatibilité clients mail). Fond sombre, or rare.
  */
 import { site } from "@/lib/site";
@@ -60,7 +60,7 @@ export function prospectConfirmation(details: BookingDetails): EmailContent {
   const html = shell(`
     <h1 style="font-size:26px;font-weight:400;line-height:1.35;margin:0 0 18px;color:${BLANC};">Votre créneau est réservé.</h1>
     <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0 0 14px;">Merci, ${escapeHtml(details.name)}. Nous prendrons vingt minutes pour comprendre votre situation. Sans engagement, sans jargon.</p>
-    <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0;">Vous repartirez avec une idée claire de ce que votre donnée peut vous dire — que l'on travaille ensemble ou non.</p>
+    <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0;">Vous repartirez avec une idée claire de ce que votre donnée peut vous dire, que l'on travaille ensemble ou non.</p>
     ${whenLine}
     <p style="font-size:16px;line-height:1.6;color:${BLANC};margin:28px 0 0;font-style:italic;">Vos chiffres savent déjà tout. À bientôt pour leur donner la parole.</p>
   `);
@@ -70,43 +70,43 @@ export function prospectConfirmation(details: BookingDetails): EmailContent {
 Votre créneau est réservé.
 
 Merci, ${details.name}. Nous prendrons vingt minutes pour comprendre votre situation. Sans engagement, sans jargon.
-Vous repartirez avec une idée claire de ce que votre donnée peut vous dire — que l'on travaille ensemble ou non.${details.when ? `\n\n${details.when}` : ""}
+Vous repartirez avec une idée claire de ce que votre donnée peut vous dire, que l'on travaille ensemble ou non.${details.when ? `\n\n${details.when}` : ""}
 
 Vos chiffres savent déjà tout. À bientôt pour leur donner la parole.
-— ${site.legalName} · ${site.url}`;
+${site.legalName} · ${site.url}`;
 
   return { subject: "Votre échange avec ExDaL est confirmé", html, text };
 }
 
 /** Email de confirmation double opt-in pour la newsletter « Lumen ». */
 export function newsletterConfirmation(confirmUrl: string): EmailContent {
-  // confirmUrl est généré côté serveur (HMAC signé) — on échappe quand même
+  // confirmUrl est généré côté serveur (HMAC signé), on échappe quand même
   // en défense pour prévenir toute injection si la logique évolue.
   const safeConfirmUrl = escapeHtml(confirmUrl);
 
   const html = shell(`
     <h1 style="font-size:24px;font-weight:400;line-height:1.35;margin:0 0 18px;color:${BLANC};">Confirmez votre inscription à Lumen.</h1>
-    <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0 0 20px;">Une idée par numéro. Bimensuelle. Ce que vos chiffres vous disent — si vous savez les lire.</p>
+    <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0 0 20px;">Une idée par numéro. Bimensuelle. Ce que vos chiffres vous disent, si vous savez les lire.</p>
     <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0 0 28px;">Cliquez sur le lien ci-dessous pour confirmer. Il expire dans 24 heures.</p>
     <a href="${safeConfirmUrl}" style="display:inline-block;padding:12px 28px;background:${OR};color:#090a0c;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;">Confirmer mon inscription</a>
     <p style="font-size:13px;line-height:1.6;color:#6f6858;margin:28px 0 0;">Si vous n'avez pas demandé cette inscription, ignorez simplement ce message.</p>
   `);
 
-  const text = `Ex Datis Lumen — Lumen, la newsletter
+  const text = `Ex Datis Lumen · Lumen, la newsletter
 
 Confirmez votre inscription.
 
-Une idée par numéro. Bimensuelle. Ce que vos chiffres vous disent — si vous savez les lire.
+Une idée par numéro. Bimensuelle. Ce que vos chiffres vous disent, si vous savez les lire.
 
 Confirmez votre inscription (lien valable 24h) :
 ${confirmUrl}
 
 Si vous n'avez pas demandé cette inscription, ignorez simplement ce message.
 
-— ${site.url}`;
+${site.url}`;
 
   return {
-    subject: "Confirmez votre inscription à Lumen — ExDaL",
+    subject: "Confirmez votre inscription à Lumen, ExDaL",
     html,
     text,
   };
@@ -156,7 +156,7 @@ export function scorePlan(details: ScorePlanDetails): EmailContent {
           .join("")
       : "\n\nVos chiffres tiennent déjà l'examen. Il ne reste qu'à choisir le bon moment.";
 
-  const text = `Ex Datis Lumen — Votre plan de préparation
+  const text = `Ex Datis Lumen, Votre plan de préparation
 
 Votre score : ${details.score} / 100
 
@@ -167,7 +167,7 @@ Quand vous voudrez transformer ce constat en feuille de route, nous prendrons vi
 ${site.url}`;
 
   return {
-    subject: `Votre plan de préparation — ${details.score}/100`,
+    subject: `Votre plan de préparation, ${details.score}/100`,
     html,
     text,
   };
@@ -207,7 +207,7 @@ Email : ${details.email}${details.role ? `\nRôle : ${details.role}` : ""}${deta
     : undefined;
 
   return {
-    subject: `Nouveau RDV — ${safeName}${safeCompany ? ` (${safeCompany})` : ""}`,
+    subject: `Nouveau RDV, ${safeName}${safeCompany ? ` (${safeCompany})` : ""}`,
     html,
     text,
   };

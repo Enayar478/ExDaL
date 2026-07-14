@@ -34,7 +34,7 @@ export default function MentionsLegalesPage() {
               id="editeur"
               className="font-serif text-xl font-light text-blanc mb-4"
             >
-              Éditeur du site — Responsable de traitement
+              Éditeur du site, Responsable de traitement
             </h2>
             <Prose>
               <p>
@@ -46,7 +46,7 @@ export default function MentionsLegalesPage() {
                 [À COMPLÉTER : raison sociale exacte]
               </Field>
               <Field label="Forme juridique">
-                [À COMPLÉTER : statut juridique — ex. EI, EURL…]
+                [À COMPLÉTER : statut juridique, ex. EI, EURL…]
               </Field>
               <Field label="SIRET">[À COMPLÉTER : numéro SIRET]</Field>
               <Field label="Adresse">
@@ -128,7 +128,7 @@ export default function MentionsLegalesPage() {
                   "Réponses au diagnostic « Score de Préparation » et score associé, lorsque vous demandez à recevoir votre plan par email",
                 ].map((item) => (
                   <li key={item} className="flex gap-2 items-start">
-                    <span className="text-or-dim mt-px">—</span>
+                    <span className="text-or-dim mt-px">·</span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -153,7 +153,7 @@ export default function MentionsLegalesPage() {
               </p>
               <ul className="list-none mt-3 space-y-2">
                 <li className="flex gap-2 items-start">
-                  <span className="text-or-dim mt-px">—</span>
+                  <span className="text-or-dim mt-px">·</span>
                   <span>
                     <strong className="font-medium text-blanc">
                       Intérêt légitime
@@ -165,7 +165,7 @@ export default function MentionsLegalesPage() {
                   </span>
                 </li>
                 <li className="flex gap-2 items-start">
-                  <span className="text-or-dim mt-px">—</span>
+                  <span className="text-or-dim mt-px">·</span>
                   <span>
                     <strong className="font-medium text-blanc">
                       Consentement
@@ -199,7 +199,7 @@ export default function MentionsLegalesPage() {
                   {
                     name: "Supabase",
                     role: "Base de données (stockage des leads)",
-                    location: "Union européenne — région Paris",
+                    location: "Union européenne, région Paris",
                     transfer: null,
                   },
                   {
@@ -255,7 +255,7 @@ export default function MentionsLegalesPage() {
             <Prose>
               <ul className="list-none space-y-2">
                 <li className="flex gap-2 items-start">
-                  <span className="text-or-dim mt-px">—</span>
+                  <span className="text-or-dim mt-px">·</span>
                   <span>
                     <strong className="font-medium text-blanc">
                       Prospects n&apos;ayant pas donné suite
@@ -265,7 +265,7 @@ export default function MentionsLegalesPage() {
                   </span>
                 </li>
                 <li className="flex gap-2 items-start">
-                  <span className="text-or-dim mt-px">—</span>
+                  <span className="text-or-dim mt-px">·</span>
                   <span>
                     <strong className="font-medium text-blanc">
                       Prospects ayant pris rendez-vous
@@ -276,7 +276,7 @@ export default function MentionsLegalesPage() {
                   </span>
                 </li>
                 <li className="flex gap-2 items-start">
-                  <span className="text-or-dim mt-px">—</span>
+                  <span className="text-or-dim mt-px">·</span>
                   <span>
                     <strong className="font-medium text-blanc">
                       Réponses au diagnostic « Score de Préparation »
@@ -325,7 +325,7 @@ export default function MentionsLegalesPage() {
                   ],
                 ].map(([right, desc]) => (
                   <li key={right} className="flex gap-2 items-start">
-                    <span className="text-or-dim mt-px">—</span>
+                    <span className="text-or-dim mt-px">·</span>
                     <span>
                       <strong className="font-medium text-blanc">
                         {right}
@@ -402,7 +402,7 @@ export default function MentionsLegalesPage() {
   );
 }
 
-/* Composants internes à la page — pas de primitives UI à créer pour eux */
+/* Composants internes à la page, pas de primitives UI à créer pour eux */
 
 function Block({
   id,

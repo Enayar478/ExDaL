@@ -15,7 +15,7 @@ export async function sendEmail(
 ): Promise<boolean> {
   const env = getServerEnv();
   if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) {
-    logger.warn("Resend non configuré — email non envoyé", {
+    logger.warn("Resend non configuré, email non envoyé", {
       to: maskEmail(to),
     });
     return false;

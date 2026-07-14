@@ -38,7 +38,7 @@ function redirectTo(param: NewsletterParam): NextResponse {
  * Validation du double opt-in : vérifie le token HMAC, confirme l'abonné,
  * redirige vers la landing avec le paramètre `newsletter=<état>`.
  *
- * Le paramètre de redirection est issu d'une liste autorisée explicite —
+ * Le paramètre de redirection est issu d'une liste autorisée explicite ·
  * jamais interpolé depuis l'entrée utilisateur ou une chaîne non validée.
  */
 export async function GET(request: NextRequest) {

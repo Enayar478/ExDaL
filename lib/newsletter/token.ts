@@ -19,7 +19,7 @@ function getSecret(): string {
   const env = getServerEnv();
   if (!env.NEWSLETTER_SECRET) {
     throw new Error(
-      "NEWSLETTER_SECRET manquant — impossible de signer les tokens newsletter.",
+      "NEWSLETTER_SECRET manquant, impossible de signer les tokens newsletter.",
     );
   }
   return env.NEWSLETTER_SECRET;
