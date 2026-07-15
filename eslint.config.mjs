@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Worktrees Git locaux (.claude/worktrees/*) : jamais du source à linter, et
+    // leurs artefacts de build .next pollueraient le lint local.
+    ".claude/**",
   ]),
 ]);
 
