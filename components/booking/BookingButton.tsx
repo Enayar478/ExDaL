@@ -4,7 +4,7 @@ import { useBooking } from "@/components/booking/BookingProvider";
 
 /**
  * Bouton d'action principal « Échanger sur votre situation ».
- * L'or est réservé à la variante primaire — c'est LE point de lumière de l'action.
+ * L'or est réservé à la variante primaire, c'est LE point de lumière de l'action.
  */
 export function BookingButton({
   label = "Échanger sur votre situation",

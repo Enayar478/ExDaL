@@ -1,5 +1,5 @@
 /**
- * Tests d'intégration — POST /api/cal-webhook
+ * Tests d'intégration, POST /api/cal-webhook
  *
  * Cas couverts :
  * - Signature valide + BOOKING_CREATED avec lead_id → 200, markLeadBookedById appelé
@@ -131,7 +131,7 @@ describe("POST /api/cal-webhook", () => {
 
   // --- Happy path : corrélation par lead_id ---
 
-  it("200 — BOOKING_CREATED avec lead_id : corrèle par id et envoie les emails", async () => {
+  it("200, BOOKING_CREATED avec lead_id : corrèle par id et envoie les emails", async () => {
     const body = bookingCreatedPayload();
     const req = makeSignedRequest(body);
     const res = await POST(req);
@@ -156,7 +156,7 @@ describe("POST /api/cal-webhook", () => {
 
   // --- Idempotence : replay Cal.com ---
 
-  it("200 — replay Cal (booking déjà traité) : processed=false, aucun email envoyé", async () => {
+  it("200, replay Cal (booking déjà traité) : processed=false, aucun email envoyé", async () => {
     // markLeadBookedById retourne false = uid déjà en base
     mockMarkLeadBookedById.mockResolvedValueOnce(false);
     const body = bookingCreatedPayload();
@@ -169,13 +169,13 @@ describe("POST /api/cal-webhook", () => {
     expect(json.data.processed).toBe(false);
     expect(json.data.reason).toBe("already_handled");
 
-    // Aucun email envoyé — idempotence respectée
+    // Aucun email envoyé, idempotence respectée
     expect(mockSendEmail).not.toHaveBeenCalled();
   });
 
   // --- Fallback email si lead_id absent ---
 
-  it("200 — sans metadata.lead_id : fallback corrélation par email", async () => {
+  it("200, sans metadata.lead_id : fallback corrélation par email", async () => {
     const body = bookingCreatedPayload({
       payload: {
         uid: "cal-booking-uid-abc123",
@@ -200,7 +200,7 @@ describe("POST /api/cal-webhook", () => {
     expect(mockSendEmail).toHaveBeenCalledTimes(2);
   });
 
-  it("200 — sans uid Cal : fallback corrélation par email (idempotence non garantie)", async () => {
+  it("200, sans uid Cal : fallback corrélation par email (idempotence non garantie)", async () => {
     const body = bookingCreatedPayload({
       payload: {
         // uid absent
@@ -220,7 +220,7 @@ describe("POST /api/cal-webhook", () => {
 
   // --- Sans NOTIFICATION_EMAIL ---
 
-  it("200 — sans NOTIFICATION_EMAIL n'envoie qu'un seul email", async () => {
+  it("200, sans NOTIFICATION_EMAIL n'envoie qu'un seul email", async () => {
     mockGetServerEnv.mockReturnValue({
       ...FAKE_ENV_FULL,
       NOTIFICATION_EMAIL: undefined,
@@ -236,7 +236,7 @@ describe("POST /api/cal-webhook", () => {
 
   // --- Signature invalide ---
 
-  it("401 — signature invalide", async () => {
+  it("401, signature invalide", async () => {
     const body = bookingCreatedPayload();
     const req = makeRequest(body, "deadbeefdeadbeef");
     const res = await POST(req);
@@ -249,7 +249,7 @@ describe("POST /api/cal-webhook", () => {
     expect(mockSendEmail).not.toHaveBeenCalled();
   });
 
-  it("401 — signature absente", async () => {
+  it("401, signature absente", async () => {
     const body = bookingCreatedPayload();
     const raw = JSON.stringify(body);
     const req = new Request("http://localhost/api/cal-webhook", {
@@ -264,7 +264,7 @@ describe("POST /api/cal-webhook", () => {
 
   // --- CAL_WEBHOOK_SECRET absent → fail-closed (503) ---
 
-  it("503 — CAL_WEBHOOK_SECRET non configuré → reject fail-closed", async () => {
+  it("503, CAL_WEBHOOK_SECRET non configuré → reject fail-closed", async () => {
     mockGetServerEnv.mockReturnValue(FAKE_ENV_NO_SECRET);
     const body = bookingCreatedPayload();
     const req = makeSignedRequest(body);
@@ -279,7 +279,7 @@ describe("POST /api/cal-webhook", () => {
 
   // --- triggerEvent inconnu ---
 
-  it("200 — triggerEvent inconnu est ignoré sans traitement", async () => {
+  it("200, triggerEvent inconnu est ignoré sans traitement", async () => {
     const body = {
       triggerEvent: "BOOKING_CANCELLED",
       payload: {
@@ -301,7 +301,7 @@ describe("POST /api/cal-webhook", () => {
 
   // --- Payload invalide (sans attendee) ---
 
-  it("422 — payload sans attendees (tableau vide)", async () => {
+  it("422, payload sans attendees (tableau vide)", async () => {
     const body = {
       triggerEvent: "BOOKING_CREATED",
       payload: { attendees: [] },
@@ -315,7 +315,7 @@ describe("POST /api/cal-webhook", () => {
     expect(mockMarkLeadBookedById).not.toHaveBeenCalled();
   });
 
-  it("422 — payload manquant (structure invalide)", async () => {
+  it("422, payload manquant (structure invalide)", async () => {
     const body = { triggerEvent: "BOOKING_CREATED" };
     const req = makeSignedRequest(body);
     const res = await POST(req);
@@ -325,7 +325,7 @@ describe("POST /api/cal-webhook", () => {
 
   // --- markLeadBookedById échoue (best-effort, ne bloque pas les emails) ---
 
-  it("200 — markLeadBookedById échoue mais les emails partent quand même", async () => {
+  it("200, markLeadBookedById échoue mais les emails partent quand même", async () => {
     mockMarkLeadBookedById.mockRejectedValueOnce(new Error("Supabase timeout"));
     const body = bookingCreatedPayload();
     const req = makeSignedRequest(body);
@@ -339,7 +339,7 @@ describe("POST /api/cal-webhook", () => {
 
   // --- Rate-limit ---
 
-  it("429 — rate-limit atteint", async () => {
+  it("429, rate-limit atteint", async () => {
     mockRateLimit.mockReturnValueOnce({ allowed: false, remaining: 0 });
     const body = bookingCreatedPayload();
     const req = makeSignedRequest(body);

@@ -44,7 +44,7 @@ export async function insertPathSignal(segment: Segment): Promise<void> {
 }
 
 /** Marque un lead comme ayant réservé un créneau (déclenché par le webhook Cal.com).
- *  Fallback par email — utilisé uniquement si lead_id est absent du payload Cal. */
+ *  Fallback par email, utilisé uniquement si lead_id est absent du payload Cal. */
 export async function markLeadBooked(email: string): Promise<void> {
   const supabase = getSupabaseAdmin();
   const { error } = await supabase

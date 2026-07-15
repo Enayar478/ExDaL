@@ -11,7 +11,7 @@ import { logger } from "@/lib/logger";
 import { maskEmail } from "@/lib/email/html";
 import { site } from "@/lib/site";
 
-// Taille maximale du corps (email + source + honeypot — quelques centaines d'octets).
+// Taille maximale du corps (email + source + honeypot, quelques centaines d'octets).
 const MAX_BODY_BYTES = 2048; // 2 Ko
 
 /**
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
   const { email, website, source } = parsed.data;
 
-  // 2. Honeypot anti-bot — doit rester vide.
+  // 2. Honeypot anti-bot, doit rester vide.
   // Zod rejette déjà les valeurs non vides (422), mais on répond ici 200
   // pour ne pas révéler le mécanisme aux bots (réponse neutre).
   if (website && website.length > 0) {

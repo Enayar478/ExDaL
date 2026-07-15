@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 /**
- * Anneau de score /100 — le seul vrai point d'or du résultat.
+ * Anneau de score /100, le seul vrai point d'or du résultat.
  * L'arc se remplit à l'affichage (respecte prefers-reduced-motion).
  */
 export function ScoreDial({ score, label }: { score: number; label: string }) {

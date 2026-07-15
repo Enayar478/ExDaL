@@ -14,6 +14,7 @@ import { ArticleStructuredData } from "@/components/articles/ArticleStructuredDa
 import {
   getArticleBySlug,
   getBuildableSlugs,
+  getPublishedArticles,
   getRelatedArticles,
 } from "@/lib/articles/get-article";
 
@@ -69,6 +70,7 @@ export default async function ArticlePage({
   if (!article) notFound();
 
   const related = getRelatedArticles(article);
+  const publishedSlugs = new Set(getPublishedArticles().map((a) => a.slug));
 
   return (
     <BookingProvider>
@@ -79,7 +81,10 @@ export default async function ArticlePage({
         <Section as="section" className="pt-28 sm:pt-36" width="reading">
           <ArticleHeader article={article} />
           <Rule className="mt-10 mb-12" />
-          <ArticleBody blocks={article.blocks} />
+          <ArticleBody
+            blocks={article.blocks}
+            publishedSlugs={publishedSlugs}
+          />
           <ArticleCta variant={article.ctaVariant} segment={article.segment} />
           <ArticleRelated related={related} />
         </Section>

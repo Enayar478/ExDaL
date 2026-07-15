@@ -23,7 +23,7 @@ export const scoreSubmission = z.object({
     .toLowerCase()
     .email("Adresse email invalide.")
     .max(200, "Adresse email trop longue."),
-  // 1 à 30 paires — le questionnaire en compte 10, la marge absorbe une évolution.
+  // 1 à 30 paires, le questionnaire en compte 10, la marge absorbe une évolution.
   answers: z
     .record(questionId, optionValue)
     .refine((value) => Object.keys(value).length >= 1, "Aucune réponse fournie.")

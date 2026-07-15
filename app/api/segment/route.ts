@@ -7,7 +7,7 @@ import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
-// Taille maximale du corps (signal de segmentation — quelques dizaines d'octets).
+// Taille maximale du corps (signal de segmentation, quelques dizaines d'octets).
 const MAX_BODY_BYTES = 1024; // 1 Ko
 
 /**

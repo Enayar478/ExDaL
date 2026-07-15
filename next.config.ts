@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-// Content-Security-Policy — finding H-3.
+// Content-Security-Policy, finding H-3.
 //
 // 'unsafe-inline' sur script-src est requis par Next.js (hydration inline).
 // TODO (P1) : durcir avec nonce généré par middleware une fois PostHog/analytics
@@ -10,7 +10,7 @@ import type { NextConfig } from "next";
 //
 // connect-src : '*.supabase.co' autorise tous les projets Supabase.
 // La landing n'effectue aucun appel Supabase côté client (tout passe par les routes API
-// serveur) — la directive n'est donc là qu'en filet de sécurité.
+// serveur), la directive n'est donc là qu'en filet de sécurité.
 // TODO (P1) : remplacer par l'origine exacte du projet Supabase une fois l'URL
 // disponible en build env (ex. https://xxxxxxxxxxxx.supabase.co).
 const isDev = process.env.NODE_ENV !== "production";
@@ -29,7 +29,7 @@ const csp = [
   "base-uri 'self'",
   // form-action restreint les soumissions de formulaires à l'origine propre.
   "form-action 'self'",
-  // object-src bloque les plug-ins (Flash, etc.) — non requis par la DA mais
+  // object-src bloque les plug-ins (Flash, etc.), non requis par la DA mais
   // recommandé par les guidelines OWASP CSP.
   "object-src 'none'",
 ].join("; ");

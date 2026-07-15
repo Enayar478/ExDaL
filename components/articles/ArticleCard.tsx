@@ -4,7 +4,7 @@ import { formatArticleDate } from "@/lib/articles/format";
 import { estimateReadingMinutes } from "@/lib/articles/reading-time";
 import type { Article } from "@/lib/articles/types";
 
-/** Carte d'article pour la page d'index — sobre, cliquable en entier. */
+/** Carte d'article pour la page d'index, sobre, cliquable en entier. */
 export function ArticleCard({ article }: { article: Article }) {
   return (
     <Link

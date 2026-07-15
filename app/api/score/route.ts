@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
   const ipHash = createHash("sha256").update(ip).digest("hex");
 
   // 6. Persistance (analyse commerciale). Best-effort : un incident base ne doit
-  //    pas priver le dirigeant du plan qu'il a demandé — on journalise et on continue.
+  //    pas priver le dirigeant du plan qu'il a demandé, on journalise et on continue.
   try {
     await insertScoreSubmission({
       email,

@@ -1,5 +1,5 @@
 /**
- * Tests d'intégration — POST /api/lead
+ * Tests d'intégration, POST /api/lead
  *
  * On importe le handler Next.js directement et on le pilote avec de vraies
  * instances Request (cast en NextRequest), sans démarrer de serveur HTTP.
@@ -77,7 +77,7 @@ describe("POST /api/lead", () => {
 
   // --- Happy path ---
 
-  it("200 — lead valide : enregistre et renvoie une calUrl avec metadata[lead_id]", async () => {
+  it("200, lead valide : enregistre et renvoie une calUrl avec metadata[lead_id]", async () => {
     const req = makeRequest(validBody);
     const res = await POST(req);
     const json = await res.json();
@@ -94,7 +94,7 @@ describe("POST /api/lead", () => {
 
   // --- Segment déduit du stade ---
 
-  it("200 — segment déduit du stade quand absent du payload", async () => {
+  it("200, segment déduit du stade quand absent du payload", async () => {
     const req = makeRequest({ ...validBody, stage: "pilotage" });
     const res = await POST(req);
 
@@ -104,7 +104,7 @@ describe("POST /api/lead", () => {
     expect(call.segment).toBe("pme");
   });
 
-  it("200 — segment explicite du sélecteur est préservé", async () => {
+  it("200, segment explicite du sélecteur est préservé", async () => {
     const req = makeRequest({
       ...validBody,
       stage: "pilotage",
@@ -119,7 +119,7 @@ describe("POST /api/lead", () => {
 
   // --- Erreurs de validation ---
 
-  it("400 — corps non-JSON", async () => {
+  it("400, corps non-JSON", async () => {
     const req = new Request("http://localhost/api/lead", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -132,7 +132,7 @@ describe("POST /api/lead", () => {
     expect(body.success).toBe(false);
   });
 
-  it("422 — email invalide", async () => {
+  it("422, email invalide", async () => {
     const req = makeRequest({ ...validBody, email: "pas-un-email" });
     const res = await POST(req);
     const json = await res.json();
@@ -141,7 +141,7 @@ describe("POST /api/lead", () => {
     expect(json.success).toBe(false);
   });
 
-  it("422 — stade inconnu", async () => {
+  it("422, stade inconnu", async () => {
     const req = makeRequest({ ...validBody, stage: "inconnu" });
     const res = await POST(req);
     const json = await res.json();
@@ -150,7 +150,7 @@ describe("POST /api/lead", () => {
     expect(json.success).toBe(false);
   });
 
-  it("422 — nom trop court", async () => {
+  it("422, nom trop court", async () => {
     const req = makeRequest({ ...validBody, name: "X" });
     const res = await POST(req);
 
@@ -161,9 +161,9 @@ describe("POST /api/lead", () => {
   // Le schéma Zod (website: z.string().max(0)) intercepte les valeurs non vides
   // avec une erreur de validation (422) avant même que le handler n'atteigne le
   // check if (lead.website). Le 400 n'est donc jamais atteint pour une valeur
-  // non vide — Zod est la première ligne de défense.
+  // non vide, Zod est la première ligne de défense.
 
-  it("422 — honeypot rempli : Zod rejette avant le handler", async () => {
+  it("422, honeypot rempli : Zod rejette avant le handler", async () => {
     const req = makeRequest({ ...validBody, website: "https://spam.example" });
     const res = await POST(req);
     const json = await res.json();
@@ -176,7 +176,7 @@ describe("POST /api/lead", () => {
 
   // --- CAL_LINK manquant ---
 
-  it("503 — CAL_LINK absent de l'env serveur", async () => {
+  it("503, CAL_LINK absent de l'env serveur", async () => {
     mockGetServerEnv.mockReturnValue({
       SUPABASE_URL: "https://db.supabase.co",
       SUPABASE_SERVICE_ROLE_KEY: "service_role_key_1234567890",
@@ -192,7 +192,7 @@ describe("POST /api/lead", () => {
 
   // --- Erreur Supabase ---
 
-  it("500 — insertLead rejette (Supabase down)", async () => {
+  it("500, insertLead rejette (Supabase down)", async () => {
     vi.mocked(insertLead).mockRejectedValueOnce(new Error("DB unavailable"));
     const req = makeRequest(validBody);
     const res = await POST(req);
@@ -204,7 +204,7 @@ describe("POST /api/lead", () => {
 
   // --- Rate-limit ---
 
-  it("429 — rate-limit atteint", async () => {
+  it("429, rate-limit atteint", async () => {
     vi.mocked(rateLimit).mockReturnValueOnce({ allowed: false, remaining: 0 });
     const req = makeRequest(validBody);
     const res = await POST(req);
@@ -214,7 +214,7 @@ describe("POST /api/lead", () => {
 
   // --- Limite de taille du corps ---
 
-  it("413 — corps trop volumineux (Content-Length)", async () => {
+  it("413, corps trop volumineux (Content-Length)", async () => {
     // Corps valide mais Content-Length truqué à une valeur > MAX_BODY_BYTES
     const req = new Request("http://localhost/api/lead", {
       method: "POST",

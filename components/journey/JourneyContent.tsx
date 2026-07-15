@@ -224,7 +224,7 @@ export function JourneyContent() {
       gateOpen={Boolean(form.stage)}
       advanceOn={advanceKey}
     >
-      {/* 0 — HERO (2 colonnes sur desktop : texte à gauche, emblème à droite) */}
+      {/* 0, HERO (2 colonnes sur desktop : texte à gauche, emblème à droite) */}
       <section aria-label="Introduction" className="j-hero">
         <Image
           src="/emblem.png"
@@ -243,11 +243,10 @@ export function JourneyContent() {
           <p className="j-sub">
             Studio de data financière, spécialiste Pennylane.
           </p>
-          <span className="j-shaft" aria-hidden="true" />
         </div>
       </section>
 
-      {/* 1 — BIFURCATION (capte le profil, pilote l'adaptatif) */}
+      {/* 1, BIFURCATION (capte le profil, pilote l'adaptatif) */}
       <section aria-label="Ce qui vous amène">
         <p className="j-eyebrow">Commençons par vous</p>
         <h2 className="j-h2">Qu&rsquo;est-ce qui vous amène&nbsp;?</h2>
@@ -268,7 +267,7 @@ export function JourneyContent() {
         </p>
       </section>
 
-      {/* 2 — PROBLÈME (douleur, adaptée au profil) */}
+      {/* 2, PROBLÈME (douleur, adaptée au profil) */}
       <section aria-label="Le problème">
         <p className="j-eyebrow">Ce que je vois</p>
         <h2 className="j-h2">
@@ -285,7 +284,7 @@ export function JourneyContent() {
         </ul>
       </section>
 
-      {/* 3 — LE GAIN (l'espoir : ce que ça change, sans chiffre inventé) */}
+      {/* 3, LE GAIN (l'espoir : ce que ça change, sans chiffre inventé) */}
       <section aria-label="Ce que ça change">
         <p className="j-eyebrow">Ce que ça change</p>
         <h2 className="j-h2">Le calcul est simple.</h2>
@@ -311,7 +310,7 @@ export function JourneyContent() {
         </dl>
       </section>
 
-      {/* 4 — LA PREUVE (double compétence universelle + preuve propre au profil) */}
+      {/* 4, LA PREUVE (double compétence universelle + preuve propre au profil) */}
       <section aria-label="La preuve">
         <p className="j-eyebrow">Une compétence rare</p>
         <h2 className="j-h2">
@@ -323,7 +322,7 @@ export function JourneyContent() {
         <p className="j-sub">{proof[profile]}</p>
       </section>
 
-      {/* 5 — OFFRE RECOMMANDÉE (répond au profil) + ancre + gamme */}
+      {/* 5, OFFRE RECOMMANDÉE (répond au profil) + ancre + gamme */}
       <section aria-label="Votre offre">
         <p className="j-eyebrow">Ce que je vous recommande</p>
         <div className="j-offer-solo">
@@ -349,7 +348,7 @@ export function JourneyContent() {
         </p>
       </section>
 
-      {/* 6 — LA MÉTHODE */}
+      {/* 6, LA MÉTHODE */}
       <section aria-label="La méthode">
         <p className="j-eyebrow">La méthode</p>
         <h2 className="j-h2">
@@ -368,7 +367,7 @@ export function JourneyContent() {
         </ol>
       </section>
 
-      {/* 7 — LE POURQUOI (pic émotionnel) */}
+      {/* 7, LE POURQUOI (pic émotionnel) */}
       <section aria-label="Le pourquoi">
         <p className="j-manifesto">
           Une entreprise ne devrait jamais avancer à l&rsquo;aveugle. Ni au
@@ -380,7 +379,7 @@ export function JourneyContent() {
         <p className="j-signature">Ex Datis Lumen</p>
       </section>
 
-      {/* 8 — QUALIFICATION identité */}
+      {/* 8, QUALIFICATION identité */}
       <section aria-label="Qui êtes-vous">
         <p className="j-qlabel">01. Faisons connaissance</p>
         <h2 className="j-h2">Vous êtes&hellip;</h2>
@@ -427,7 +426,7 @@ export function JourneyContent() {
         />
       </section>
 
-      {/* 9 — QUALIFICATION Pennylane */}
+      {/* 9, QUALIFICATION Pennylane */}
       <section aria-label="Usage de Pennylane">
         <p className="j-qlabel">02. Votre outil</p>
         <h2 className="j-h2">
@@ -441,7 +440,7 @@ export function JourneyContent() {
         />
       </section>
 
-      {/* 10 — ARRIVÉE DANS LA LUMIÈRE */}
+      {/* 10, ARRIVÉE DANS LA LUMIÈRE */}
       <section aria-label="Prendre rendez-vous" className="j-arrival">
         <p className="j-qlabel j-arrived">La lumière</p>
         <h2 className="j-h2">Parlons de vos chiffres.</h2>

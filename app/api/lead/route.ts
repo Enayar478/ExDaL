@@ -9,7 +9,7 @@ import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
-// Taille maximale du corps (JSON de qualification — quelques centaines d'octets en pratique).
+// Taille maximale du corps (JSON de qualification, quelques centaines d'octets en pratique).
 const MAX_BODY_BYTES = 8 * 1024; // 8 Ko
 
 /**
@@ -20,7 +20,7 @@ const MAX_BODY_BYTES = 8 * 1024; // 8 Ko
  * Sécurité :
  *  - Rate-limit par IP (5 req / min).
  *  - Limite de taille du corps (8 Ko) pour prévenir les payloads abusifs.
- *  - Honeypot côté Zod (website: max(0)) — la vérification applicative ci-dessous
+ *  - Honeypot côté Zod (website: max(0)), la vérification applicative ci-dessous
  *    est unreachable par construction mais conservée comme filet de défense explicite.
  *  - CAL_LINK est serveur uniquement (pas de NEXT_PUBLIC_).
  *  - Réponse non-cacheable (Cache-Control: no-store).
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
   const env = getServerEnv();
   const calLink = env.CAL_LINK;
   if (!calLink) {
-    logger.error("CAL_LINK manquant — réservation indisponible");
+    logger.error("CAL_LINK manquant, réservation indisponible");
     return fail("Réservation temporairement indisponible.", 503);
   }
 
