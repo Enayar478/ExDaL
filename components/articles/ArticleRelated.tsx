@@ -10,7 +10,10 @@ export function ArticleRelated({ related }: { related: readonly Article[] }) {
   if (related.length === 0) return null;
 
   return (
-    <nav className="mt-16 border-t border-line pt-10" aria-label="Articles liés">
+    <nav
+      className="mt-16 border-t border-line pt-10"
+      aria-label="Articles liés"
+    >
       <MonoLabel tone="gris" className="block">
         À lire aussi
       </MonoLabel>
@@ -18,7 +21,7 @@ export function ArticleRelated({ related }: { related: readonly Article[] }) {
         {related.map((article) => (
           <li key={article.slug}>
             <Link
-              href={`/articles/${article.slug}`}
+              href={`/journal/${article.slug}`}
               className="group font-serif text-[17px] text-brume transition-colors hover:text-or"
             >
               {article.title}

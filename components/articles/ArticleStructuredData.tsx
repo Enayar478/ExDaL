@@ -3,7 +3,7 @@ import type { Article } from "@/lib/articles/types";
 
 /** JSON-LD schema.org `BlogPosting` pour un article. Contenu contrôlé (statique). */
 export function ArticleStructuredData({ article }: { article: Article }) {
-  const url = `${site.url}/articles/${article.slug}`;
+  const url = `${site.url}/journal/${article.slug}`;
   const data = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",

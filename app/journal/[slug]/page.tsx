@@ -39,7 +39,7 @@ export async function generateMetadata({
   const article = getArticleBySlug(slug);
   if (!article) return { title: "Article", robots: { index: false } };
 
-  const canonical = `/articles/${article.slug}`;
+  const canonical = `/journal/${article.slug}`;
   return {
     title: article.metaTitle,
     description: article.metaDescription,

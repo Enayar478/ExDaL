@@ -8,7 +8,7 @@ export const revalidate = 3600;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const articles = getPublishedArticles().map((article) => ({
-    url: `${site.url}/articles/${article.slug}`,
+    url: `${site.url}/journal/${article.slug}`,
     lastModified: article.updatedAt ?? article.publishedAt,
     changeFrequency: "monthly" as const,
     priority: 0.7,
@@ -21,13 +21,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
+      url: `${site.url}/tunnel`,
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+    {
       url: `${site.url}/score`,
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
-      url: `${site.url}/articles`,
+      url: `${site.url}/journal`,
       changeFrequency: "weekly",
+      priority: 0.6,
+    },
+    {
+      url: `${site.url}/newsletter`,
+      changeFrequency: "monthly",
       priority: 0.6,
     },
     ...articles,

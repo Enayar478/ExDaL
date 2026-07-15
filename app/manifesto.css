@@ -1,0 +1,748 @@
+/* ─────────────────────────────────────────────────────────────
+   Accueil manifeste — le hall d'entrée.
+   Fond canvas (cristallisation de la donnée) + manifeste en HTML natif.
+   Direction artistique : clair-obscur, l'or reste rare (l'em du manifeste,
+   l'accent du CTA, l'amorce de l'emblème). Typo : Newsreader (manifeste),
+   IBM Plex Mono (logotype cérémonial, libellés).
+   ───────────────────────────────────────────────────────────── */
+
+.mf-root {
+  position: relative;
+  min-height: 100dvh;
+  background: var(--color-noir);
+  overflow: hidden;
+}
+
+/* Fond : canvas + halo + vignette. Tous fixes, décoratifs, jamais cliquables. */
+.mf-canvas,
+.mf-halo,
+.mf-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+.mf-canvas {
+  z-index: 1;
+  display: block;
+}
+.mf-halo {
+  z-index: 2;
+  background: radial-gradient(
+    circle at 50% 46%,
+    rgba(217, 178, 106, 0.12),
+    rgba(217, 178, 106, 0.03) 30%,
+    transparent 62%
+  );
+  animation: mf-breathe 10s ease-in-out infinite;
+}
+.mf-vignette {
+  z-index: 3;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    transparent 38%,
+    rgba(6, 7, 9, 0.82) 100%
+  );
+}
+
+.mf-wrap {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding: 26px 34px 30px;
+}
+
+/* ── En-tête : burger (carte) · logotype · porte du Journal ─────────────── */
+.mf-top {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  opacity: 0;
+  animation: mf-fade 1.6s ease 0.5s forwards;
+}
+
+.mf-burger {
+  justify-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 34px;
+  padding: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.mf-burger span {
+  display: block;
+  height: 1px;
+  background: var(--color-blanc);
+  transition: background 0.4s;
+}
+.mf-burger span:nth-child(1) {
+  width: 22px;
+}
+.mf-burger span:nth-child(2) {
+  width: 16px;
+}
+.mf-burger:hover span {
+  background: var(--color-or);
+}
+
+.mf-mark {
+  justify-self: center;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  text-indent: 0.3em;
+  color: var(--color-blanc);
+  text-decoration: none;
+  transition: color 0.4s;
+}
+.mf-mark:hover {
+  color: var(--color-brume);
+}
+.mf-mark-l2 {
+  display: block;
+}
+
+/* Bouton loupe (droite de l'en-tête) — ouvre la recherche du Journal. */
+.mf-search-btn {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.mf-search-icon {
+  position: relative;
+  width: 15px;
+  height: 15px;
+}
+.mf-search-icon::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 11px;
+  height: 11px;
+  border: 1px solid var(--color-blanc);
+  border-radius: 50%;
+  transition: border-color 0.4s;
+}
+.mf-search-icon::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 7px;
+  height: 1px;
+  background: var(--color-blanc);
+  transform: rotate(45deg);
+  transform-origin: right;
+  transition: background 0.4s;
+}
+.mf-search-btn:hover .mf-search-icon::before {
+  border-color: var(--color-or);
+}
+.mf-search-btn:hover .mf-search-icon::after {
+  background: var(--color-or);
+}
+
+/* ── Le manifeste — placé bas-gauche, l'em en or (unique point de lumière) ── */
+.mf-manifesto {
+  margin-top: auto;
+  max-width: 620px;
+  padding-bottom: 4vh;
+}
+.mf-line {
+  display: block;
+  overflow: hidden;
+}
+.mf-line > span {
+  display: block;
+  transform: translateY(105%);
+  animation: mf-rise 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.mf-line:nth-child(1) > span {
+  animation-delay: 0.15s;
+}
+.mf-line:nth-child(2) > span {
+  animation-delay: 0.35s;
+}
+.mf-line:nth-child(3) > span {
+  animation-delay: 0.55s;
+}
+.mf-h1 {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: clamp(26px, 3.4vw, 46px);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  color: var(--color-blanc);
+}
+.mf-h1 em {
+  font-style: italic;
+  background: linear-gradient(105deg, #8a7040, #d9b26a 45%, #f4e3bd);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.mf-cta {
+  margin-top: 26px;
+  opacity: 0;
+  animation: mf-fade 1.6s ease 0.75s forwards;
+}
+.mf-cta a {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-brume);
+  text-decoration: none;
+  transition:
+    gap 0.4s,
+    color 0.4s;
+}
+.mf-cta a:hover {
+  gap: 20px;
+  color: var(--color-or);
+}
+.mf-arrow {
+  position: relative;
+  width: 48px;
+  height: 1px;
+  background: currentColor;
+}
+.mf-arrow::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+  transform: rotate(45deg);
+}
+
+/* ── Pied — emblème, signature, portes secondaires ─────────────────────── */
+.mf-bottom {
+  opacity: 0;
+  animation: mf-fade 1.6s ease 0.9s forwards;
+}
+.mf-foot-1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 18px;
+}
+.mf-foot-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mf-foot-mark {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.mf-emblem {
+  width: 62px;
+  height: 62px;
+  flex-shrink: 0;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
+}
+.mf-foot-words {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  text-indent: 0.3em;
+  color: var(--color-blanc);
+}
+.mf-tagline {
+  margin-left: 78px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--color-brume);
+}
+
+.mf-socials {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.mf-socials a,
+.mf-socials button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--color-line);
+  border-radius: 50%;
+  background: none;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-brume);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color 0.4s,
+    color 0.4s;
+}
+.mf-socials a:hover,
+.mf-socials button:hover {
+  border-color: var(--color-or);
+  color: var(--color-or);
+}
+
+.mf-foot-2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-gris);
+}
+.mf-foot-links {
+  display: flex;
+  gap: 28px;
+}
+.mf-foot-links a,
+.mf-foot-links button {
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--color-gris);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.4s;
+}
+.mf-foot-links a:hover,
+.mf-foot-links button:hover {
+  color: var(--color-or);
+}
+
+/* ── Panneau de navigation (burger) ────────────────────────────────────── */
+.mf-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  visibility: hidden;
+  pointer-events: none;
+}
+.mf-menu.is-open {
+  visibility: visible;
+  pointer-events: auto;
+}
+.mf-menu-scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  cursor: pointer;
+  background: rgba(6, 7, 9, 0.72);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.mf-menu.is-open .mf-menu-scrim {
+  opacity: 1;
+}
+.mf-menu-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(420px, 86vw);
+  height: 100%;
+  padding: 30px 34px 34px;
+  background: var(--color-noir-2);
+  border-right: 1px solid var(--color-line);
+  transform: translateX(-102%);
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow-y: auto;
+}
+.mf-menu.is-open .mf-menu-panel {
+  transform: translateX(0);
+}
+.mf-menu-close {
+  align-self: flex-end;
+  position: relative;
+  width: 30px;
+  height: 30px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.mf-menu-close span {
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  width: 22px;
+  height: 1px;
+  background: var(--color-brume);
+  transition: background 0.4s;
+}
+.mf-menu-close span:nth-child(1) {
+  transform: rotate(45deg);
+}
+.mf-menu-close span:nth-child(2) {
+  transform: rotate(-45deg);
+}
+.mf-menu-close:hover span {
+  background: var(--color-or);
+}
+
+.mf-menu-nav {
+  display: flex;
+  flex-direction: column;
+  margin-top: 40px;
+}
+.mf-menu-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 0;
+  border-top: 1px solid var(--color-line);
+  text-decoration: none;
+}
+.mf-menu-link:last-child {
+  border-bottom: 1px solid var(--color-line);
+}
+.mf-menu-link-label {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: 24px;
+  color: var(--color-blanc);
+  transition: color 0.4s;
+}
+.mf-menu-link:hover .mf-menu-link-label {
+  color: var(--color-or);
+}
+.mf-menu-link-note {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-gris);
+}
+
+.mf-menu-foot {
+  margin-top: auto;
+  padding-top: 32px;
+}
+.mf-menu-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-or-dim);
+}
+.mf-menu-lede {
+  margin: 6px 0 14px;
+  max-width: 34ch;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--color-brume);
+}
+.mf-menu-contact {
+  display: inline-block;
+  margin-top: 18px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--color-brume);
+  text-decoration: none;
+  transition: color 0.4s;
+}
+.mf-menu-contact:hover {
+  color: var(--color-or);
+}
+
+/* ── Recherche du Journal (loupe) ──────────────────────────────────────── */
+.mf-search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  visibility: hidden;
+  pointer-events: none;
+}
+.mf-search-overlay.is-open {
+  visibility: visible;
+  pointer-events: auto;
+}
+.mf-search-scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  cursor: pointer;
+  background: rgba(6, 7, 9, 0.72);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.mf-search-overlay.is-open .mf-search-scrim {
+  opacity: 1;
+}
+.mf-search-panel {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(680px, 92vw);
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  background: var(--color-noir-2);
+  border: 1px solid var(--color-line);
+  border-top: none;
+  transform: translate(-50%, -104%);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mf-search-overlay.is-open .mf-search-panel {
+  transform: translate(-50%, 0);
+}
+.mf-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-line);
+}
+.mf-search-glyph {
+  position: relative;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+.mf-search-glyph::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--color-or-dim);
+  border-radius: 50%;
+}
+.mf-search-glyph::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 7px;
+  height: 1px;
+  background: var(--color-or-dim);
+  transform: rotate(45deg);
+  transform-origin: right;
+}
+.mf-search-input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--color-blanc);
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: 22px;
+}
+.mf-search-input::placeholder {
+  color: var(--color-gris);
+}
+.mf-search-close {
+  position: relative;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.mf-search-close span {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 20px;
+  height: 1px;
+  background: var(--color-brume);
+  transition: background 0.4s;
+}
+.mf-search-close span:nth-child(1) {
+  transform: rotate(45deg);
+}
+.mf-search-close span:nth-child(2) {
+  transform: rotate(-45deg);
+}
+.mf-search-close:hover span {
+  background: var(--color-or);
+}
+.mf-search-results {
+  overflow-y: auto;
+  margin-top: 8px;
+}
+.mf-search-hint,
+.mf-search-empty {
+  padding: 22px 2px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--color-gris);
+}
+.mf-search-hit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 2px;
+  border-bottom: 1px solid var(--color-line);
+  text-decoration: none;
+}
+.mf-search-hit:hover {
+  background: rgba(217, 178, 106, 0.03);
+}
+.mf-search-hit-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-or-dim);
+}
+.mf-search-hit-title {
+  font-family: var(--font-serif);
+  font-weight: 300;
+  font-size: 19px;
+  color: var(--color-blanc);
+  transition: color 0.4s;
+}
+.mf-search-hit:hover .mf-search-hit-title {
+  color: var(--color-or);
+}
+.mf-search-hit-excerpt {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-brume);
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 760px) {
+  .mf-wrap {
+    padding: 20px 22px 24px;
+  }
+  .mf-manifesto {
+    max-width: 100%;
+  }
+  .mf-h1 {
+    font-size: clamp(24px, 6.4vw, 34px);
+  }
+  .mf-mark {
+    font-size: 11px;
+    letter-spacing: 0.24em;
+    text-indent: 0.24em;
+  }
+  .mf-foot-1 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .mf-emblem {
+    width: 50px;
+    height: 50px;
+  }
+  .mf-foot-words {
+    font-size: 13px;
+  }
+  .mf-tagline {
+    margin-left: 0;
+  }
+  .mf-foot-2 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .mf-foot-links {
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+}
+
+/* ── Keyframes ─────────────────────────────────────────────────────────── */
+@keyframes mf-fade {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes mf-rise {
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes mf-breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+/* Accessibilité : aucune animation. Tout s'affiche à l'état final, au repos. */
+@media (prefers-reduced-motion: reduce) {
+  .mf-top,
+  .mf-cta,
+  .mf-bottom {
+    opacity: 1;
+    animation: none;
+  }
+  .mf-line > span {
+    transform: none;
+    animation: none;
+  }
+  .mf-halo {
+    animation: none;
+    opacity: 0.7;
+  }
+  .mf-menu-scrim,
+  .mf-menu-panel,
+  .mf-search-scrim,
+  .mf-search-panel {
+    transition: none;
+  }
+}

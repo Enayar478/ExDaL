@@ -1,28 +1,42 @@
-import { BookingProvider } from "@/components/booking/BookingProvider";
-import { SmoothScroll } from "@/components/tunnel/SmoothScroll";
-import { JourneyContent } from "@/components/journey/JourneyContent";
-import { SiteHeader } from "@/components/SiteHeader";
-import { SiteFooter } from "@/components/SiteFooter";
+import type { Metadata } from "next";
+import { Manifesto } from "@/components/manifesto/Manifesto";
 import { StructuredData } from "@/components/StructuredData";
+import { getPublishedArticles } from "@/lib/articles/get-article";
+import type { SearchItem } from "@/components/manifesto/ManifestoSearch";
 
 /**
- * Landing exdal.fr, un seul voyage immersif, du chaos vers la lumière.
- * On ne scrolle pas verticalement : on s'enfonce sur l'axe Z, palier après
- * palier, jusqu'à déboucher dans la lumière sur la prise de rendez-vous.
- * Le formulaire de qualification fait partie du voyage. Fallback reduced-motion :
- * scroll vertical classique, entièrement lisible et accessible.
+ * Accueil exdal.fr — le hall d'entrée manifeste. Rendu côté serveur : le titre
+ * et la promesse sont dans le HTML servi (le fond canvas est purement décoratif,
+ * aria-hidden), donc le SEO reste propre. Canonical « / ».
  */
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    title: "ExDaL. Vos chiffres savent déjà tout",
+    description:
+      "Studio de data financière, spécialiste Pennylane. Vos chiffres savent déjà tout — donnons-leur la parole.",
+  },
+};
+
+// L'accueil suit le scheduler du Journal : la recherche voit les articles
+// programmés à leur échéance (revalidation horaire, comme l'index du Journal).
+export const revalidate = 3600;
+
 export default function Home() {
+  // Index minimal du Journal, sérialisable, passé à la recherche client-side.
+  const searchItems: SearchItem[] = getPublishedArticles().map((article) => ({
+    slug: article.slug,
+    title: article.title,
+    excerpt: article.excerpt,
+    eyebrow: article.eyebrow,
+  }));
+
   return (
-    <BookingProvider>
-      <SmoothScroll>
-        <StructuredData />
-        <SiteHeader />
-        <main>
-          <JourneyContent />
-        </main>
-        <SiteFooter />
-      </SmoothScroll>
-    </BookingProvider>
+    <>
+      <StructuredData />
+      <Manifesto searchItems={searchItems} />
+    </>
   );
 }
