@@ -3,7 +3,7 @@ import { MonoLabel } from "@/components/ui/MonoLabel";
 import type { Article } from "@/lib/articles/types";
 
 /**
- * Maillage interne — articles liés (cocon sémantique). N'affiche rien s'il n'y
+ * Maillage interne, articles liés (cocon sémantique). N'affiche rien s'il n'y
  * a aucun lié publié, pour ne pas laisser de section vide.
  */
 export function ArticleRelated({ related }: { related: readonly Article[] }) {

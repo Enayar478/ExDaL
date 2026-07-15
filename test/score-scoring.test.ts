@@ -44,7 +44,7 @@ describe("données du questionnaire", () => {
     expect(MAX_SCORE).toBe(100);
   });
 
-  it("couvre 0–100 avec des paliers contigus sans trou ni chevauchement", () => {
+  it("couvre 0-100 avec des paliers contigus sans trou ni chevauchement", () => {
     const sorted = [...VERDICT_TIERS].sort((a, b) => a.min - b.min);
     expect(sorted[0].min).toBe(0);
     expect(sorted[sorted.length - 1].max).toBe(100);

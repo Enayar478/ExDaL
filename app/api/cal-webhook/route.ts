@@ -15,7 +15,7 @@ import { logger } from "@/lib/logger";
 export const runtime = "nodejs";
 
 // Taille maximale du corps du webhook Cal.com.
-// Un payload BOOKING_CREATED typique fait ~2–4 Ko ; 64 Ko est un plafond généreux.
+// Un payload BOOKING_CREATED typique fait ~2-4 Ko ; 64 Ko est un plafond généreux.
 const MAX_BODY_BYTES = 64 * 1024; // 64 Ko
 
 /**
@@ -24,7 +24,7 @@ const MAX_BODY_BYTES = 64 * 1024; // 64 Ko
  * envoie la confirmation sobre au prospect et la notification au propriétaire.
  *
  * Corrélation : par lead_id (metadata Cal) en priorité, fallback email.
- * Idempotence : cal_booking_uid unique en base — un replay Cal ne déclenche
+ * Idempotence : cal_booking_uid unique en base, un replay Cal ne déclenche
  *               pas de doublon d'email.
  * Sécurité :
  *  - Fail-closed : sans CAL_WEBHOOK_SECRET configuré → 503.
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
   // Fail-closed : sans secret configuré, on REJETTE tout (jamais d'endpoint ouvert).
   if (!env.CAL_WEBHOOK_SECRET) {
-    logger.error("CAL_WEBHOOK_SECRET non configuré — webhook rejeté");
+    logger.error("CAL_WEBHOOK_SECRET non configuré, webhook rejeté");
     return fail("Webhook non configuré.", 503);
   }
 
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       const wasNew = await markLeadBookedById(leadId, calBookingUid);
       if (!wasNew) {
         // Le booking uid était déjà en base : replay Cal, on ne renvoie pas d'emails.
-        logger.warn("Booking déjà traité — ignoré (idempotence)", {
+        logger.warn("Booking déjà traité, ignoré (idempotence)", {
           calBookingUid,
           leadId,
         });

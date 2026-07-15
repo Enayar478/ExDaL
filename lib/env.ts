@@ -20,7 +20,7 @@ const serverEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z
     .string()
     .min(20, "SUPABASE_SERVICE_ROLE_KEY manquante."),
-  // Optionnels — dégradation documentée ci-dessus.
+  // Optionnels, dégradation documentée ci-dessus.
   RESEND_API_KEY: z.string().min(1, "RESEND_API_KEY manquante.").optional(),
   RESEND_FROM_EMAIL: z.string().email().optional(),
   NOTIFICATION_EMAIL: z.string().email().optional(),
@@ -30,7 +30,7 @@ const serverEnvSchema = z.object({
   // Secret HMAC-SHA256 pour signer les tokens de confirmation newsletter.
   // Générer avec : openssl rand -hex 32
   NEWSLETTER_SECRET: z.string().min(16).optional(),
-  // Lien Cal.com (slug ou URL complète) — serveur uniquement, NE PAS préfixer NEXT_PUBLIC_.
+  // Lien Cal.com (slug ou URL complète), serveur uniquement, NE PAS préfixer NEXT_PUBLIC_.
   CAL_LINK: z.string().min(1).optional(),
 });
 
@@ -60,7 +60,7 @@ export function getServerEnv(): ServerEnv {
     const issues = parsed.error.issues
       .map((i) => `${i.path.join(".")}: ${i.message}`)
       .join(" | ");
-    throw new Error(`Configuration serveur invalide — ${issues}`);
+    throw new Error(`Configuration serveur invalide, ${issues}`);
   }
 
   cached = parsed.data;

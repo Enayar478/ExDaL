@@ -7,7 +7,7 @@ import { Rule } from "@/components/ui/Rule";
 import type { Segment } from "@/lib/validation/lead";
 
 /**
- * CTA de fin d'article — alimente le tunnel existant, sans nouvelle route ni
+ * CTA de fin d'article, alimente le tunnel existant, sans nouvelle route ni
  * provider. `qualification` ouvre le formulaire (en pré-remplissant la porte si
  * l'article cible un segment) ; `score` renvoie vers le lead magnet /score.
  */

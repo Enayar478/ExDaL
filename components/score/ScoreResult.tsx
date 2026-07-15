@@ -123,7 +123,7 @@ function ShareButton({ score }: { score: number }) {
         await navigator.share({ title: site.name, text, url });
         return;
       } catch {
-        // Partage annulé par l'utilisateur — on ne fait rien.
+        // Partage annulé par l'utilisateur, on ne fait rien.
         return;
       }
     }

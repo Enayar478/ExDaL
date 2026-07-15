@@ -15,7 +15,7 @@ export function Logo({
   return (
     <span
       className={`font-serif font-normal tracking-tight leading-none ${sizes[size]} ${className}`}
-      aria-label="ExDaL — Ex Datis Lumen"
+      aria-label="ExDaL, Ex Datis Lumen"
     >
       Ex<span className="lum-gradient">DaL</span>
     </span>

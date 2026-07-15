@@ -34,7 +34,7 @@ describe("maskEmail", () => {
   });
 });
 
-describe("templates — pas d'injection HTML", () => {
+describe("templates, pas d'injection HTML", () => {
   const hostile = {
     name: `<script>alert(1)</script>`,
     email: "evil@x.fr",
@@ -59,7 +59,7 @@ describe("templates — pas d'injection HTML", () => {
   });
 });
 
-describe("ownerNotification — injection d'en-tête SMTP (sujet)", () => {
+describe("ownerNotification, injection d'en-tête SMTP (sujet)", () => {
   it("retire les CR/LF du nom dans le sujet", () => {
     const hostile = {
       name: "Alice\r\nBcc: attacker@evil.com",
@@ -93,7 +93,7 @@ describe("ownerNotification — injection d'en-tête SMTP (sujet)", () => {
   });
 });
 
-describe("newsletterConfirmation — URL de confirmation", () => {
+describe("newsletterConfirmation, URL de confirmation", () => {
   it("échappe l'URL dans l'attribut href du template HTML", () => {
     // L'URL est générée côté serveur (HMAC signé) donc pas de risque réel,
     // mais on vérifie que l'échappement est bien en place (défense en profondeur).

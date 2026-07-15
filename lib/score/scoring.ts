@@ -1,5 +1,5 @@
 /**
- * Logique de scoring — fonctions pures, sans effet de bord ni mutation.
+ * Logique de scoring, fonctions pures, sans effet de bord ni mutation.
  * Aucune dépendance UI : entièrement testable en isolation.
  */
 import {
@@ -34,7 +34,7 @@ export interface ScoreResult {
 
 /** Seuil en deçà duquel une dimension est jugée « à travailler ». */
 const WEAK_DIMENSION_RATIO = 0.75;
-/** Nombre maximum de recommandations affichées (le doc vise 2–3). */
+/** Nombre maximum de recommandations affichées (le doc vise 2-3). */
 const MAX_RECOMMENDATIONS = 3;
 
 /** Retourne les points d'une réponse donnée, ou 0 si l'option est inconnue/absente. */
@@ -61,18 +61,18 @@ export function computeScore(answers: ScoreAnswers): number {
   return Math.round((raw / MAX_SCORE) * 100);
 }
 
-/** Palier de verdict correspondant à un score (bornes inclusives, 0–100). */
+/** Palier de verdict correspondant à un score (bornes inclusives, 0-100). */
 export function verdictFor(score: number): VerdictTier {
   const clamped = Math.max(0, Math.min(100, score));
   const tier = VERDICT_TIERS.find(
     (candidate) => clamped >= candidate.min && clamped <= candidate.max,
   );
-  // VERDICT_TIERS couvre 0–100 sans trou : ce repli n'est atteint que si la
+  // VERDICT_TIERS couvre 0-100 sans trou : ce repli n'est atteint que si la
   // configuration devient invalide. On renvoie le dernier palier par sûreté.
   return tier ?? VERDICT_TIERS[VERDICT_TIERS.length - 1];
 }
 
-/** Ratio de préparation (0–1) de chaque dimension, calculé sur ses seules questions. */
+/** Ratio de préparation (0-1) de chaque dimension, calculé sur ses seules questions. */
 export function dimensionRatios(answers: ScoreAnswers): Record<DimensionKey, number> {
   const totals = new Map<DimensionKey, { earned: number; max: number }>();
 

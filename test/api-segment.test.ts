@@ -1,5 +1,5 @@
 /**
- * Tests d'intégration — POST /api/segment
+ * Tests d'intégration, POST /api/segment
  *
  * Le handler enregistre un signal de segmentation (clic sur une porte).
  * Il est silencieux côté UX : un 500 ne bloque pas l'utilisateur.
@@ -37,7 +37,7 @@ describe("POST /api/segment", () => {
 
   // --- Happy path ---
 
-  it("200 — segment valide (pme)", async () => {
+  it("200, segment valide (pme)", async () => {
     const req = makeRequest({ segment: "pme" });
     const res = await POST(req);
     const json = await res.json();
@@ -48,7 +48,7 @@ describe("POST /api/segment", () => {
     expect(insertPathSignal).toHaveBeenCalledWith("pme");
   });
 
-  it("200 — segment valide (cabinet)", async () => {
+  it("200, segment valide (cabinet)", async () => {
     const req = makeRequest({ segment: "cabinet" });
     const res = await POST(req);
 
@@ -56,7 +56,7 @@ describe("POST /api/segment", () => {
     expect(insertPathSignal).toHaveBeenCalledWith("cabinet");
   });
 
-  it("200 — segment valide (premium)", async () => {
+  it("200, segment valide (premium)", async () => {
     const req = makeRequest({ segment: "premium" });
     const res = await POST(req);
 
@@ -66,7 +66,7 @@ describe("POST /api/segment", () => {
 
   // --- Erreurs de validation ---
 
-  it("400 — corps non-JSON", async () => {
+  it("400, corps non-JSON", async () => {
     const req = new Request("http://localhost/api/segment", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -79,7 +79,7 @@ describe("POST /api/segment", () => {
     expect(json.success).toBe(false);
   });
 
-  it("422 — segment inconnu", async () => {
+  it("422, segment inconnu", async () => {
     const req = makeRequest({ segment: "vip" });
     const res = await POST(req);
     const json = await res.json();
@@ -89,7 +89,7 @@ describe("POST /api/segment", () => {
     expect(insertPathSignal).not.toHaveBeenCalled();
   });
 
-  it("422 — champ segment absent", async () => {
+  it("422, champ segment absent", async () => {
     const req = makeRequest({});
     const res = await POST(req);
 
@@ -98,7 +98,7 @@ describe("POST /api/segment", () => {
 
   // --- Erreur Supabase ---
 
-  it("500 — insertPathSignal rejette", async () => {
+  it("500, insertPathSignal rejette", async () => {
     vi.mocked(insertPathSignal).mockRejectedValueOnce(new Error("DB error"));
     const req = makeRequest({ segment: "pme" });
     const res = await POST(req);
@@ -110,7 +110,7 @@ describe("POST /api/segment", () => {
 
   // --- Rate-limit ---
 
-  it("429 — rate-limit atteint", async () => {
+  it("429, rate-limit atteint", async () => {
     vi.mocked(rateLimit).mockReturnValueOnce({ allowed: false, remaining: 0 });
     const req = makeRequest({ segment: "pme" });
     const res = await POST(req);

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-/** Libellé mono en petites capitales (IBM Plex Mono) — eyebrows, mentions. */
+/** Libellé mono en petites capitales (IBM Plex Mono), eyebrows, mentions. */
 export function MonoLabel({
   children,
   className = "",

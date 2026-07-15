@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     url: "/articles",
     title: "Journal. ExDaL",
     description:
-      "Data financière, Pennylane, préparation d'une levée ou d'une cession — nos articles de fond.",
+      "Data financière, Pennylane, préparation d'une levée ou d'une cession, nos articles de fond.",
   },
 };
 

@@ -1,6 +1,6 @@
 /**
  * Constantes publiques du site ExDaL.
- * Aucune donnée sensible ici — uniquement ce qui peut apparaître côté client.
+ * Aucune donnée sensible ici, uniquement ce qui peut apparaître côté client.
  */
 
 const rawSiteUrl =

@@ -5,11 +5,11 @@ import { z } from "zod";
  * On ne fait jamais confiance à l'entrée : tout passe par Zod avant traitement.
  */
 
-// Usage de Pennylane — question 2 du formulaire de qualification.
+// Usage de Pennylane, question 2 du formulaire de qualification.
 export const pennylaneUsage = z.enum(["oui", "non", "bientot"]);
 export type PennylaneUsage = z.infer<typeof pennylaneUsage>;
 
-// Stade du prospect — question 3, alimente la segmentation commerciale.
+// Stade du prospect, question 3, alimente la segmentation commerciale.
 export const stage = z.enum(["pilotage", "cabinet", "operation"]);
 export type Stage = z.infer<typeof stage>;
 
