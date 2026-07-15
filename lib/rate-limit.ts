@@ -1,47 +1,25 @@
 import "server-only";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+import { getSupabaseAdmin } from "@/lib/supabase/server";
 
 /**
- * Rate limiting à fenêtre glissante.
+ * Rate limiting à fenêtre glissante, durable via Supabase (Postgres).
  *
- * - Si Upstash Redis est configuré (`UPSTASH_REDIS_REST_URL` + `_TOKEN`), le
- *   compteur est PARTAGÉ entre toutes les instances serverless Vercel → la
- *   limite est réellement efficace (résiste aux requêtes concurrentes et aux
- *   cold starts).
- * - Sinon, repli best-effort en mémoire de process (dev, tests, ou tant que le
- *   store durable n'est pas branché). Non partagé entre instances : dissuasif
- *   seulement. L'activation d'Upstash ne demande aucun changement de code.
+ * Le compteur vit dans la table `public.rate_limits` et est incrémenté de façon
+ * ATOMIQUE par la fonction `check_rate_limit` (SECURITY DEFINER) — donc PARTAGÉ
+ * entre toutes les instances serverless Vercel (résiste aux requêtes concurrentes
+ * et aux cold starts), sans dépendre d'un service tiers : on réutilise l'infra
+ * Supabase déjà en place.
+ *
+ * Fail-open contrôlé : si l'appel Supabase échoue (réseau, ou config absente en
+ * dev/tests), on retombe sur un repli best-effort en mémoire de process plutôt
+ * que de bloquer le trafic légitime.
  */
 export interface RateLimitResult {
   allowed: boolean;
   remaining: number;
 }
 
-// ── Store durable (Upstash Redis) ───────────────────────────────────────────
-const url = process.env.UPSTASH_REDIS_REST_URL;
-const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-const redis = url && token ? new Redis({ url, token }) : null;
-
-// Un limiter par configuration (limite|fenêtre), mis en cache.
-const limiters = new Map<string, Ratelimit>();
-function upstashLimiter(limit: number, windowMs: number): Ratelimit | null {
-  if (!redis) return null;
-  const cacheKey = `${limit}:${windowMs}`;
-  let limiter = limiters.get(cacheKey);
-  if (!limiter) {
-    limiter = new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(limit, `${windowMs} ms`),
-      prefix: "exdal:rl",
-      analytics: false,
-    });
-    limiters.set(cacheKey, limiter);
-  }
-  return limiter;
-}
-
-// ── Repli en mémoire (best-effort) ──────────────────────────────────────────
+// ── Repli en mémoire (best-effort : dev, tests, ou Supabase indisponible) ────
 type Bucket = { count: number; resetAt: number };
 const buckets = new Map<string, Bucket>();
 function memoryLimit(
@@ -67,26 +45,30 @@ function memoryLimit(
 }
 
 /**
- * Vérifie et incrémente le compteur pour `key`. Asynchrone (Upstash fait un
- * aller-retour réseau). Fail-open contrôlé : si Redis est momentanément
- * indisponible, on retombe sur le repli mémoire plutôt que de bloquer le trafic
- * légitime.
+ * Vérifie et incrémente le compteur pour `key`. Asynchrone (un aller-retour
+ * Supabase). Repli mémoire en cas d'échec.
  */
 export async function rateLimit(
   key: string,
   limit = 5,
   windowMs = 60_000,
 ): Promise<RateLimitResult> {
-  const limiter = upstashLimiter(limit, windowMs);
-  if (limiter) {
-    try {
-      const { success, remaining } = await limiter.limit(key);
-      return { allowed: success, remaining };
-    } catch {
-      return memoryLimit(key, limit, windowMs);
-    }
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase.rpc("check_rate_limit", {
+      p_key: key,
+      p_limit: limit,
+      p_window_ms: windowMs,
+    });
+    const row = Array.isArray(data) ? data[0] : data;
+    if (error || !row) return memoryLimit(key, limit, windowMs);
+    return {
+      allowed: Boolean(row.allowed),
+      remaining: Number(row.remaining),
+    };
+  } catch {
+    return memoryLimit(key, limit, windowMs);
   }
-  return memoryLimit(key, limit, windowMs);
 }
 
 /**
