@@ -16,8 +16,15 @@ export const connecterPennylaneTableauDeBord: Article = {
   segment: "pme",
   publishedAt: "2026-07-13",
   ctaVariant: "qualification",
-  // Pont vers la grappe premium : la donnée propre en amont sert le jour de l'opération.
-  relatedSlugs: ["preparer-chiffres-levee-cession"],
+  // Maillage : les 4 satellites de la grappe A + un pont vers la grappe premium
+  // (la donnée propre en amont sert le jour de l'opération).
+  relatedSlugs: [
+    "reconcilier-pennylane-crm-paiements",
+    "suivre-tresorerie-previsionnelle-pennylane",
+    "calculer-bfr-pennylane",
+    "automatiser-reporting-mensuel-pme",
+    "preparer-chiffres-levee-cession",
+  ],
   blocks: [
     {
       type: "p",

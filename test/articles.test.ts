@@ -78,32 +78,42 @@ describe("getRelatedArticles (maillage du cocon)", () => {
   const cornerstone = ARTICLES.find(
     (a) => a.slug === "connecter-pennylane-tableau-de-bord",
   )!;
-  const target = ARTICLES.find(
-    (a) => a.slug === "preparer-chiffres-levee-cession",
-  )!;
   const allPublished = new Date("2099-01-01");
 
-  it("résout les relatedSlugs publiés à `now`", () => {
+  it("résout tous les relatedSlugs publiés, dans l'ordre déclaré", () => {
+    // Le pilier A lie ses 4 satellites + le pont vers le pilier C.
     expect(
       getRelatedArticles(cornerstone, allPublished).map((a) => a.slug),
-    ).toEqual(["preparer-chiffres-levee-cession"]);
+    ).toEqual([
+      "reconcilier-pennylane-crm-paiements",
+      "suivre-tresorerie-previsionnelle-pennylane",
+      "calculer-bfr-pennylane",
+      "automatiser-reporting-mensuel-pme",
+      "preparer-chiffres-levee-cession",
+    ]);
   });
 
-  it("filtre les slugs forward-déclarés absents du registre (pas de lien mort)", () => {
-    const cabinets = ARTICLES.find(
-      (a) => a.slug === "pennylane-cabinets-automatiser-sans-perdre-controle",
-    )!;
-    // 4 relatedSlugs déclarés, un seul existe réellement pour l'instant.
-    expect(
-      getRelatedArticles(cabinets, allPublished).map((a) => a.slug),
-    ).toEqual(["connecter-pennylane-tableau-de-bord"]);
-  });
-
-  it("n'expose aucun lié tant que sa date de publication n'est pas atteinte", () => {
-    const before = new Date(
-      new Date(target.publishedAt).getTime() - 86_400_000,
+  it("n'expose QUE les liés déjà publiés à `now` (auto-cicatrisation par date)", () => {
+    // Au 2026-08-15 : seuls le pont C (preparer, 07-21) et le satellite
+    // réconciliation (08-11) sont publiés ; les 3 autres satellites A viennent après.
+    const slugs = getRelatedArticles(cornerstone, new Date("2026-08-15")).map(
+      (a) => a.slug,
     );
-    expect(getRelatedArticles(cornerstone, before)).toEqual([]);
+    expect(slugs).toEqual([
+      "reconcilier-pennylane-crm-paiements",
+      "preparer-chiffres-levee-cession",
+    ]);
+    expect(slugs).not.toContain("calculer-bfr-pennylane");
+  });
+
+  it("ne renvoie rien tant qu'aucun lié n'est encore publié", () => {
+    // Au 2026-07-15 : aucun des liés du pilier A n'est encore sorti.
+    expect(getRelatedArticles(cornerstone, new Date("2026-07-15"))).toEqual([]);
+  });
+
+  it("ignore un slug absent du registre (jamais de lien mort)", () => {
+    const ghost = makeArticle({ relatedSlugs: ["slug-inexistant"] });
+    expect(getRelatedArticles(ghost, allPublished)).toEqual([]);
   });
 
   it("renvoie un tableau vide si l'article n'a pas de relatedSlugs", () => {
