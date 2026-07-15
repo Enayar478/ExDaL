@@ -6,6 +6,7 @@ import {
   getPublishedArticles,
   getArticleBySlug,
   getBuildableSlugs,
+  getRelatedArticles,
 } from "@/lib/articles/get-article";
 import {
   countWords,
@@ -65,6 +66,49 @@ describe("intégrité du registre d'articles", () => {
       expect(Number.isNaN(new Date(article.publishedAt).getTime())).toBe(false);
     }
   });
+
+  it("les relatedSlugs ne contiennent jamais le slug de l'article lui-même", () => {
+    for (const article of ARTICLES) {
+      expect(article.relatedSlugs ?? []).not.toContain(article.slug);
+    }
+  });
+});
+
+describe("getRelatedArticles (maillage du cocon)", () => {
+  const cornerstone = ARTICLES.find(
+    (a) => a.slug === "connecter-pennylane-tableau-de-bord",
+  )!;
+  const target = ARTICLES.find(
+    (a) => a.slug === "preparer-chiffres-levee-cession",
+  )!;
+  const allPublished = new Date("2099-01-01");
+
+  it("résout les relatedSlugs publiés à `now`", () => {
+    expect(
+      getRelatedArticles(cornerstone, allPublished).map((a) => a.slug),
+    ).toEqual(["preparer-chiffres-levee-cession"]);
+  });
+
+  it("filtre les slugs forward-déclarés absents du registre (pas de lien mort)", () => {
+    const cabinets = ARTICLES.find(
+      (a) => a.slug === "pennylane-cabinets-automatiser-sans-perdre-controle",
+    )!;
+    // 4 relatedSlugs déclarés, un seul existe réellement pour l'instant.
+    expect(
+      getRelatedArticles(cabinets, allPublished).map((a) => a.slug),
+    ).toEqual(["connecter-pennylane-tableau-de-bord"]);
+  });
+
+  it("n'expose aucun lié tant que sa date de publication n'est pas atteinte", () => {
+    const before = new Date(
+      new Date(target.publishedAt).getTime() - 86_400_000,
+    );
+    expect(getRelatedArticles(cornerstone, before)).toEqual([]);
+  });
+
+  it("renvoie un tableau vide si l'article n'a pas de relatedSlugs", () => {
+    expect(getRelatedArticles(makeArticle())).toEqual([]);
+  });
 });
 
 describe("estimateReadingMinutes", () => {
@@ -96,7 +140,7 @@ describe("estimateReadingMinutes", () => {
   });
 });
 
-describe("renderInline — liens auto-cicatrisants du cocon", () => {
+describe("renderInline, liens auto-cicatrisants du cocon", () => {
   it("rend un lien vers un article PUBLIÉ", () => {
     const nodes = renderInline(
       "voir [le guide](/articles/foo)",

@@ -1,5 +1,5 @@
 /**
- * Tests d'intégration — POST /api/score
+ * Tests d'intégration, POST /api/score
  *
  * On pilote le handler Next.js avec de vraies instances Request (cast NextRequest),
  * sans serveur HTTP. Les dépendances (Supabase, Resend, rate-limit, env) sont mockées.
@@ -38,7 +38,7 @@ const { insertScoreSubmission } = await import("@/lib/score/repository");
 const { sendEmail } = await import("@/lib/email/send");
 const { rateLimit } = await import("@/lib/rate-limit");
 
-/** Réponses complètes et valides — chaque question reçoit l'option donnée par `letter`. */
+/** Réponses complètes et valides, chaque question reçoit l'option donnée par `letter`. */
 function answersWith(letter: "a" | "b" | "c"): Record<string, string> {
   return Object.fromEntries(QUESTIONS.map((q) => [q.id, `${q.id}${letter}`]));
 }
@@ -66,7 +66,7 @@ describe("POST /api/score", () => {
     vi.mocked(rateLimit).mockResolvedValue({ allowed: true, remaining: 4 });
   });
 
-  it("200 — soumission valide : persiste et envoie le plan", async () => {
+  it("200, soumission valide : persiste et envoie le plan", async () => {
     const res = await POST(makeRequest(validBody));
     const json = await res.json();
 
@@ -77,7 +77,7 @@ describe("POST /api/score", () => {
     expect(sendEmail).toHaveBeenCalledOnce();
   });
 
-  it("200 — recalcule le score CÔTÉ SERVEUR (ignore toute valeur client)", async () => {
+  it("200, recalcule le score CÔTÉ SERVEUR (ignore toute valeur client)", async () => {
     // Le client tente d'injecter un score de 100 ; il ne doit pas être lu.
     const res = await POST(makeRequest({ ...validBody, score: 100 }));
     expect(res.status).toBe(200);
@@ -88,20 +88,20 @@ describe("POST /api/score", () => {
     expect(call.verdict).toBe("fondations");
   });
 
-  it("200 — un sans-faute donne 100 / verdict pret", async () => {
+  it("200, un sans-faute donne 100 / verdict pret", async () => {
     await POST(makeRequest({ email: "a@b.fr", answers: answersWith("c") }));
     const call = vi.mocked(insertScoreSubmission).mock.calls[0][0];
     expect(call.score).toBe(100);
     expect(call.verdict).toBe("pret");
   });
 
-  it("422 — email invalide", async () => {
+  it("422, email invalide", async () => {
     const res = await POST(makeRequest({ ...validBody, email: "pas-un-email" }));
     expect(res.status).toBe(422);
     expect(insertScoreSubmission).not.toHaveBeenCalled();
   });
 
-  it("422 — diagnostic incomplet (une question manquante)", async () => {
+  it("422, diagnostic incomplet (une question manquante)", async () => {
     const answers = answersWith("a");
     delete answers.q5;
     const res = await POST(makeRequest({ email: "a@b.fr", answers }));
@@ -110,13 +110,13 @@ describe("POST /api/score", () => {
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
-  it("422 — honeypot rempli : Zod rejette avant le handler", async () => {
+  it("422, honeypot rempli : Zod rejette avant le handler", async () => {
     const res = await POST(makeRequest({ ...validBody, website: "https://spam" }));
     expect(res.status).toBe(422);
     expect(insertScoreSubmission).not.toHaveBeenCalled();
   });
 
-  it("400 — corps non-JSON", async () => {
+  it("400, corps non-JSON", async () => {
     const req = new Request("http://localhost/api/score", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -126,7 +126,7 @@ describe("POST /api/score", () => {
     expect(res.status).toBe(400);
   });
 
-  it("413 — corps trop volumineux (Content-Length)", async () => {
+  it("413, corps trop volumineux (Content-Length)", async () => {
     const req = new Request("http://localhost/api/score", {
       method: "POST",
       headers: {
@@ -139,13 +139,13 @@ describe("POST /api/score", () => {
     expect(res.status).toBe(413);
   });
 
-  it("429 — rate-limit atteint", async () => {
+  it("429, rate-limit atteint", async () => {
     vi.mocked(rateLimit).mockResolvedValueOnce({ allowed: false, remaining: 0 });
     const res = await POST(makeRequest(validBody));
     expect(res.status).toBe(429);
   });
 
-  it("200 — échec de persistance : le plan est quand même envoyé (best-effort)", async () => {
+  it("200, échec de persistance : le plan est quand même envoyé (best-effort)", async () => {
     vi.mocked(insertScoreSubmission).mockRejectedValueOnce(new Error("DB down"));
     const res = await POST(makeRequest(validBody));
     const json = await res.json();
@@ -155,7 +155,7 @@ describe("POST /api/score", () => {
     expect(sendEmail).toHaveBeenCalledOnce();
   });
 
-  it("200 — email non envoyé (Resend down) : réponse neutre", async () => {
+  it("200, email non envoyé (Resend down) : réponse neutre", async () => {
     vi.mocked(sendEmail).mockResolvedValueOnce(false);
     const res = await POST(makeRequest(validBody));
     expect(res.status).toBe(200);

@@ -138,7 +138,7 @@ export const connecterPennylaneTableauDeBord: Article = {
     },
     {
       type: "p",
-      text: "Le décalage entre le moment où l'entreprise paie ses charges et le moment où elle encaisse ses ventes. Un BFR qui se dégrade silencieusement, délai client qui s'allonge, stock qui grossit, est souvent le premier signal d'alerte avant une tension de trésorerie visible. Il ne se lit pas dans Pennylane seul : il exige de croiser factures émises, factures réglées et données du CRM.",
+      text: "Le décalage entre le moment où l'entreprise paie ses charges et le moment où elle encaisse ses ventes. Un BFR qui se dégrade silencieusement (délai client qui s'allonge, stock qui grossit) est souvent le premier signal d'alerte avant une tension de trésorerie visible. Il ne se lit pas dans Pennylane seul : il exige de croiser factures émises, factures réglées et données du CRM.",
     },
     {
       type: "h3",

@@ -59,7 +59,7 @@ export const DIMENSION_LABELS: Record<DimensionKey, string> = {
  * l'index sert de barème (0 / 5 / 10). Ne pas réordonner sans ajuster les points.
  */
 export const QUESTIONS: readonly ScoreQuestion[] = [
-  //, Dimension A : Comptes & clôture ·
+  // Dimension A : Comptes & clôture
   {
     id: "q1",
     dimension: "comptes",
@@ -90,7 +90,7 @@ export const QUESTIONS: readonly ScoreQuestion[] = [
       },
     ],
   },
-  //, Dimension B : Métriques de valorisation ·
+  // Dimension B : Métriques de valorisation
   {
     id: "q3",
     dimension: "metriques",
@@ -155,7 +155,7 @@ export const QUESTIONS: readonly ScoreQuestion[] = [
       },
     ],
   },
-  //, Dimension C : Traçabilité & réconciliation ·
+  // Dimension C : Traçabilité & réconciliation
   {
     id: "q6",
     dimension: "tracabilite",
@@ -202,7 +202,7 @@ export const QUESTIONS: readonly ScoreQuestion[] = [
       },
     ],
   },
-  //, Dimension D : Data room & due diligence ·
+  // Dimension D : Data room & due diligence
   {
     id: "q8",
     dimension: "dataroom",

@@ -180,7 +180,7 @@ export function ImmersiveJourney({
     };
     goRef.current = go;
 
-    //, Tactile : swipe (vertical prioritaire ; haut / gauche = avancer) ·
+    // Tactile : swipe (vertical prioritaire ; haut / gauche = avancer)
     let sx = 0,
       sy = 0,
       stime = 0;
@@ -202,7 +202,7 @@ export function ImmersiveJourney({
       else go(dx < 0 ? 1 : -1);
     };
 
-    //, Desktop : molette / trackpad (un cran par geste) ·
+    // Desktop : molette / trackpad (un cran par geste)
     // Verrou de durée FIXE, calé sur l'animation. On NE le prolonge PAS avec les
     // événements suivants : un trackpad émet un flux continu (geste + inertie), et
     // repousser le déverrouillage à chaque événement le figerait indéfiniment.
