@@ -121,10 +121,19 @@ export function CrystalCanvas() {
       window.matchMedia("(pointer: coarse)").matches ||
       window.matchMedia("(max-width: 820px)").matches;
 
+    // Densité du nuage interne, fixée au montage (isCoarse ne varie pas ensuite).
+    const internalCount = isCoarse ? 90 : 220;
+    // Graines du nuage tirées UNE seule fois : au redimensionnement, seul le
+    // facteur d'échelle S change — le nuage garde sa forme (pas de « saut »).
+    const cloudSeeds = Array.from({ length: internalCount }, () => ({
+      x: Math.random() * 2 - 1,
+      y: Math.random() * 2 - 1,
+      z: Math.random() * 2 - 1,
+    }));
+
     function buildCube() {
       const S = Math.min(W, H) * 0.16; // demi-taille du cube
       div = isCoarse ? 9 : 14;
-      const internal = isCoarse ? 90 : 220;
       const verts: CubeVertex[] = [];
 
       // Particules réparties le long des 12 arêtes (maillage filaire).
@@ -138,12 +147,13 @@ export function CrystalCanvas() {
           });
         }
       }
-      // Nuage interne (densité de données).
-      for (let i = 0; i < internal; i++) {
+      // Nuage interne (densité de données) — graines figées × S.
+      for (let i = 0; i < internalCount; i++) {
+        const seed = cloudSeeds[i];
         verts.push({
-          x: (Math.random() * 2 - 1) * S * 0.85,
-          y: (Math.random() * 2 - 1) * S * 0.85,
-          z: (Math.random() * 2 - 1) * S * 0.85,
+          x: seed.x * S * 0.85,
+          y: seed.y * S * 0.85,
+          z: seed.z * S * 0.85,
         });
       }
       // Les 8 sommets, plus lumineux.
@@ -296,17 +306,33 @@ export function CrystalCanvas() {
     resize();
     if (parts.length === 0) initParticles();
 
-    let onResize: (() => void) | null = null;
     let rafId = 0;
+    let resizeRaf = 0;
+    let lastW = W;
+    let lastH = H;
     let onVisibility: (() => void) | null = null;
+
+    // Redimensionnement throttlé en rAF, et ignoré si les dimensions n'ont pas
+    // réellement changé (sur mobile, la barre d'adresse émet un flux de `resize`
+    // sans changement de largeur — inutile de tout reconstruire à chaque scroll).
+    const onResize = () => {
+      if (resizeRaf) return;
+      resizeRaf = requestAnimationFrame(() => {
+        resizeRaf = 0;
+        if (window.innerWidth === lastW && window.innerHeight === lastH) return;
+        lastW = window.innerWidth;
+        lastH = window.innerHeight;
+        resize();
+      });
+    };
+    window.addEventListener("resize", onResize);
 
     if (reduced) {
       // Aucune boucle : une frame statique, re-peinte au redimensionnement.
       renderFrame(6, 1);
-      onResize = () => resize();
-      window.addEventListener("resize", onResize);
     } else {
       let start = 0;
+      let hiddenAt = 0;
       const loop = (now: number) => {
         if (!start) start = now;
         const t = (now - start) / 1000;
@@ -317,15 +343,16 @@ export function CrystalCanvas() {
       };
       rafId = requestAnimationFrame(loop);
 
-      onResize = () => resize();
-      window.addEventListener("resize", onResize);
-
-      // Pause quand l'onglet est masqué (économie batterie/CPU).
+      // Pause quand l'onglet est masqué (économie batterie/CPU). À la reprise,
+      // on décale `start` du temps passé masqué pour que l'horloge de la scène
+      // (rotation, pouls) reprenne en continuité — pas de bond visuel.
       onVisibility = () => {
         if (document.hidden) {
           if (rafId) cancelAnimationFrame(rafId);
           rafId = 0;
+          hiddenAt = performance.now();
         } else if (!rafId) {
+          if (start && hiddenAt) start += performance.now() - hiddenAt;
           rafId = requestAnimationFrame(loop);
         }
       };
@@ -334,7 +361,8 @@ export function CrystalCanvas() {
 
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
-      if (onResize) window.removeEventListener("resize", onResize);
+      if (resizeRaf) cancelAnimationFrame(resizeRaf);
+      window.removeEventListener("resize", onResize);
       if (onVisibility)
         document.removeEventListener("visibilitychange", onVisibility);
     };

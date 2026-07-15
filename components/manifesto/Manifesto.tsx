@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { CrystalCanvas } from "@/components/manifesto/CrystalCanvas";
@@ -18,11 +18,45 @@ import { site } from "@/lib/site";
  * de marque et la porte maîtresse « Entrer » (le parcours). L'en-tête offre la
  * carte (burger) et la recherche du Journal ; la navigation complète vit dans
  * le panneau du burger.
+ *
+ * Les deux panneaux (menu, recherche) sont mutuellement exclusifs et modaux :
+ * à l'ouverture de l'un, l'autre se ferme ; tant qu'un panneau est ouvert, le
+ * hall (`.mf-wrap`) passe `inert` (ni focus ni clic ne fuient vers le fond), et
+ * le focus revient sur le déclencheur à la fermeture.
  */
 export function Manifesto({ searchItems }: { searchItems: SearchItem[] }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const burgerRef = useRef<HTMLButtonElement>(null);
+  const searchBtnRef = useRef<HTMLButtonElement>(null);
+  // Déclencheur du panneau actuellement ouvert : le focus lui revient à la
+  // fermeture (dans un effet, une fois `inert` retiré du hall).
+  const lastTrigger = useRef<HTMLButtonElement | null>(null);
   const year = new Date().getFullYear();
+
+  const panelOpen = menuOpen || searchOpen;
+
+  const openMenu = () => {
+    lastTrigger.current = burgerRef.current;
+    setSearchOpen(false);
+    setMenuOpen(true);
+  };
+  const openSearch = () => {
+    lastTrigger.current = searchBtnRef.current;
+    setMenuOpen(false);
+    setSearchOpen(true);
+  };
+  const closeMenu = () => setMenuOpen(false);
+  const closeSearch = () => setSearchOpen(false);
+
+  // Restauration du focus après fermeture : l'effet s'exécute après le commit
+  // DOM (donc après le retrait de `inert`), le `focus()` prend alors bien.
+  useEffect(() => {
+    if (!panelOpen && lastTrigger.current) {
+      lastTrigger.current.focus();
+      lastTrigger.current = null;
+    }
+  }, [panelOpen]);
 
   return (
     <div className="mf-root">
@@ -30,15 +64,16 @@ export function Manifesto({ searchItems }: { searchItems: SearchItem[] }) {
       <div className="mf-halo" aria-hidden="true" />
       <div className="mf-vignette" aria-hidden="true" />
 
-      <div className="mf-wrap">
+      <div className="mf-wrap" inert={panelOpen || undefined}>
         {/* En-tête : burger (carte) · logotype cérémonial · recherche du Journal */}
         <header className="mf-top">
           <button
+            ref={burgerRef}
             type="button"
             className="mf-burger"
             aria-label="Ouvrir le menu"
             aria-expanded={menuOpen}
-            onClick={() => setMenuOpen(true)}
+            onClick={openMenu}
           >
             <span />
             <span />
@@ -54,11 +89,12 @@ export function Manifesto({ searchItems }: { searchItems: SearchItem[] }) {
           </Link>
 
           <button
+            ref={searchBtnRef}
             type="button"
             className="mf-search-btn"
             aria-label="Rechercher dans le Journal"
             aria-expanded={searchOpen}
-            onClick={() => setSearchOpen(true)}
+            onClick={openSearch}
           >
             <span className="mf-search-icon" aria-hidden="true" />
           </button>
@@ -110,10 +146,11 @@ export function Manifesto({ searchItems }: { searchItems: SearchItem[] }) {
             </div>
             <div className="mf-socials">
               {/* Placeholder : l'URL réelle de la page société sera branchée
-                  plus tard (pas de navigation tant qu'elle est inconnue). */}
+                  plus tard. Inerte et annoncé « indisponible » d'ici là. */}
               <a
                 href="#"
                 aria-label="LinkedIn (bientôt)"
+                aria-disabled="true"
                 onClick={(e) => e.preventDefault()}
               >
                 in
@@ -143,10 +180,10 @@ export function Manifesto({ searchItems }: { searchItems: SearchItem[] }) {
         </footer>
       </div>
 
-      <ManifestoMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <ManifestoMenu open={menuOpen} onClose={closeMenu} />
       <ManifestoSearch
         open={searchOpen}
-        onClose={() => setSearchOpen(false)}
+        onClose={closeSearch}
         items={searchItems}
       />
     </div>

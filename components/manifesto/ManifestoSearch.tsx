@@ -2,27 +2,17 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { filterSearchItems, type SearchItem } from "@/lib/search/fold";
 
-export interface SearchItem {
-  slug: string;
-  title: string;
-  excerpt: string;
-  eyebrow: string;
-}
-
-/** Normalise pour une recherche insensible à la casse et aux accents. */
-function fold(s: string): string {
-  return s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
+// Ré-export pour les consommateurs existants (page.tsx, Manifesto).
+export type { SearchItem };
 
 /**
  * Recherche du hall — ouverte par l'icône loupe de l'en-tête. Filtre le Journal
  * côté client (titre, teaser, sur-titre) sur son index statique : aucun appel
- * réseau, résultats instantanés. Fermable au scrim, à la croix ou avec Échap.
- * Le champ prend le focus à l'ouverture (a11y).
+ * réseau, résultats instantanés. La logique pure vit dans `lib/search/fold`.
+ * Fermable au scrim, à la croix ou avec Échap. Le champ prend le focus à
+ * l'ouverture (a11y).
  */
 export function ManifestoSearch({
   open,
@@ -60,14 +50,10 @@ export function ManifestoSearch({
     };
   }, [open, onClose]);
 
-  const results = useMemo(() => {
-    const q = fold(query.trim());
-    if (!q) return [];
-    return items.filter((it) => {
-      const hay = fold(`${it.title} ${it.excerpt} ${it.eyebrow}`);
-      return hay.includes(q);
-    });
-  }, [query, items]);
+  const results = useMemo(
+    () => filterSearchItems(items, query),
+    [query, items],
+  );
 
   const hasQuery = query.trim().length > 0;
 
@@ -111,15 +97,19 @@ export function ManifestoSearch({
           </button>
         </div>
 
+        {/* Région annoncée « polie » : le nombre de résultats est vocalisé au
+            fil de la frappe. Pas de role=listbox (les résultats sont des liens
+            de navigation, pas des options clavier flèches). */}
         <div
           className="mf-search-results"
-          role="listbox"
+          role="region"
           aria-label="Résultats"
+          aria-live="polite"
         >
           {hasQuery && results.length === 0 && (
             <p className="mf-search-empty">
-              Aucun écrit ne correspond. Le Journal s&rsquo;étoffe&nbsp;:
-              revenez bientôt.
+              Aucun écrit ne correspond. Le Journal s&rsquo;étoffe&nbsp;: revenez
+              bientôt.
             </p>
           )}
           {results.map((it) => (
