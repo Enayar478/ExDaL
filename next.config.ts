@@ -82,10 +82,25 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Les articles sont lus depuis `content/articles/*.md` via `fs` au runtime.
+  // Ce chemin étant calculé, Vercel ne le trace pas automatiquement : on force
+  // l'inclusion des .md dans les fonctions serverless qui en dépendent (sinon la
+  // revalidation ISR en prod verrait un registre vide).
+  outputFileTracingIncludes: {
+    "/journal": ["./content/articles/**/*.md"],
+    "/journal/[slug]": ["./content/articles/**/*.md"],
+    "/sitemap.xml": ["./content/articles/**/*.md"],
+    "/admin": ["./content/articles/**/*.md"],
+    "/admin/articles/[slug]": ["./content/articles/**/*.md"],
+  },
   async headers() {
     return [
       // Routes API sensibles : jamais mises en cache.
       { source: "/api/:path*", headers: apiSecurityHeaders },
+      // Panneau editorial : contenu programmé/brouillon, jamais mis en cache
+      // (defense en profondeur au-delà de `dynamic = "force-dynamic"`).
+      { source: "/admin/:path*", headers: apiSecurityHeaders },
+      { source: "/admin", headers: apiSecurityHeaders },
       // Toutes les autres routes (pages statiques, assets).
       { source: "/:path*", headers: securityHeaders },
     ];

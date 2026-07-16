@@ -23,7 +23,7 @@ export function ArticleCard({ article }: { article: Article }) {
       <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.12em] text-gris">
         {formatArticleDate(article.publishedAt)}
         <span className="mx-2 text-line">·</span>
-        {estimateReadingMinutes(article.blocks)} min
+        {estimateReadingMinutes(article.body)} min
       </p>
     </Link>
   );

@@ -18,7 +18,7 @@ export default defineConfig({
     include: ["test/**/*.test.ts"],
     coverage: {
       provider: "v8",
-      include: ["lib/**/*.ts"],
+      include: ["lib/**/*.ts", "middleware.ts"],
     },
   },
 });

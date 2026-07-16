@@ -56,3 +56,17 @@ export function getRelatedArticles(
     .map((slug) => getArticleBySlug(slug, now))
     .filter((related): related is Article => Boolean(related));
 }
+
+// ── Panneau éditorial interne (/admin) ───────────────────────────────────────
+// Ces deux fonctions ignorent le scheduler : elles ne servent QUE le panneau
+// protégé, jamais les routes publiques.
+
+/** Tous les articles (publiés, programmés, brouillons) pour le tableau de bord. */
+export function getAllArticlesForAdmin(): readonly Article[] {
+  return ARTICLES;
+}
+
+/** Article par slug SANS filtre de publication (preview interne uniquement). */
+export function getArticleForPreview(slug: string): Article | undefined {
+  return ARTICLES.find((candidate) => candidate.slug === slug);
+}
