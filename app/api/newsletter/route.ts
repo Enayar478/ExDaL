@@ -64,6 +64,15 @@ export async function POST(request: NextRequest) {
     return fail("Trop de tentatives. Réessayez dans quelques minutes.", 429);
   }
 
+  // 3 bis. Plafond GLOBAL (toutes IP confondues) : coupe l'abus distribué
+  // (pool d'IP rotatives) qui contournerait la limite par IP. Cet endpoint
+  // envoie un email de confirmation à une adresse fournie par le client :
+  // sans plafond, il peut servir de relais de spam et griller le quota Resend.
+  const global = await rateLimit("newsletter:global", 60, 60 * 60_000);
+  if (!global.allowed) {
+    return fail("Service momentanément saturé. Réessayez plus tard.", 429);
+  }
+
   // 4. Hash de l'IP (RGPD : on ne stocke pas l'IP brute)
   const ipHash = createHash("sha256").update(ip).digest("hex");
 

@@ -19,6 +19,7 @@ les prospects en 3 questions, et déclencher une prise de rendez-vous de 20 minu
 - [Resend (emails)](#resend-emails)
 - [Déploiement Vercel](#déploiement-vercel)
 - [DNS — exdal.fr chez Hostinger](#dns--exdalfr-chez-hostinger)
+- [Sécurité](#sécurité)
 - [Actions manuelles restantes](#actions-manuelles-restantes-détenteur-de-comptes)
 - [Tests & qualité](#tests--qualité)
 
@@ -197,6 +198,117 @@ diffèrent.
 > Astuce : si vous préférez déléguer entièrement la zone, vous pouvez remplacer les
 > serveurs de noms Hostinger par ceux de Vercel — mais la méthode `A` + `CNAME`
 > ci-dessus est la plus simple et n'affecte pas vos emails.
+
+## Sécurité
+
+Référence de la posture de sécurité du site, de l'API et de la donnée. Dernière
+revue complète : audit final multi-agents (secrets/injection, DoS/abus, base de
+données) avant la version finale. Verdict : aucune faille CRITICAL ou HIGH
+exploitable ; le reste a été corrigé ou consciemment reporté (voir plus bas).
+
+### Surface d'attaque
+
+5 routes API publiques. Seul vecteur d'amplification email : `/api/newsletter`
+(email de confirmation vers une adresse fournie par le client). Le webhook
+n'est pas forgeable sans le secret HMAC, et `/api/lead` n'envoie aucun email.
+
+### En-têtes HTTP et CSP (`next.config.ts`)
+
+- CSP : `default-src 'self'`, `object-src 'none'`, `frame-ancestors 'none'`,
+  `base-uri 'self'`, `form-action 'self'`, `frame-src` limité à cal.eu.
+  `unsafe-eval` en dev uniquement (HMR). Nonce prévu à l'arrivée d'analytics.
+- HSTS preload (2 ans) · `X-Frame-Options: DENY` · `nosniff` ·
+  `Referrer-Policy: strict-origin-when-cross-origin` · `Permissions-Policy`
+  (camera/micro/géoloc coupés) · `Cache-Control: no-store` sur `/api/*`.
+
+### Validation des entrées
+
+- Zod à toutes les frontières : corps des routes (`lib/validation/*`), env
+  (`lib/env.ts`, fail-fast au démarrage), payload webhook. Emails normalisés.
+- Limites de taille de corps, double vérification (`content-length` puis
+  longueur réelle) : lead 8 Ko, segment 1 Ko, newsletter 2 Ko, webhook 64 Ko.
+
+### Anti-bot et anti-abus (sans service tiers)
+
+1. **Honeypot** : champ `website` contraint à vide par Zod ; réponse neutre
+   sur la newsletter pour ne pas révéler la détection.
+2. **Rate-limit durable par IP** : compteur PARTAGÉ entre les instances
+   serverless, stocké dans Postgres (`public.rate_limits` + fonction atomique
+   `check_rate_limit`, migration 0007, `SECURITY DEFINER`, `search_path=''`,
+   EXECUTE réservé à service_role). Un rate-limit en mémoire serait inefficace
+   sur Vercel (compteur par instance, remis à zéro au cold start). Repli
+   mémoire best-effort si Supabase est indisponible (fail-open contrôlé).
+   Limites : lead 5/min · segment 20/min · newsletter 3/10 min ·
+   confirm 10/min · webhook 30/min.
+3. **Plafond global newsletter** : 60 inscriptions/heure toutes IP confondues
+   (clé `newsletter:global`) contre l'abus distribué (pool d'IP rotatives).
+4. **Extraction d'IP fiable** : `x-real-ip` (injecté par Vercel, non
+   falsifiable), sinon dernier maillon de `x-forwarded-for`.
+5. `robots.txt` exclut `/api/` du crawl : politesse pour les crawlers, pas une
+   protection (les bots malveillants l'ignorent).
+
+### Webhook Cal.com
+
+HMAC-SHA256 vérifié AVANT tout parsing, comparaison à temps constant
+(`timingSafeEqual`), fail-closed (503 si secret absent), idempotence à deux
+niveaux contre les rejeux (update conditionnel + index unique partiel, 0002).
+
+### Newsletter (double opt-in)
+
+Token HMAC-SHA256 (`NEWSLETTER_SECRET`, min. 16), expiration 24 h, comparaison
+à temps constant, pas d'énumération (réponse toujours `queued`), redirection
+validée par liste blanche (pas d'open redirect), IP stockée uniquement hachée.
+
+### Base de données (Supabase)
+
+- RLS activée sur toutes les tables, zéro policy : deny-all pour anon et
+  authenticated. Seul chemin : `service_role`, côté serveur exclusivement
+  (`lib/supabase/server.ts`, `import "server-only"`).
+- REVOKE ALL sur les tables, REVOKE USAGE/CREATE sur le schéma public, et
+  ALTER DEFAULT PRIVILEGES (0005) : toute table future naît fermée.
+- Requêtes exclusivement paramétrées via supabase-js. Aucune SQL concaténée.
+- Purge RGPD : `purge_expired_data()` (leads « new » > 12 mois, « booked »
+  > 3 ans, non confirmés > 30 j). Planification pg_cron : voir plus bas.
+- Unicité `lower(email)` sur `leads`, colonnes PII documentées.
+
+### Secrets et emails
+
+- Aucun secret en dur ; tout via `lib/env.ts` (Zod fail-fast). `.env*` non
+  suivis par git. Aucun secret côté client (seul `NEXT_PUBLIC_SITE_URL` est
+  public ; `CAL_LINK` est server-only). Bundle JS de prod scanné : propre.
+- Emails : champs échappés (`escapeHtml`) avant interpolation HTML, sujet
+  assaini (CR/LF) contre l'injection d'en-tête SMTP.
+
+### Historique des durcissements
+
+| PR | Contenu |
+| -- | ------- |
+| #15 | Audit OWASP : `CAL_LINK` server-only, limites de corps, HMAC avant parsing, anti-injection SMTP, CSP durcie, validation redirect |
+| #12 + #16 | Durcissement DB : REVOKE, unicité email, purge RGPD |
+| #17 | Override postcss (CVE Dependabot) |
+| #21 | Post-audit : ALTER DEFAULT PRIVILEGES, `search_path=''`, rate-limit /confirm |
+| #22 puis #30 | Rate-limit durable : Upstash, puis remplacé par Supabase (0007) pour éviter un compte tiers |
+| #31 | Plafond global newsletter + cette documentation |
+
+### Décisions et points en veille
+
+- **Cloudflare Turnstile (anti-bot invisible) : volontairement différé**
+  (décision CEO : pas de compte tiers supplémentaire). À brancher le jour
+  d'une campagne payante SEA/SMA, ou si un abus réel apparaît. Signal :
+  hausse des bounces/complaints Resend, volume anormal de non-confirmés.
+- **pg_cron** à activer pour planifier la purge RGPD :
+  `SELECT cron.schedule('purge-expired-data', '0 3 * * *', $$SELECT public.purge_expired_data()$$);`
+- **MFA Supabase** recommandée (action titulaire du compte).
+- **Rotation** : régénérer le PAT Supabase CLI exposé pendant le build initial ;
+  révoquer l'ancienne clé Cal (déjà remplacée).
+
+### En cas d'abus constaté
+
+1. Lire les compteurs : `select * from public.rate_limits order by count desc;`
+2. Identifier le motif (une IP ou distribué), abaisser temporairement les limites.
+3. Vérifier le dashboard Resend (bounces, complaints, quota).
+4. Abus distribué sur la newsletter : brancher Turnstile (voir ci-dessus).
+5. Purger les fausses lignes via le SQL editor Supabase (service_role).
 
 ## Actions manuelles restantes (détenteur de comptes)
 
