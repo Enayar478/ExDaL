@@ -16,7 +16,7 @@ export function ArticleHeader({ article }: { article: Article }) {
       <p className="mt-5 font-mono text-[12px] uppercase tracking-[0.12em] text-gris">
         {formatArticleDate(article.publishedAt)}
         <span className="mx-2 text-line">·</span>
-        {estimateReadingMinutes(article.blocks)} min de lecture
+        {estimateReadingMinutes(article.body)} min de lecture
       </p>
     </header>
   );

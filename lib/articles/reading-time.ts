@@ -1,38 +1,36 @@
-import type { ArticleBlock } from "@/lib/articles/types";
+import { unified } from "unified";
+import remarkParse from "remark-parse";
+import remarkDirective from "remark-directive";
 
 /**
- * Estimation du temps de lecture, calculée depuis le contenu, jamais saisie à la
- * main. 238 mots/minute = vitesse moyenne de lecture silencieuse d'un adulte
- * (méta-analyse Brysbaert, 2019), rate raisonnable pour de la prose non-fiction.
+ * Estimation du temps de lecture, calculée depuis le corps Markdown. On parse
+ * avec le vrai processeur (remark + remark-directive) puis on collecte le texte
+ * en joignant chaque nœud par un espace (frontières de mots correctes ; les
+ * attributs d'une directive `::stat` ne comptent pas, seul son label). 238
+ * mots/minute = vitesse moyenne de lecture silencieuse (méta-analyse Brysbaert, 2019).
  */
 const WORDS_PER_MINUTE = 238;
 
-function blockText(block: ArticleBlock): string {
-  switch (block.type) {
-    case "p":
-    case "h2":
-    case "h3":
-      return block.text;
-    case "quote":
-      return `${block.text} ${block.attribution ?? ""}`;
-    case "list":
-      return block.items.join(" ");
-    case "stat":
-      return `${block.value} ${block.label}`;
-  }
+const processor = unified().use(remarkParse).use(remarkDirective);
+
+interface MdNode {
+  value?: string;
+  children?: MdNode[];
 }
 
-/** Nombre de mots d'un article (balisage inline `[lien]`/`**gras**` retiré). */
-export function countWords(blocks: readonly ArticleBlock[]): number {
-  const text = blocks
-    .map(blockText)
-    .join(" ")
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/\*\*/g, "");
-  return text.trim().split(/\s+/).filter(Boolean).length;
+function collectText(node: MdNode): string {
+  if (typeof node.value === "string") return node.value;
+  if (node.children) return node.children.map(collectText).join(" ");
+  return "";
+}
+
+/** Nombre de mots du corps markdown (balisage retiré). */
+export function countWords(body: string): number {
+  const tree = processor.parse(body) as unknown as MdNode;
+  return collectText(tree).trim().split(/\s+/).filter(Boolean).length;
 }
 
 /** Temps de lecture estimé, en minutes (minimum 1). */
-export function estimateReadingMinutes(blocks: readonly ArticleBlock[]): number {
-  return Math.max(1, Math.round(countWords(blocks) / WORDS_PER_MINUTE));
+export function estimateReadingMinutes(body: string): number {
+  return Math.max(1, Math.round(countWords(body) / WORDS_PER_MINUTE));
 }

@@ -89,12 +89,24 @@ dans `app/globals.css`) · Supabase (leads) · Cal.com (RDV 20 min) · Resend (e
 Vercel · domaine exdal.fr chez Hostinger.
 
 ```
-app/            layout (SEO/fonts) · page (8 sections) · api/{lead,segment,cal-webhook}
-components/      sections/ · booking/ · ui/
-lib/            validation(Zod) · env · supabase · leads(repository) · cal · email · rate-limit
+app/            layout (SEO/fonts) · page (8 sections) · journal/ (cocon) · admin/ (panneau interne) · api/{lead,segment,cal-webhook,newsletter,score}
+components/      sections/ · booking/ · ui/ · articles/ (rendu markdown, cartes, maillage)
+content/        articles/*.md : source unique du contenu (frontmatter + Markdown)
+lib/            validation(Zod) · env · supabase · leads(repository) · cal · email · rate-limit · articles/ (registry fs, schema, markdown, scheduler)
 supabase/       migrations/0001_init.sql (RLS verrouillée, accès service_role serveur)
 scripts/logo.mjs  génère emblème/favicon/OG depuis brand/logo-exdal-source.png
+middleware.ts   Basic Auth du panneau /admin (fail-closed, ADMIN_PASSWORD)
 ```
+
+**Contenu (le cocon Journal).** Chaque article = un fichier `content/articles/<slug>.md`
+(frontmatter YAML validé Zod au build, fail-fast). Le registre scanne le dossier via
+`fs` ; ajouter un article = déposer un `.md`. Rendu par react-markdown (aucun HTML brut,
+aucun JS exécuté), avec la directive `::stat[label]{value="…"}` (l'unique point d'or par
+article) et des ancres de titre automatiques. Les liens internes sont **auto-cicatrisants** :
+un lien vers un article non encore publié retombe en texte, puis s'active seul via ISR le
+jour de sa sortie (`publishedAt`). Les URLs publiques vivent sous `/journal/<slug>`
+(anciennes `/articles/*` redirigées 308). Le panneau `/admin` (Basic Auth, `noindex`,
+hors scheduler) liste et prévisualise les articles programmés/brouillons.
 
 Le parcours : CTA « Échanger sur votre situation » → formulaire de qualification
 3 questions → `/api/lead` (Supabase) → redirection Cal.com préremplie → webhook →

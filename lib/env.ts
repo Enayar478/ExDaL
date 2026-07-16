@@ -32,6 +32,9 @@ const serverEnvSchema = z.object({
   NEWSLETTER_SECRET: z.string().min(16).optional(),
   // Lien Cal.com (slug ou URL complète), serveur uniquement, NE PAS préfixer NEXT_PUBLIC_.
   CAL_LINK: z.string().min(1).optional(),
+  // Mot de passe du panneau éditorial /admin (Basic Auth). Absent = /admin fermé
+  // (404), fail-closed. Générer avec : openssl rand -hex 24.
+  ADMIN_PASSWORD: z.string().min(16).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -54,6 +57,7 @@ export function getServerEnv(): ServerEnv {
     CAL_WEBHOOK_SECRET: process.env.CAL_WEBHOOK_SECRET,
     NEWSLETTER_SECRET: process.env.NEWSLETTER_SECRET,
     CAL_LINK: process.env.CAL_LINK,
+    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
   });
 
   if (!parsed.success) {

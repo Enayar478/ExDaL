@@ -1,34 +1,19 @@
 import type { Segment } from "@/lib/validation/lead";
 
 /**
- * Système d'articles piliers, contenu-comme-données typé (pas de MDX).
- * Un article = un objet `Article` immuable ; le rendu (DA) vit dans les
- * composants `components/articles/*`, jamais dans la donnée. Réplique le pattern
- * de `lib/score/content.ts`.
+ * Système d'articles piliers, contenu en Markdown + frontmatter.
  *
- * Le texte des blocs `p`/`list` accepte un balisage inline minimal et SÛR
- * (interprété en nœuds React, jamais en HTML brut) : `[libellé](url)` pour un
- * lien, `**gras**` pour l'emphase. Voir `components/articles/inline.tsx`.
+ * Un article vit dans `content/articles/<slug>.md` : un en-tête YAML (frontmatter)
+ * porte les métadonnées structurées, le corps est du Markdown pur. Le rendu (DA)
+ * se fait par `components/articles/ArticleMarkdown` via react-markdown, sans
+ * jamais exécuter de code du contenu (pas de MDX, pas de HTML brut interprété).
+ *
+ * Balisage du corps : Markdown standard (titres, listes, `[lien](url)`, `**gras**`)
+ * plus une seule directive maison pour le chiffre d'ancrage en or :
+ *   ::stat{value="38 000 €" label="de créances échues, révélées à la réconciliation."}
  */
-
-export type ArticleBlock =
-  | { readonly type: "p"; readonly text: string }
-  | { readonly type: "h2"; readonly id: string; readonly text: string }
-  | { readonly type: "h3"; readonly id: string; readonly text: string }
-  | {
-      readonly type: "list";
-      readonly items: readonly string[];
-      readonly ordered?: boolean;
-    }
-  | {
-      readonly type: "quote";
-      readonly text: string;
-      readonly attribution?: string;
-    }
-  | { readonly type: "stat"; readonly value: string; readonly label: string };
-
 export interface Article {
-  /** Identifiant d'URL, kebab-case. Unique (vérifié par test). */
+  /** Identifiant d'URL, kebab-case. Dérivé du nom de fichier. */
   readonly slug: string;
   /** Titre H1 / OG. */
   readonly title: string;
@@ -43,9 +28,8 @@ export interface Article {
   /** Porte du tunnel visée, pré-remplit la qualification depuis le CTA. */
   readonly segment?: Segment;
   /**
-   * Date de publication programmée (ISO 8601). L'article n'est visible
-   * (index, sitemap, page) qu'une fois cette date atteinte, c'est le
-   * cœur du scheduler d'auto-publication échelonnée.
+   * Date de publication programmée (ISO 8601). L'article n'est visible qu'une
+   * fois cette date atteinte : c'est le cœur du scheduler d'auto-publication.
    */
   readonly publishedAt: string;
   /** Dernière modification (ISO 8601), pour le JSON-LD. */
@@ -56,5 +40,6 @@ export interface Article {
   readonly relatedSlugs?: readonly string[];
   /** CTA de fin d'article : qualification directe ou détour par /score. */
   readonly ctaVariant: "qualification" | "score";
-  readonly blocks: readonly ArticleBlock[];
+  /** Corps de l'article en Markdown brut. */
+  readonly body: string;
 }

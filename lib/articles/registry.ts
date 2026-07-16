@@ -1,18 +1,41 @@
+import "server-only";
+import fs from "node:fs";
+import path from "node:path";
+import matter from "gray-matter";
+import { articleSchema } from "@/lib/articles/schema";
 import type { Article } from "@/lib/articles/types";
-import { connecterPennylaneTableauDeBord } from "@/lib/articles/content/connecter-pennylane-tableau-de-bord";
-import { preparerChiffresLeveeCession } from "@/lib/articles/content/preparer-chiffres-levee-cession";
-import { pennylaneCabinetsAutomatiserSansPerdreControle } from "@/lib/articles/content/pennylane-cabinets-automatiser-sans-perdre-controle";
 
 /**
- * Source unique des articles piliers. Chaque article vit dans son propre fichier
- * sous `content/` et s'ajoute ici. L'ordre n'importe pas : le tri se fait par
- * date de publication (voir `get-article.ts`).
+ * Source unique des articles : scan des fichiers Markdown de `content/articles/`.
+ * Ajouter un article = déposer un `.md`, rien d'autre. Le frontmatter est validé
+ * (Zod, fail-fast) au chargement : un fichier mal formé casse le build.
  *
- * Cocon sémantique : relier les articles entre eux via `relatedSlugs` à mesure
- * que la toile se construit (pilier ↔ satellites autour des 3 portes du tunnel).
+ * Server-only : lecture disque (`fs`), jamais importable côté client ni en runtime
+ * Edge. Toute route qui dépend transitivement de ce module reste en runtime Node.
+ * (Le tracing Vercel des `.md` est forcé via `outputFileTracingIncludes`.)
  */
-export const ARTICLES: readonly Article[] = [
-  connecterPennylaneTableauDeBord,
-  preparerChiffresLeveeCession,
-  pennylaneCabinetsAutomatiserSansPerdreControle,
-];
+const CONTENT_DIR = path.join(process.cwd(), "content/articles");
+
+function loadArticle(filename: string): Article {
+  const slug = filename.replace(/\.md$/, "");
+  const raw = fs.readFileSync(path.join(CONTENT_DIR, filename), "utf-8");
+  const { data, content } = matter(raw);
+  const parsed = articleSchema.safeParse({
+    ...data,
+    slug,
+    body: content.trim(),
+  });
+  if (!parsed.success) {
+    const issues = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.message}`)
+      .join(" | ");
+    throw new Error(`Frontmatter d'article invalide (${filename}) : ${issues}`);
+  }
+  return parsed.data;
+}
+
+export const ARTICLES: readonly Article[] = fs
+  .readdirSync(CONTENT_DIR)
+  .filter((file) => file.endsWith(".md"))
+  .map(loadArticle)
+  .sort((a, b) => a.slug.localeCompare(b.slug));

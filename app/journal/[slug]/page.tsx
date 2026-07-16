@@ -7,7 +7,7 @@ import { Section } from "@/components/ui/Section";
 import { Rule } from "@/components/ui/Rule";
 import { ReadingProgress } from "@/components/articles/ReadingProgress";
 import { ArticleHeader } from "@/components/articles/ArticleHeader";
-import { ArticleBody } from "@/components/articles/ArticleBody";
+import { ArticleMarkdown } from "@/components/articles/ArticleMarkdown";
 import { ArticleCta } from "@/components/articles/ArticleCta";
 import { ArticleRelated } from "@/components/articles/ArticleRelated";
 import { ArticleStructuredData } from "@/components/articles/ArticleStructuredData";
@@ -81,8 +81,8 @@ export default async function ArticlePage({
         <Section as="section" className="pt-28 sm:pt-36" width="reading">
           <ArticleHeader article={article} />
           <Rule className="mt-10 mb-12" />
-          <ArticleBody
-            blocks={article.blocks}
+          <ArticleMarkdown
+            body={article.body}
             publishedSlugs={publishedSlugs}
           />
           <ArticleCta variant={article.ctaVariant} segment={article.segment} />
