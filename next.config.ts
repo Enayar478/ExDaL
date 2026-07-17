@@ -14,15 +14,20 @@ import type { NextConfig } from "next";
 // TODO (P1) : remplacer par l'origine exacte du projet Supabase une fois l'URL
 // disponible en build env (ex. https://xxxxxxxxxxxx.supabase.co).
 const isDev = process.env.NODE_ENV !== "production";
+
+// PostHog Cloud EU : eu.i.posthog.com ingère les événements (connect-src) et
+// eu-assets.i.posthog.com sert le bundle et la config distante (script-src).
+const posthogIngest = "https://eu.i.posthog.com";
+const posthogAssets = "https://eu-assets.i.posthog.com";
+
 const csp = [
   "default-src 'self'",
   // Next.js exige 'unsafe-inline' pour l'hydration ; durcissement nonce = TODO P1.
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' ${posthogAssets}${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
   "img-src 'self' data: blob:",
-  // TODO (P1) : ajouter les origines PostHog/analytics (ex. eu.posthog.com).
-  `connect-src 'self' https://*.supabase.co${isDev ? " ws: http://localhost:*" : ""}`,
+  `connect-src 'self' https://*.supabase.co ${posthogIngest} ${posthogAssets}${isDev ? " ws: http://localhost:*" : ""}`,
   // Embed Cal.com éventuel (cal.eu + sous-domaines).
   "frame-src 'self' https://cal.eu https://*.cal.eu",
   "frame-ancestors 'none'",

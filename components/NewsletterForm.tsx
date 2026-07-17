@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, type FormEvent } from "react";
+import { capture } from "@/lib/analytics/client";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 
 type State = "idle" | "loading" | "success" | "error";
 
@@ -47,9 +49,12 @@ export function NewsletterForm({ source = "footer" }: NewsletterFormProps) {
         return;
       }
 
+      capture(ANALYTICS_EVENTS.newsletterInscription, { source });
       setState("success");
     } catch {
-      setErrorMsg("Impossible de joindre le serveur. Vérifiez votre connexion.");
+      setErrorMsg(
+        "Impossible de joindre le serveur. Vérifiez votre connexion.",
+      );
       setState("error");
     }
   }

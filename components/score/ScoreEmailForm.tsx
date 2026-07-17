@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { SCORE_COPY } from "@/lib/score/content";
 import type { ScoreAnswers } from "@/lib/score/scoring";
+import { capture } from "@/lib/analytics/client";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 
 type State = "idle" | "loading" | "success" | "error";
 
@@ -41,9 +43,12 @@ export function ScoreEmailForm({ answers }: { answers: ScoreAnswers }) {
         setState("error");
         return;
       }
+      capture(ANALYTICS_EVENTS.scoreEmailSoumis);
       setState("success");
     } catch {
-      setErrorMsg("Impossible de joindre le serveur. Vérifiez votre connexion.");
+      setErrorMsg(
+        "Impossible de joindre le serveur. Vérifiez votre connexion.",
+      );
       setState("error");
     }
   }
@@ -89,7 +94,10 @@ export function ScoreEmailForm({ answers }: { answers: ScoreAnswers }) {
       </div>
 
       {state === "error" && errorMsg && (
-        <p role="alert" className="font-mono text-[11px] tracking-[0.06em] text-brume">
+        <p
+          role="alert"
+          className="font-mono text-[11px] tracking-[0.06em] text-brume"
+        >
           {errorMsg}
         </p>
       )}
