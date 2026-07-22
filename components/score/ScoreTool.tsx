@@ -6,6 +6,8 @@ import { ScoreResult } from "@/components/score/ScoreResult";
 import { MonoLabel } from "@/components/ui/MonoLabel";
 import { QUESTIONS, SCORE_COPY } from "@/lib/score/content";
 import { evaluate, type ScoreAnswers } from "@/lib/score/scoring";
+import { capture } from "@/lib/analytics/client";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 
 type Phase = "intro" | "quiz" | "result";
 
@@ -31,6 +33,16 @@ export function ScoreTool() {
     [phase, answers],
   );
 
+  // Verdict affiché = diagnostic terminé (une seule fois par passage).
+  useEffect(() => {
+    if (result) {
+      capture(ANALYTICS_EVENTS.scoreTermine, {
+        score: result.score,
+        verdict: result.verdict.key,
+      });
+    }
+  }, [result]);
+
   function restart() {
     setAnswers({});
     setIndex(0);
@@ -51,7 +63,10 @@ export function ScoreTool() {
         </p>
         <button
           type="button"
-          onClick={() => setPhase("quiz")}
+          onClick={() => {
+            capture(ANALYTICS_EVENTS.scoreDemarre);
+            setPhase("quiz");
+          }}
           className="mt-10 rounded-sm bg-or px-7 py-3.5 font-mono text-[13px] uppercase tracking-[0.1em] text-noir transition-opacity hover:opacity-90"
         >
           {SCORE_COPY.startCta}

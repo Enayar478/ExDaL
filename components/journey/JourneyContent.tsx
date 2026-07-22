@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ImmersiveJourney } from "@/components/journey/ImmersiveJourney";
+import { capture } from "@/lib/analytics/client";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 
 /**
  * Le contenu du voyage : chaque palier reprend le copy validé (refonte tunnel).
@@ -211,6 +213,11 @@ export function JourneyContent() {
         setSubmitting(false);
         return;
       }
+      capture(ANALYTICS_EVENTS.leadSoumis, {
+        stage: form.stage,
+        pennylane: form.pennylane,
+        source: "parcours",
+      });
       window.location.assign(json.data.calUrl);
     } catch {
       setError("Connexion impossible. Vérifiez votre réseau et réessayez.");
@@ -257,6 +264,7 @@ export function JourneyContent() {
           value={form.stage}
           onChange={(v) => {
             set("stage", v as Stage);
+            capture(ANALYTICS_EVENTS.bifurcationChoisie, { stage: v });
             // Un choix validé enchaîne automatiquement vers le palier suivant.
             setAdvanceKey((k) => k + 1);
           }}

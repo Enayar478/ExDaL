@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import type { PennylaneUsage, Segment, Stage } from "@/lib/validation/lead";
 import { ChoiceGroup } from "@/components/booking/ChoiceGroup";
 import { MonoLabel } from "@/components/ui/MonoLabel";
+import { capture } from "@/lib/analytics/client";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 
 interface FormState {
   name: string;
@@ -99,6 +101,12 @@ export function QualificationModal({
         return;
       }
 
+      capture(ANALYTICS_EVENTS.leadSoumis, {
+        stage: effectiveStage,
+        pennylane: form.pennylane,
+        segment: segment ?? "aucun",
+        source: "modale",
+      });
       // Redirection vers le créneau Cal.com prérempli.
       window.location.assign(result.data.calUrl);
     } catch {

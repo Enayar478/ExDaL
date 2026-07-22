@@ -5,11 +5,14 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import type { Segment, Stage } from "@/lib/validation/lead";
 import { QualificationModal } from "@/components/booking/QualificationModal";
+import { capture } from "@/lib/analytics/client";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 
 interface BookingContextValue {
   /** Ouvre le formulaire de qualification. */
@@ -31,10 +34,23 @@ const segmentToStage: Record<Segment, Stage> = {
 export function BookingProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [segment, setSegment] = useState<Segment | null>(null);
+  // Miroir synchrone du segment : `selectSegment` puis `open` dans le même
+  // handler (cas ArticleCta) doit capturer le segment du clic courant, pas
+  // celui de la closure du rendu précédent (setState est asynchrone).
+  const segmentRef = useRef<Segment | null>(null);
 
-  const open = useCallback(() => setIsOpen(true), []);
+  // Tous les points d'entrée du tunnel passent ici : la mesure est centralisée.
+  const open = useCallback(() => {
+    setIsOpen(true);
+    capture(ANALYTICS_EVENTS.qualificationOuverte, {
+      segment: segmentRef.current ?? "aucun",
+    });
+  }, []);
   const close = useCallback(() => setIsOpen(false), []);
-  const selectSegment = useCallback((s: Segment) => setSegment(s), []);
+  const selectSegment = useCallback((s: Segment) => {
+    segmentRef.current = s;
+    setSegment(s);
+  }, []);
 
   const value = useMemo<BookingContextValue>(
     () => ({ open, segment, selectSegment }),

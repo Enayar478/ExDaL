@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useBooking } from "@/components/booking/BookingProvider";
 import { MonoLabel } from "@/components/ui/MonoLabel";
 import { Rule } from "@/components/ui/Rule";
+import { capture } from "@/lib/analytics/client";
+import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 import type { Segment } from "@/lib/validation/lead";
 
 /**
@@ -21,6 +23,7 @@ export function ArticleCta({
   const { open, selectSegment } = useBooking();
 
   function handleQualification() {
+    capture(ANALYTICS_EVENTS.articleCtaClique, { variant: "qualification" });
     if (segment) selectSegment(segment);
     open();
   }
@@ -54,6 +57,9 @@ export function ArticleCta({
           </p>
           <Link
             href="/score"
+            onClick={() =>
+              capture(ANALYTICS_EVENTS.articleCtaClique, { variant: "score" })
+            }
             className="mt-6 inline-block rounded-sm border border-line px-6 py-3 font-mono text-[13px] uppercase tracking-[0.1em] text-blanc transition-colors hover:border-or-dim hover:text-or"
           >
             Faire le diagnostic

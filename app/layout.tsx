@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Newsreader, IBM_Plex_Mono } from "next/font/google";
+import { Analytics } from "@/components/analytics/Analytics";
 import { site } from "@/lib/site";
 import "./globals.css";
 
@@ -64,7 +65,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fr" className={`${newsreader.variable} ${plexMono.variable}`}>
-      <body className="bg-noir text-blanc antialiased">{children}</body>
+      <body className="bg-noir text-blanc antialiased">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

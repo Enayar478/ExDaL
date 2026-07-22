@@ -86,7 +86,8 @@ doit passer par l'agent `thot-content` et respecter le ton ci-dessus.
 
 Next.js 16 (App Router, page **statique**) · TypeScript · Tailwind v4 (tokens `@theme`
 dans `app/globals.css`) · Supabase (leads) · Cal.com (RDV 20 min) · Resend (emails) ·
-Vercel · domaine exdal.fr chez Hostinger.
+PostHog Cloud EU (analytics cookieless, `lib/analytics/`, no-op sans
+`NEXT_PUBLIC_POSTHOG_KEY`) · Vercel · domaine exdal.fr chez Hostinger.
 
 ```
 app/            layout (SEO/fonts) · page (8 sections) · journal/ (cocon) · admin/ (panneau interne) · api/{lead,segment,cal-webhook,newsletter,score}
