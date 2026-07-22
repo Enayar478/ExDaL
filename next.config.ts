@@ -8,11 +8,11 @@ import type { NextConfig } from "next";
 // En dev, Next/React exigent 'unsafe-eval' (debug) et un websocket pour le HMR.
 // En production, la politique reste stricte.
 //
-// connect-src : '*.supabase.co' autorise tous les projets Supabase.
-// La landing n'effectue aucun appel Supabase côté client (tout passe par les routes API
-// serveur), la directive n'est donc là qu'en filet de sécurité.
-// TODO (P1) : remplacer par l'origine exacte du projet Supabase une fois l'URL
-// disponible en build env (ex. https://xxxxxxxxxxxx.supabase.co).
+// connect-src : la landing n'effectue AUCUN appel Supabase côté client (tout
+// passe par les routes API serveur ; lib/supabase/server.ts est server-only).
+// On ne liste donc que 'self' et les origines PostHog, sans Supabase : si un
+// appel client apparaissait un jour, la CSP le bloquerait (fail-safe visible en
+// dev), signal qu'il doit rester côté serveur.
 const isDev = process.env.NODE_ENV !== "production";
 
 // PostHog Cloud EU : eu.i.posthog.com ingère les événements (connect-src) et
@@ -27,7 +27,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
   "img-src 'self' data: blob:",
-  `connect-src 'self' https://*.supabase.co ${posthogIngest} ${posthogAssets}${isDev ? " ws: http://localhost:*" : ""}`,
+  `connect-src 'self' ${posthogIngest} ${posthogAssets}${isDev ? " ws: http://localhost:*" : ""}`,
   // Embed Cal.com éventuel (cal.eu + sous-domaines).
   "frame-src 'self' https://cal.eu https://*.cal.eu",
   "frame-ancestors 'none'",
@@ -53,10 +53,11 @@ const securityHeaders = [
     value: "max-age=63072000; includeSubDomains; preload",
   },
   { key: "Content-Security-Policy", value: csp },
-  // X-XSS-Protection : actif en mode block pour les navigateurs anciens qui
-  // ne supportent pas CSP (belt-and-suspenders). Les navigateurs modernes ignorent
-  // cet en-tête en faveur de CSP.
-  { key: "X-XSS-Protection", value: "1; mode=block" },
+  // X-XSS-Protection : forcé à "0" (recommandation OWASP/MDN). Le filtre XSS
+  // legacy des anciens navigateurs est lui-même une source de failles (fuites
+  // d'information via son blocage) ; on le désactive et on s'appuie sur la CSP.
+  // Les navigateurs modernes ignorent de toute façon cet en-tête.
+  { key: "X-XSS-Protection", value: "0" },
   // Cache-Control : les pages publiques statiques peuvent être cachées. Les routes
   // API sensibles surchargent cet en-tête (no-store) via `apiSecurityHeaders` (ci-dessous).
 ];
