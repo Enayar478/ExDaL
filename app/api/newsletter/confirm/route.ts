@@ -4,6 +4,7 @@ import { confirmSubscriber } from "@/lib/newsletter/repository";
 import { logger } from "@/lib/logger";
 import { site } from "@/lib/site";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 /**
  * Ensemble statique des valeurs autorisées pour le paramètre `newsletter` de la
@@ -79,6 +80,13 @@ export async function GET(request: NextRequest) {
     });
     return redirectTo("error");
   }
+
+  const posthog = getPostHogClient();
+  posthog.capture({
+    distinctId: result.email,
+    event: "newsletter_confirmed",
+  });
+  await posthog.shutdown();
 
   return redirectTo("confirmed");
 }

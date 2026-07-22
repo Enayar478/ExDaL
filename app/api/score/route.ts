@@ -9,6 +9,7 @@ import { sendEmail } from "@/lib/email/send";
 import { scorePlan } from "@/lib/email/templates";
 import { maskEmail } from "@/lib/email/html";
 import { logger } from "@/lib/logger";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 export const runtime = "nodejs";
 
@@ -111,6 +112,20 @@ export async function POST(request: NextRequest) {
       to: maskEmail(email),
     });
   }
+
+  const distinctId =
+    request.headers.get("x-posthog-distinct-id") ?? ipHash;
+  const posthog = getPostHogClient();
+  posthog.capture({
+    distinctId,
+    event: "score_plan_requested",
+    properties: {
+      score: result.score,
+      verdict: result.verdict.key,
+      source: SOURCE,
+    },
+  });
+  await posthog.shutdown();
 
   return ok({ delivered: true });
 }

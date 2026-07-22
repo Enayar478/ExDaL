@@ -10,6 +10,7 @@ import { newsletterConfirmation } from "@/lib/email/templates";
 import { logger } from "@/lib/logger";
 import { maskEmail } from "@/lib/email/html";
 import { site } from "@/lib/site";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 // Taille maximale du corps (email + source + honeypot, quelques centaines d'octets).
 const MAX_BODY_BYTES = 2048; // 2 Ko
@@ -113,6 +114,16 @@ export async function POST(request: NextRequest) {
     });
     // On ne fail pas : le subscriber est en base, l'opérateur peut relancer.
   }
+
+  const distinctId =
+    request.headers.get("x-posthog-distinct-id") ?? ipHash;
+  const posthog = getPostHogClient();
+  posthog.capture({
+    distinctId,
+    event: "newsletter_subscription_initiated",
+    properties: { source },
+  });
+  await posthog.shutdown();
 
   return ok({ queued: true });
 }

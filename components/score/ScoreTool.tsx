@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import posthog from "posthog-js";
 import { useBooking } from "@/components/booking/BookingProvider";
 import { ScoreResult } from "@/components/score/ScoreResult";
 import { MonoLabel } from "@/components/ui/MonoLabel";
@@ -51,7 +52,10 @@ export function ScoreTool() {
         </p>
         <button
           type="button"
-          onClick={() => setPhase("quiz")}
+          onClick={() => {
+            setPhase("quiz");
+            posthog.capture("score_started");
+          }}
           className="mt-10 rounded-sm bg-or px-7 py-3.5 font-mono text-[13px] uppercase tracking-[0.1em] text-noir transition-opacity hover:opacity-90"
         >
           {SCORE_COPY.startCta}
@@ -76,6 +80,9 @@ export function ScoreTool() {
           setIndex(index + 1);
         } else {
           setPhase("result");
+          posthog.capture("score_completed", {
+            question_count: total,
+          });
         }
       }, 240);
     }

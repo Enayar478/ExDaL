@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import posthog from "posthog-js";
 import { ScoreDial } from "@/components/score/ScoreDial";
 import { ScoreEmailForm } from "@/components/score/ScoreEmailForm";
 import { BookingButton } from "@/components/booking/BookingButton";
@@ -118,6 +119,8 @@ function ShareButton({ score }: { score: number }) {
 
   async function handleShare() {
     const text = `${SCORE_COPY.shareText} ${score}/100`;
+    const canShareNatively = typeof navigator !== "undefined" && "share" in navigator;
+    posthog.capture("score_shared", { score, method: canShareNatively ? "native" : "clipboard" });
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({ title: site.name, text, url });

@@ -21,8 +21,10 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
   "img-src 'self' data: blob:",
-  // TODO (P1) : ajouter les origines PostHog/analytics (ex. eu.posthog.com).
-  `connect-src 'self' https://*.supabase.co${isDev ? " ws: http://localhost:*" : ""}`,
+  // PostHog events et session replay passent par le proxy /ingest (first-party).
+  // eu-assets.posthog.com couvre les bundles lazy-loadés (session replay, surveys).
+  `connect-src 'self' https://*.supabase.co https://*.posthog.com${isDev ? " ws: http://localhost:*" : ""}`,
+  "worker-src 'self' blob:",
   // Embed Cal.com éventuel (cal.eu + sous-domaines).
   "frame-src 'self' https://cal.eu https://*.cal.eu",
   "frame-ancestors 'none'",
@@ -72,6 +74,23 @@ const nextConfig: NextConfig = {
   // Le Journal a migré de /articles vers /journal (refonte accueil manifeste).
   // Redirections permanentes (308) pour préserver le SEO déjà en ligne : anciennes
   // URLs indexées et liens entrants suivent vers la nouvelle arborescence.
+  skipTrailingSlashRedirect: true,
+  async rewrites() {
+    return [
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://eu-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/array/:path*",
+        destination: "https://eu-assets.i.posthog.com/array/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://eu.i.posthog.com/:path*",
+      },
+    ];
+  },
   async redirects() {
     return [
       { source: "/articles", destination: "/journal", permanent: true },

@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import posthog from "posthog-js";
 import type { Segment, Stage } from "@/lib/validation/lead";
 import { QualificationModal } from "@/components/booking/QualificationModal";
 
@@ -32,9 +33,15 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [segment, setSegment] = useState<Segment | null>(null);
 
-  const open = useCallback(() => setIsOpen(true), []);
+  const open = useCallback(() => {
+    setIsOpen(true);
+    posthog.capture("booking_modal_opened");
+  }, []);
   const close = useCallback(() => setIsOpen(false), []);
-  const selectSegment = useCallback((s: Segment) => setSegment(s), []);
+  const selectSegment = useCallback((s: Segment) => {
+    setSegment(s);
+    posthog.capture("segment_selected", { segment: s });
+  }, []);
 
   const value = useMemo<BookingContextValue>(
     () => ({ open, segment, selectSegment }),

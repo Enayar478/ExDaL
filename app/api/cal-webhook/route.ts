@@ -11,6 +11,7 @@ import {
 } from "@/lib/cal-webhook";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 export const runtime = "nodejs";
 
@@ -134,6 +135,20 @@ export async function POST(request: NextRequest) {
   if (env.NOTIFICATION_EMAIL) {
     await sendEmail(env.NOTIFICATION_EMAIL, ownerNotification(details));
   }
+
+  const posthog = getPostHogClient();
+  posthog.capture({
+    distinctId: leadId ?? calBookingUid,
+    event: "booking_confirmed",
+    properties: {
+      lead_id: leadId ?? null,
+      cal_booking_uid: calBookingUid,
+      role: role ?? null,
+      company: company ?? null,
+      when,
+    },
+  });
+  await posthog.shutdown();
 
   return ok({ processed: true });
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import posthog from "posthog-js";
 import type { PennylaneUsage, Segment, Stage } from "@/lib/validation/lead";
 import { ChoiceGroup } from "@/components/booking/ChoiceGroup";
 import { MonoLabel } from "@/components/ui/MonoLabel";
@@ -98,6 +99,18 @@ export function QualificationModal({
         setSubmitting(false);
         return;
       }
+
+      // Identification et capture avant la redirection vers Cal.com.
+      posthog.identify(posthog.get_distinct_id(), {
+        role: form.role,
+        company: form.company,
+        pennylane: form.pennylane,
+      });
+      posthog.capture("qualification_form_submitted", {
+        stage: effectiveStage,
+        segment: segment ?? null,
+        pennylane: form.pennylane,
+      });
 
       // Redirection vers le créneau Cal.com prérempli.
       window.location.assign(result.data.calUrl);

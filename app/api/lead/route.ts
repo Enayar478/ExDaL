@@ -6,6 +6,7 @@ import { buildCalUrl } from "@/lib/cal";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { getServerEnv } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 export const runtime = "nodejs";
 
@@ -86,6 +87,21 @@ export async function POST(request: NextRequest) {
     });
     return fail("Impossible d'enregistrer votre demande pour le moment.", 500);
   }
+
+  const posthog = getPostHogClient();
+  const distinctId =
+    request.headers.get("x-posthog-distinct-id") ?? storedLead.id;
+  posthog.capture({
+    distinctId,
+    event: "lead_created",
+    properties: {
+      lead_id: storedLead.id,
+      stage: withSegment.stage,
+      segment: withSegment.segment,
+      pennylane: withSegment.pennylane,
+    },
+  });
+  await posthog.shutdown();
 
   const calUrl = buildCalUrl(calLink, withSegment, storedLead.id);
   return ok({ calUrl });

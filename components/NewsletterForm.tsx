@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, type FormEvent } from "react";
+import posthog from "posthog-js";
 
 type State = "idle" | "loading" | "success" | "error";
 
@@ -47,6 +48,7 @@ export function NewsletterForm({ source = "footer" }: NewsletterFormProps) {
         return;
       }
 
+      posthog.capture("newsletter_subscribed", { source });
       setState("success");
     } catch {
       setErrorMsg("Impossible de joindre le serveur. Vérifiez votre connexion.");
