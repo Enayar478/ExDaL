@@ -1,4 +1,5 @@
 import { site } from "@/lib/site";
+import { serializeJsonLd } from "@/lib/json-ld";
 import type { Article } from "@/lib/articles/types";
 
 /** JSON-LD schema.org `BlogPosting` pour un article. Contenu contrôlé (statique). */
@@ -21,7 +22,9 @@ export function ArticleStructuredData({ article }: { article: Article }) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      // Sérialisation durcie : `<`, `>`, `&` échappés pour empêcher toute évasion
+      // de la balise <script> (défense en profondeur, même si le contenu est maîtrisé).
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
     />
   );
 }

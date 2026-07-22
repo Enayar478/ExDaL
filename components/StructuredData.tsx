@@ -1,4 +1,5 @@
 import { site } from "@/lib/site";
+import { serializeJsonLd } from "@/lib/json-ld";
 
 /** Données structurées JSON-LD (schema.org) pour le référencement. */
 export function StructuredData() {
@@ -27,8 +28,9 @@ export function StructuredData() {
   return (
     <script
       type="application/ld+json"
-      // Contenu contrôlé et statique : pas d'injection utilisateur.
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      // Contenu contrôlé et statique ; sérialisation durcie (`<`, `>`, `&`
+      // échappés) en défense en profondeur contre l'évasion de balise <script>.
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
     />
   );
 }
