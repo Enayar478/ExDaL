@@ -11,7 +11,9 @@ import { z } from "zod";
  */
 
 // Une réponse : clé "q1".."q99", valeur "q1a".."q99c". Bornées pour éviter tout abus.
-const questionId = z.string().regex(/^q\d{1,2}$/, "Identifiant de question invalide.");
+const questionId = z
+  .string()
+  .regex(/^q\d{1,2}$/, "Identifiant de question invalide.");
 const optionValue = z
   .string()
   .regex(/^q\d{1,2}[a-z]$/, "Valeur de réponse invalide.");
@@ -26,13 +28,23 @@ export const scoreSubmission = z.object({
   // 1 à 30 paires, le questionnaire en compte 10, la marge absorbe une évolution.
   answers: z
     .record(questionId, optionValue)
-    .refine((value) => Object.keys(value).length >= 1, "Aucune réponse fournie.")
+    .refine(
+      (value) => Object.keys(value).length >= 1,
+      "Aucune réponse fournie.",
+    )
     .refine(
       (value) => Object.keys(value).length <= 30,
       "Trop de réponses fournies.",
     ),
+  // Consentement marketing explicite (case non précochée) : l'absence du
+  // champ équivaut à un refus, jamais à un consentement implicite.
+  marketingConsent: z.boolean().optional().default(false),
   // Honeypot anti-bot : invisible côté UI, doit rester vide.
-  website: z.string().max(0, "Champ honeypot rempli.").optional().or(z.literal("")),
+  website: z
+    .string()
+    .max(0, "Champ honeypot rempli.")
+    .optional()
+    .or(z.literal("")),
 });
 
 export type ScoreSubmission = z.infer<typeof scoreSubmission>;

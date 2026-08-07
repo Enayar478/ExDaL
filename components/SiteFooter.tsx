@@ -56,6 +56,12 @@ export function SiteFooter() {
             >
               Mentions légales
             </a>
+            <a
+              href="/confidentialite"
+              className="transition-colors hover:text-blanc"
+            >
+              Politique de confidentialité
+            </a>
             <span>
               © {year} {domain}
             </span>

@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     return fail(first?.message ?? "Données invalides.", 422);
   }
 
-  const { email, answers, website } = parsed.data;
+  const { email, answers, website, marketingConsent } = parsed.data;
 
   // 2. Honeypot : réponse neutre (200) pour ne pas trahir la détection aux bots.
   if (website && website.length > 0) {
@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
       answers,
       source: SOURCE,
       ipHash,
+      marketingConsent,
     });
   } catch (error) {
     logger.error("insertScoreSubmission a échoué", {

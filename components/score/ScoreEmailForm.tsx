@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { SCORE_COPY } from "@/lib/score/content";
 import type { ScoreAnswers } from "@/lib/score/scoring";
+import { ConsentCheckbox } from "@/components/ui/ConsentCheckbox";
 import { capture } from "@/lib/analytics/client";
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
 
@@ -17,6 +18,7 @@ type State = "idle" | "loading" | "success" | "error";
 export function ScoreEmailForm({ answers }: { answers: ScoreAnswers }) {
   const [state, setState] = useState<State>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [marketingConsent, setMarketingConsent] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -34,6 +36,7 @@ export function ScoreEmailForm({ answers }: { answers: ScoreAnswers }) {
           email: data.get("email"),
           website: data.get("website") ?? "",
           answers,
+          marketingConsent,
         }),
       });
       const json = (await res.json()) as { success: boolean; error?: string };
@@ -92,6 +95,11 @@ export function ScoreEmailForm({ answers }: { answers: ScoreAnswers }) {
           {state === "loading" ? "…" : SCORE_COPY.emailCta}
         </button>
       </div>
+
+      <ConsentCheckbox
+        checked={marketingConsent}
+        onChange={setMarketingConsent}
+      />
 
       {state === "error" && errorMsg && (
         <p

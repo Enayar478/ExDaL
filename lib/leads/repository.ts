@@ -12,6 +12,11 @@ export interface StoredLead {
 
 export async function insertLead(lead: LeadInput): Promise<StoredLead> {
   const supabase = getSupabaseAdmin();
+  // Horodatage du consentement posé CÔTÉ SERVEUR, uniquement si le consentement
+  // est explicitement vrai. Jamais de valeur client, jamais d'horodatage si refus.
+  const marketingConsentAt = lead.marketingConsent
+    ? new Date().toISOString()
+    : null;
   const { data, error } = await supabase
     .from("leads")
     .insert({
@@ -23,6 +28,8 @@ export async function insertLead(lead: LeadInput): Promise<StoredLead> {
       stage: lead.stage,
       segment: lead.segment ?? null,
       status: "new",
+      marketing_consent: lead.marketingConsent,
+      marketing_consent_at: marketingConsentAt,
     })
     .select("id")
     .single();

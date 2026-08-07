@@ -202,6 +202,35 @@ describe("POST /api/lead", () => {
     expect(json.success).toBe(false);
   });
 
+  // --- Consentement marketing (RGPD) ---
+
+  it("200, sans marketingConsent : transmis à false au repository", async () => {
+    const req = makeRequest(validBody);
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    const call = vi.mocked(insertLead).mock.calls[0][0];
+    expect(call.marketingConsent).toBe(false);
+  });
+
+  it("200, marketingConsent=true : transmis tel quel au repository", async () => {
+    const req = makeRequest({ ...validBody, marketingConsent: true });
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    const call = vi.mocked(insertLead).mock.calls[0][0];
+    expect(call.marketingConsent).toBe(true);
+  });
+
+  it("200, marketingConsent=false explicite : transmis tel quel", async () => {
+    const req = makeRequest({ ...validBody, marketingConsent: false });
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    const call = vi.mocked(insertLead).mock.calls[0][0];
+    expect(call.marketingConsent).toBe(false);
+  });
+
   // --- Rate-limit ---
 
   it("429, rate-limit atteint", async () => {
