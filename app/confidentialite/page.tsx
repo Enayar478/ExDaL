@@ -31,10 +31,11 @@ export default function ConfidentialitePage() {
         <article className="space-y-10">
           <Prose>
             <p>
-              {site.name} traite peu de données. C&apos;est un choix, pas une
+              {site.name}
+              {" traite peu de données. C'est un choix, pas une "}
               contrainte : on ne demande que ce qui sert réellement à préparer
-              l&apos;échange avec vous. Cette page dit tout, simplement : ce
-              qui est collecté, pourquoi, combien de temps, qui y a accès, et
+              l&apos;échange avec vous. Cette page dit tout, simplement : ce qui
+              est collecté, pourquoi, combien de temps, qui y a accès, et
               comment reprendre la main quand vous le voulez.
             </p>
           </Prose>
@@ -68,10 +69,10 @@ export default function ConfidentialitePage() {
               </Field>
               <Field label="Contact">
                 <a
-                  href="mailto:bonjour@exdal.fr"
+                  href={`mailto:${site.email}`}
                   className="text-brume hover:text-blanc transition-colors"
                 >
-                  bonjour@exdal.fr
+                  {site.email}
                 </a>
               </Field>
               <p className="mt-3">
@@ -105,20 +106,20 @@ export default function ConfidentialitePage() {
                 </strong>{" "}
                 Quand vous demandez un échange, nous vous demandons votre nom,
                 votre email professionnel, votre rôle, le nom de votre
-                entreprise, votre usage de Pennylane et le stade de votre
-                projet (pilotage courant, levée, cession). Ces réponses
-                servent à préparer la conversation et à préremplir votre
-                créneau de rendez-vous. Rien de plus n&apos;est demandé à ce
-                stade, et rien n&apos;est demandé sans raison.
+                entreprise, votre usage de Pennylane et le stade de votre projet
+                (pilotage courant, levée, cession). Ces réponses servent à
+                préparer la conversation et à préremplir votre créneau de
+                rendez-vous. Rien de plus n&apos;est demandé à ce stade, et rien
+                n&apos;est demandé sans raison.
               </p>
               <p>
                 <strong className="font-medium text-blanc">
                   Le Score de Préparation à la Cession.
                 </strong>{" "}
                 Vos réponses au diagnostic restent anonymes tant que vous ne
-                demandez rien de plus. Si vous laissez votre email pour
-                recevoir votre plan détaillé, nous l&apos;associons à vos
-                réponses le temps de vous envoyer ce plan, une seule fois.
+                demandez rien de plus. Si vous laissez votre email pour recevoir
+                votre plan détaillé, nous l&apos;associons à vos réponses le
+                temps de vous envoyer ce plan, une seule fois.
               </p>
               <p>
                 <strong className="font-medium text-blanc">
@@ -139,8 +140,8 @@ export default function ConfidentialitePage() {
                 d&apos;emails de conseil liés à votre situation : entre 3 et 6
                 messages, étalés sur environ trois semaines. Chaque email
                 contient un lien de désinscription. Le moment où vous donnez
-                votre accord est horodaté. Se désinscrire arrête l&apos;envoi
-                le jour même, définitivement : aucune relance ne suit.
+                votre accord est horodaté. Se désinscrire arrête l&apos;envoi le
+                jour même, définitivement : aucune relance ne suit.
               </p>
             </Prose>
           </Block>
@@ -203,7 +204,8 @@ export default function ConfidentialitePage() {
                   {
                     name: "Resend",
                     role: "Envoi des emails (confirmation, plan, nurturing, newsletter)",
-                    location: "Union européenne",
+                    location:
+                      "États-Unis, clauses contractuelles types (envoi depuis la région UE)",
                   },
                   {
                     name: "PostHog Cloud EU",
@@ -213,14 +215,15 @@ export default function ConfidentialitePage() {
                   {
                     name: "Vercel",
                     role: "Hébergement du site",
-                    location: "États-Unis",
+                    location: "États-Unis, clauses contractuelles types",
                   },
                 ].map((provider) => (
-                  <div key={provider.name} className="border-l border-line pl-4">
+                  <div
+                    key={provider.name}
+                    className="border-l border-line pl-4"
+                  >
                     <p className="font-medium text-blanc">{provider.name}</p>
-                    <p className="text-brume text-sm mt-0.5">
-                      {provider.role}
-                    </p>
+                    <p className="text-brume text-sm mt-0.5">{provider.role}</p>
                     <p className="font-mono text-[11px] text-gris mt-1">
                       {provider.location}
                     </p>
@@ -229,8 +232,8 @@ export default function ConfidentialitePage() {
               </div>
               <p className="mt-4">
                 Aucun de ces prestataires ne revend vos données ni ne les
-                exploite pour son propre compte. La règle qui guide chaque
-                choix technique chez {site.name} : pas de transfert hors Union
+                exploite pour son propre compte. La règle qui guide chaque choix
+                technique chez {site.name} : pas de transfert hors Union
                 européenne, sauf nécessité absolue.
               </p>
             </Prose>
@@ -248,17 +251,17 @@ export default function ConfidentialitePage() {
             </h2>
             <Prose>
               <p>
-                {site.url.replace(/^https?:\/\//, "")} utilise PostHog Cloud
-                EU en mode cookieless. Concrètement : aucun cookie, aucun
-                stockage sur votre appareil, aucune identification
-                individuelle. Nous voyons des tendances (les pages
-                consultées, les parcours empruntés), jamais qui vous êtes.
+                {site.url.replace(/^https?:\/\//, "")} utilise PostHog Cloud EU
+                en mode cookieless. Concrètement : aucun cookie, aucun stockage
+                sur votre appareil, aucune identification individuelle. Nous
+                voyons des tendances (les pages consultées, les parcours
+                empruntés), jamais qui vous êtes.
               </p>
               <p className="mt-3">
-                Cette configuration est exemptée de consentement par la
-                doctrine de la CNIL, précisément parce qu&apos;elle ne trace
-                personne. Une solution plus simple, plus intrusive, existait.
-                Nous avons choisi celle-ci.
+                Cette configuration est exemptée de consentement par la doctrine
+                de la CNIL, précisément parce qu&apos;elle ne trace personne.
+                Une solution plus simple, plus intrusive, existait. Nous avons
+                choisi celle-ci.
               </p>
             </Prose>
           </Block>
@@ -300,10 +303,10 @@ export default function ConfidentialitePage() {
               <p className="mt-4">
                 Pour exercer l&apos;un de ces droits, écrivez à{" "}
                 <a
-                  href="mailto:bonjour@exdal.fr"
+                  href={`mailto:${site.email}`}
                   className="text-brume hover:text-blanc transition-colors"
                 >
-                  bonjour@exdal.fr
+                  {site.email}
                 </a>
                 . Nous répondons sous 48h.
               </p>

@@ -1,4 +1,4 @@
--- ExDaL — consentement marketing explicite (RGPD).
+-- ExDaL : consentement marketing explicite (RGPD).
 -- À appliquer dans Supabase (SQL Editor) ou via `supabase db push`.
 --
 -- Preuve RGPD : `marketing_consent` reflète une case à cocher NON précochée
