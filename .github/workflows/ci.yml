@@ -8,6 +8,10 @@ on:
     branches:
       - master
 
+# Least privilege : le GITHUB_TOKEN de ce workflow est en lecture seule.
+permissions:
+  contents: read
+
 jobs:
   ci:
     name: Lint · Build · Test
@@ -41,3 +45,25 @@ jobs:
 
       - name: Tests
         run: pnpm test
+
+  audit:
+    name: Security audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Audit des dépendances (échoue sur High ou Critical)
+        run: pnpm audit --audit-level high

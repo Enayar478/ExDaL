@@ -1,0 +1,36 @@
+# Dependabot : mises à jour de version automatiques (complète les correctifs de
+# sécurité auto activés côté repo). Regroupées pour limiter le bruit de PR.
+version: 2
+updates:
+  # Dépendances applicatives (npm / pnpm).
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    groups:
+      production-minor-patch:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+      development-minor-patch:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+
+  # Actions GitHub : garde la chaîne d'intégration à jour (défense supply-chain).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "Europe/Paris"
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      github-actions:
+        patterns: ["*"]

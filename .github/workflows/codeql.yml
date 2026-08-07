@@ -1,0 +1,40 @@
+# Analyse statique de sécurité (SAST) via CodeQL. Gratuit sur ce repo public.
+# Détecte injections, taint, patterns dangereux dans le code TS/JS.
+name: CodeQL
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Analyse hebdomadaire (lundi 03:27 UTC) pour capter les nouvelles requêtes.
+    - cron: "27 3 * * 1"
+
+# Least privilege par défaut ; le job élève ce qu'il lui faut.
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyse CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialiser CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          # Suite étendue : plus de requêtes de sécurité (un peu plus lent).
+          queries: security-extended
+
+      - name: Analyse
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"
