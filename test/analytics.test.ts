@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import nextConfig from "@/next.config";
@@ -46,11 +46,13 @@ describe("isAnalyticsKey", () => {
 
 /** Concatène récursivement les sources .ts/.tsx d'un dossier. */
 function readSources(dir: string): string {
-  return readdirSync(dir)
+  return readdirSync(dir, { withFileTypes: true })
     .map((entry) => {
-      const full = path.join(dir, entry);
-      if (statSync(full).isDirectory()) return readSources(full);
-      return /\.tsx?$/.test(entry) ? readFileSync(full, "utf-8") : "";
+      const full = path.join(dir, entry.name);
+      // Dirent.isDirectory() provient du readdir : aucun second appel fs sur le
+      // chemin, donc pas de race TOCTOU (statSync check puis readFileSync use).
+      if (entry.isDirectory()) return readSources(full);
+      return /\.tsx?$/.test(entry.name) ? readFileSync(full, "utf-8") : "";
     })
     .join("\n");
 }
