@@ -19,6 +19,10 @@ import { z } from "zod";
  *                          pouvoir générer son lien de désinscription.
  *     CRON_SECRET        : la route cron d'envoi nurture répond 503 sans lui
  *                          (fail-closed, jamais de cron ouvert sans secret).
+ *     RESEND_WEBHOOK_SECRET : sans lui, /api/resend-webhook répond 503
+ *                          (fail-closed) : l'hygiène de liste automatique
+ *                          (bounces, plaintes) est simplement inactive tant
+ *                          que le webhook n'est pas configuré côté Resend.
  */
 const serverEnvSchema = z.object({
   SUPABASE_URL: z.string().url("SUPABASE_URL doit être une URL valide."),
@@ -48,6 +52,10 @@ const serverEnvSchema = z.object({
   // Absent = route cron fermée (503), fail-closed.
   // Générer avec : openssl rand -hex 32
   CRON_SECRET: z.string().min(16).optional(),
+  // Secret de signature Svix du webhook Resend (bounces/plaintes), format
+  // whsec_<base64>. Absent = /api/resend-webhook fermée (503), fail-closed.
+  // Où : https://resend.com → Webhooks → créez l'endpoint, copiez le signing secret.
+  RESEND_WEBHOOK_SECRET: z.string().min(16).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -73,6 +81,7 @@ export function getServerEnv(): ServerEnv {
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
     NURTURE_SECRET: process.env.NURTURE_SECRET,
     CRON_SECRET: process.env.CRON_SECRET,
+    RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
   });
 
   if (!parsed.success) {
