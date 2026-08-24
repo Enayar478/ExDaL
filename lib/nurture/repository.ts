@@ -24,6 +24,7 @@ import type {
 
 const POSTGRES_UNIQUE_VIOLATION = "23505";
 const LAST_STEP = 5;
+const STALE_PENDING_HOURS = 48;
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -214,7 +215,9 @@ export async function fetchDue(
     .limit(limit);
 
   if (error) {
-    logger.error("Lecture des enrollments dus échouée", { error: error.message });
+    logger.error("Lecture des enrollments dus échouée", {
+      error: error.message,
+    });
     return [];
   }
 
@@ -315,8 +318,11 @@ export async function advanceEnrollment(
 
   const nextSendAt = isComplete
     ? null
-    : (sendAtFor(input.sequence, nextStep, new Date(input.startedAt))?.toISOString() ??
-      null);
+    : (sendAtFor(
+        input.sequence,
+        nextStep,
+        new Date(input.startedAt),
+      )?.toISOString() ?? null);
 
   const { error } = await supabase
     .from("nurture_enrollments")
@@ -339,14 +345,21 @@ function stoppedStatusFor(reason: StopReason): EnrollmentStatus {
   return reason === "unsubscribed" ? "unsubscribed" : "stopped";
 }
 
-/** Arrête tout parcours vivant (pending/active) pour un email (ex. bounce global). */
+/**
+ * Arrête tout parcours vivant (pending/active) pour un email (ex. bounce global).
+ * `onlySource` restreint l'arrêt aux parcours d'une origine donnée : utilisé
+ * quand un lead nurturé par le Score réserve un call, seul son parcours
+ * `source: "score"` doit s'arrêter, jamais un parcours `qualification` que le
+ * même appel de webhook vient tout juste d'activer.
+ */
 export async function stopByEmail(
   email: string,
   reason: StopReason,
+  onlySource?: NurtureSource,
 ): Promise<void> {
   const supabase = getSupabaseAdmin();
 
-  const { error } = await supabase
+  const baseQuery = supabase
     .from("nurture_enrollments")
     .update({
       status: stoppedStatusFor(reason),
@@ -356,6 +369,9 @@ export async function stopByEmail(
     })
     .eq("email", normalizeEmail(email))
     .in("status", ["pending", "active"]);
+
+  const query = onlySource ? baseQuery.eq("source", onlySource) : baseQuery;
+  const { error } = await query;
 
   if (error) {
     logger.error("Arrêt de l'enrollment nurture par email échoué", {
@@ -413,4 +429,71 @@ export async function hasUnsubscribed(email: string): Promise<boolean> {
   }
 
   return Array.isArray(data) && data.length > 0;
+}
+
+/**
+ * Rattrapage (décision CEO) : active tout enrollment `pending` de source
+ * "qualification" créé il y a plus de 48h, jamais démarré (le prospect n'a
+ * pas réservé de call qui aurait autrement déclenché `activateByLeadId`).
+ *
+ * Aucun appelant dans cette PR : la route cron d'envoi (PR 4) l'invoquera
+ * après son propre traitement des enrollments déjà actifs.
+ *
+ * @returns le nombre d'enrollments effectivement activés.
+ */
+export async function activateStalePending(
+  now: Date,
+  limit: number,
+): Promise<number> {
+  const supabase = getSupabaseAdmin();
+  const staleBefore = new Date(
+    now.getTime() - STALE_PENDING_HOURS * 60 * 60 * 1000,
+  );
+
+  const { data: stale, error: fetchError } = await supabase
+    .from("nurture_enrollments")
+    .select("id, sequence")
+    .eq("status", "pending")
+    .eq("source", "qualification")
+    .lt("created_at", staleBefore.toISOString())
+    .limit(limit);
+
+  if (fetchError) {
+    logger.error("Lecture des enrollments en attente périmés échouée", {
+      error: fetchError.message,
+    });
+    return 0;
+  }
+  if (!stale || stale.length === 0) {
+    return 0;
+  }
+
+  let activatedCount = 0;
+  for (const row of stale) {
+    const nextSendAt = sendAtFor(row.sequence as SequenceKey, 0, now);
+
+    const { error, data } = await supabase
+      .from("nurture_enrollments")
+      .update({
+        status: "active",
+        started_at: now.toISOString(),
+        next_send_at: nextSendAt?.toISOString() ?? null,
+      })
+      .eq("id", row.id)
+      .eq("status", "pending")
+      .select("id");
+
+    if (error) {
+      logger.error("Activation d'un enrollment périmé échouée", {
+        enrollmentId: row.id,
+        error: error.message,
+      });
+      continue;
+    }
+    if (Array.isArray(data) && data.length > 0) {
+      activatedCount += 1;
+    }
+  }
+
+  return activatedCount;
 }

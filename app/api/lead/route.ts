@@ -6,6 +6,8 @@ import { buildCalUrl } from "@/lib/cal";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { getServerEnv } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import { createEnrollment } from "@/lib/nurture/repository";
+import { stageToSequence } from "@/lib/nurture/sequences";
 
 export const runtime = "nodejs";
 
@@ -85,6 +87,33 @@ export async function POST(request: NextRequest) {
       message: error instanceof Error ? error.message : String(error),
     });
     return fail("Impossible d'enregistrer votre demande pour le moment.", 500);
+  }
+
+  // Inscription au nurturing, best-effort strict : le consentement conditionne
+  // seul l'appel, et toute erreur est journalisée sans jamais affecter la
+  // réponse calUrl (un lead ne doit jamais être perdu à cause du nurturing).
+  // startNow=false : le parcours reste `pending`, activé au booking (webhook Cal)
+  // ou par le rattrapage 48h.
+  if (withSegment.marketingConsent) {
+    try {
+      const enrollment = await createEnrollment({
+        email: withSegment.email,
+        sequence: stageToSequence(withSegment.stage),
+        source: "qualification",
+        leadId: storedLead.id,
+        consentAt: new Date().toISOString(),
+        startNow: false,
+      });
+      if (!enrollment.created) {
+        logger.warn("Enrollment nurture (qualification) non créé", {
+          reason: enrollment.reason,
+        });
+      }
+    } catch (error) {
+      logger.error("createEnrollment (qualification) a échoué (best-effort)", {
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
   const calUrl = buildCalUrl(calLink, withSegment, storedLead.id);

@@ -33,10 +33,17 @@ vi.mock("@/lib/rate-limit", () => ({
   clientIp: vi.fn().mockReturnValue("1.2.3.4"),
 }));
 
+vi.mock("@/lib/nurture/repository", () => ({
+  createEnrollment: vi
+    .fn()
+    .mockResolvedValue({ created: true, id: "enrollment-1" }),
+}));
+
 const { POST } = await import("@/app/api/score/route");
 const { insertScoreSubmission } = await import("@/lib/score/repository");
 const { sendEmail } = await import("@/lib/email/send");
 const { rateLimit } = await import("@/lib/rate-limit");
+const { createEnrollment } = await import("@/lib/nurture/repository");
 
 /** Réponses complètes et valides, chaque question reçoit l'option donnée par `letter`. */
 function answersWith(letter: "a" | "b" | "c"): Record<string, string> {
@@ -67,6 +74,16 @@ describe("POST /api/score", () => {
     vi.mocked(insertScoreSubmission).mockResolvedValue({ id: "score-uuid-1" });
     vi.mocked(sendEmail).mockResolvedValue(true);
     vi.mocked(rateLimit).mockResolvedValue({ allowed: true, remaining: 4 });
+    vi.mocked(createEnrollment).mockResolvedValue({
+      created: true,
+      id: "enrollment-1",
+    });
+    mockGetServerEnv.mockReturnValue({
+      SUPABASE_URL: "https://db.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "service_role_key_1234567890",
+      RESEND_API_KEY: "re_123",
+      RESEND_FROM_EMAIL: "hello@exdal.fr",
+    });
   });
 
   it("200, soumission valide : persiste et envoie le plan", async () => {
@@ -191,5 +208,124 @@ describe("POST /api/score", () => {
     vi.mocked(sendEmail).mockResolvedValueOnce(false);
     const res = await POST(makeRequest(validBody));
     expect(res.status).toBe(200);
+  });
+
+  // --- Nurturing (déclencheur d'entrée, PR 3) ---
+
+  it("200, marketingConsent=true : crée un enrollment active (score), routé par verdict", async () => {
+    // validBody → score 0 → verdict "fondations" → séquence "premium".
+    const res = await POST(
+      makeRequest({ ...validBody, marketingConsent: true }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(createEnrollment).toHaveBeenCalledOnce();
+    const call = vi.mocked(createEnrollment).mock.calls[0][0];
+    expect(call.email).toBe(validBody.email);
+    expect(call.sequence).toBe("premium");
+    expect(call.source).toBe("score");
+    expect(call.startNow).toBe(true);
+    expect(typeof call.consentAt).toBe("string");
+  });
+
+  it("200, un sans-faute (verdict pret) route vers la séquence 'pilotage'", async () => {
+    await POST(
+      makeRequest({
+        email: "a@b.fr",
+        answers: answersWith("c"),
+        marketingConsent: true,
+      }),
+    );
+
+    const call = vi.mocked(createEnrollment).mock.calls[0][0];
+    expect(call.sequence).toBe("pilotage");
+  });
+
+  it("200, marketingConsent=false : aucun appel nurture", async () => {
+    const res = await POST(makeRequest(validBody));
+
+    expect(res.status).toBe(200);
+    expect(createEnrollment).not.toHaveBeenCalled();
+  });
+
+  it("200, createEnrollment échoue (rejette) : réponse delivered:true intacte", async () => {
+    vi.mocked(createEnrollment).mockRejectedValueOnce(new Error("DB down"));
+    const res = await POST(
+      makeRequest({ ...validBody, marketingConsent: true }),
+    );
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.data.delivered).toBe(true);
+  });
+
+  // --- Notification interne « priorité de contact » ---
+
+  it("200, verdict fondations + consentement + NOTIFICATION_EMAIL : envoie la notification interne", async () => {
+    mockGetServerEnv.mockReturnValue({
+      SUPABASE_URL: "https://db.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "service_role_key_1234567890",
+      RESEND_API_KEY: "re_123",
+      RESEND_FROM_EMAIL: "hello@exdal.fr",
+      NOTIFICATION_EMAIL: "owner@exdal.fr",
+    });
+
+    const res = await POST(
+      makeRequest({ ...validBody, marketingConsent: true }),
+    );
+
+    expect(res.status).toBe(200);
+    // 2 emails : le plan (prospect) + la notification interne (owner).
+    expect(sendEmail).toHaveBeenCalledTimes(2);
+    const calls = vi.mocked(sendEmail).mock.calls;
+    expect(calls[1][0]).toBe("owner@exdal.fr");
+    const notificationContent = calls[1][1];
+    expect(notificationContent.subject).toContain("Contact prioritaire");
+    expect(notificationContent.html).toContain(validBody.email);
+  });
+
+  it("200, verdict pret : pas de notification interne même avec consentement + NOTIFICATION_EMAIL", async () => {
+    mockGetServerEnv.mockReturnValue({
+      SUPABASE_URL: "https://db.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "service_role_key_1234567890",
+      RESEND_API_KEY: "re_123",
+      RESEND_FROM_EMAIL: "hello@exdal.fr",
+      NOTIFICATION_EMAIL: "owner@exdal.fr",
+    });
+
+    const res = await POST(
+      makeRequest({
+        email: "a@b.fr",
+        answers: answersWith("c"),
+        marketingConsent: true,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(sendEmail).toHaveBeenCalledOnce();
+  });
+
+  it("200, verdict fondations sans consentement : pas de notification malgré NOTIFICATION_EMAIL", async () => {
+    mockGetServerEnv.mockReturnValue({
+      SUPABASE_URL: "https://db.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "service_role_key_1234567890",
+      RESEND_API_KEY: "re_123",
+      RESEND_FROM_EMAIL: "hello@exdal.fr",
+      NOTIFICATION_EMAIL: "owner@exdal.fr",
+    });
+
+    const res = await POST(makeRequest(validBody));
+
+    expect(res.status).toBe(200);
+    expect(sendEmail).toHaveBeenCalledOnce();
+  });
+
+  it("200, verdict fondations + consentement mais sans NOTIFICATION_EMAIL : pas de notification", async () => {
+    const res = await POST(
+      makeRequest({ ...validBody, marketingConsent: true }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(sendEmail).toHaveBeenCalledOnce();
   });
 });

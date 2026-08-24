@@ -25,6 +25,8 @@ const {
   mockMarkLeadBookedById,
   mockSendEmail,
   mockRateLimit,
+  mockActivateByLeadId,
+  mockStopByEmail,
 } = vi.hoisted(() => {
   const FULL_ENV = {
     SUPABASE_URL: "https://db.supabase.co",
@@ -40,6 +42,8 @@ const {
     mockMarkLeadBookedById: vi.fn().mockResolvedValue(true),
     mockSendEmail: vi.fn().mockResolvedValue(true),
     mockRateLimit: vi.fn().mockReturnValue({ allowed: true, remaining: 29 }),
+    mockActivateByLeadId: vi.fn().mockResolvedValue(true),
+    mockStopByEmail: vi.fn().mockResolvedValue(undefined),
   };
 });
 
@@ -52,6 +56,10 @@ vi.mock("@/lib/email/send", () => ({ sendEmail: mockSendEmail }));
 vi.mock("@/lib/rate-limit", () => ({
   rateLimit: mockRateLimit,
   clientIp: vi.fn().mockReturnValue("1.2.3.4"),
+}));
+vi.mock("@/lib/nurture/repository", () => ({
+  activateByLeadId: mockActivateByLeadId,
+  stopByEmail: mockStopByEmail,
 }));
 
 const { POST } = await import("@/app/api/cal-webhook/route");
@@ -127,6 +135,8 @@ describe("POST /api/cal-webhook", () => {
     mockMarkLeadBookedById.mockResolvedValue(true);
     mockSendEmail.mockResolvedValue(true);
     mockRateLimit.mockReturnValue({ allowed: true, remaining: 29 });
+    mockActivateByLeadId.mockResolvedValue(true);
+    mockStopByEmail.mockResolvedValue(undefined);
   });
 
   // --- Happy path : corrélation par lead_id ---
@@ -346,5 +356,86 @@ describe("POST /api/cal-webhook", () => {
     const res = await POST(req);
 
     expect(res.status).toBe(429);
+  });
+
+  // --- Nurturing (déclencheurs de sortie/activation, PR 3) ---
+
+  it("200, BOOKING_CREATED avec lead_id : active l'enrollment par leadId", async () => {
+    const body = bookingCreatedPayload();
+    const req = makeSignedRequest(body);
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    expect(mockActivateByLeadId).toHaveBeenCalledWith("lead-uuid-42");
+  });
+
+  it("200, BOOKING_CREATED : stoppe les enrollments 'score' actifs de cet email", async () => {
+    const body = bookingCreatedPayload();
+    const req = makeSignedRequest(body);
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    expect(mockStopByEmail).toHaveBeenCalledWith(
+      "alice@prospect.fr",
+      "booked",
+      "score",
+    );
+  });
+
+  it("200, sans metadata.lead_id : aucune activation par leadId, le stop reste appelé", async () => {
+    const body = bookingCreatedPayload({
+      payload: {
+        uid: "cal-booking-uid-abc123",
+        startTime: "2026-07-15T10:00:00Z",
+        attendees: [{ name: "Alice Dupont", email: "alice@prospect.fr" }],
+        responses: { role: "CEO", company: "Startup SAS" },
+        // metadata absente : lead_id indisponible
+      },
+    });
+    const req = makeSignedRequest(body);
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    expect(mockActivateByLeadId).not.toHaveBeenCalled();
+    expect(mockStopByEmail).toHaveBeenCalledWith(
+      "alice@prospect.fr",
+      "booked",
+      "score",
+    );
+  });
+
+  it("200, replay Cal (booking déjà traité) : aucun effet nurture (idempotence)", async () => {
+    mockMarkLeadBookedById.mockResolvedValueOnce(false);
+    const body = bookingCreatedPayload();
+    const req = makeSignedRequest(body);
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    expect(mockActivateByLeadId).not.toHaveBeenCalled();
+    expect(mockStopByEmail).not.toHaveBeenCalled();
+  });
+
+  it("200, activateByLeadId échoue (best-effort) : les emails partent quand même", async () => {
+    mockActivateByLeadId.mockRejectedValueOnce(new Error("Supabase timeout"));
+    const body = bookingCreatedPayload();
+    const req = makeSignedRequest(body);
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.data.processed).toBe(true);
+    expect(mockSendEmail).toHaveBeenCalledTimes(2);
+  });
+
+  it("200, stopByEmail échoue (best-effort) : les emails partent quand même", async () => {
+    mockStopByEmail.mockRejectedValueOnce(new Error("Supabase timeout"));
+    const body = bookingCreatedPayload();
+    const req = makeSignedRequest(body);
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.data.processed).toBe(true);
+    expect(mockSendEmail).toHaveBeenCalledTimes(2);
   });
 });
