@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
 
   const reason = STOP_REASON_BY_EVENT[parsed.data.type];
   if (!reason) {
-    return ok({ ignored: parsed.data.type });
+    return ok({ ignored: true });
   }
 
   const email = extractRecipientEmail(parsed.data);

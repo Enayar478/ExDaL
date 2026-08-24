@@ -183,7 +183,7 @@ describe("POST /api/resend-webhook", () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json.data.ignored).toBe("email.delivered");
+    expect(json.data.ignored).toBe(true);
     expect(mockStopByEmail).not.toHaveBeenCalled();
   });
 

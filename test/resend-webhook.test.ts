@@ -32,6 +32,19 @@ describe("verifyResendSignature", () => {
     expect(verifyResendSignature(body, headers, SECRET)).toBe(true);
   });
 
+  it("rejette un digest valide porté par une version de signature inconnue (v1a)", () => {
+    const body = JSON.stringify({ type: "email.bounced" });
+    const id = "msg_test_v1a";
+    const timestamp = String(Math.floor(Date.now() / 1000));
+    const headers = {
+      id,
+      timestamp,
+      signature: sign(id, timestamp, body).replace(/^v1,/, "v1a,"),
+    };
+
+    expect(verifyResendSignature(body, headers, SECRET)).toBe(false);
+  });
+
   it("rejette une signature altérée", () => {
     const body = JSON.stringify({ type: "email.bounced" });
     const id = "msg_test_1";

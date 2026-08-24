@@ -73,8 +73,10 @@ export function verifyResendSignature(
 
   const candidates = signature
     .split(" ")
-    .map((token) => token.split(",")[1])
-    .filter((value): value is string => Boolean(value));
+    // Doctrine Svix : ne comparer que les versions de signature comprises (v1).
+    .map((token) => token.split(","))
+    .filter((parts): parts is [string, string] => parts[0] === "v1" && Boolean(parts[1]))
+    .map((parts) => parts[1]);
 
   return candidates.some((candidate) => {
     let candidateBuffer: Buffer;
