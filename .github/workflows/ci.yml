@@ -63,7 +63,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
 
       - name: Audit des dépendances (échoue sur High ou Critical)
         run: pnpm audit --audit-level high
