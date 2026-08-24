@@ -4,13 +4,13 @@
  *
  * Copy définitive de l'agent thot-content (.claude/plans/copy-nurture-emails-cabinet.md),
  * intégrée telle quelle. Seule correction technique : les CTA de réservation
- * pointent vers cal.com (domaine réel du produit, cf. lib/cal.ts), la copy
- * source mentionnait par erreur « cal.eu ».
+ * pointent vers cal.eu : le compte Cal du studio vit sur l instance EU
+ * (cal.com/exdal renvoie 404, vérifié). Ne pas "corriger" vers cal.com.
  */
 import { site } from "@/lib/site";
 import type { NurtureEmailDefinition } from "@/lib/nurture/content/types";
 
-const CAL_BOOKING_URL = "https://cal.com/exdal/echange-20min";
+const CAL_BOOKING_URL = "https://cal.eu/exdal/echange-20min";
 
 export const CABINET_EMAILS: readonly NurtureEmailDefinition[] = [
   {
