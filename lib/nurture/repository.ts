@@ -25,6 +25,8 @@ import type {
 const POSTGRES_UNIQUE_VIOLATION = "23505";
 const LAST_STEP = 5;
 const STALE_PENDING_HOURS = 48;
+/** Nombre maximal de tentatives d'envoi avant abandon définitif d'une étape. */
+const MAX_SEND_ATTEMPTS = 3;
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
@@ -155,16 +157,25 @@ export async function activateByLeadId(leadId: string): Promise<boolean> {
   return Array.isArray(data) && data.length > 0;
 }
 
-export interface ClaimStepResult {
-  readonly claimed: boolean;
-}
+/**
+ * Résultat d'une réclamation d'étape :
+ *   - `claimed: true` : le step peut être envoyé par cet appelant.
+ *   - `reason: "in-progress"` : déjà réclamé/envoyé par un autre passage (ou
+ *     en échec avec des tentatives restantes non reprises), on ne renvoie
+ *     jamais un doublon : l'appelant doit simplement passer au suivant.
+ *   - `reason: "abandoned"` : les tentatives sont épuisées (>= 3), l'appelant
+ *     doit faire avancer l'enrollment sans envoyer (jamais de blocage infini).
+ */
+export type ClaimStepResult =
+  | { readonly claimed: true }
+  | { readonly claimed: false; readonly reason: "in-progress" | "abandoned" };
 
 /**
  * Réclame l'envoi de l'étape `step` d'un enrollment : insère une ligne
  * `claimed` dans nurture_sends. La contrainte unique (enrollment_id, step)
- * fait office de verrou : si un autre passage du cron a déjà réclamé cette
- * étape, l'insert échoue en conflit et on retourne `claimed: false` (pas
- * une erreur, un signal « quelqu'un d'autre s'en occupe déjà »).
+ * fait office de verrou : si une ligne existe déjà pour cette étape, l'insert
+ * échoue en conflit et `reclaimOrInspect` tranche entre reprise (retry d'un
+ * échec récupérable) et abandon (tentatives épuisées).
  */
 export async function claimStep(
   enrollmentId: string,
@@ -184,19 +195,74 @@ export async function claimStep(
     .select("id")
     .single();
 
-  if (error) {
-    if (error.code === POSTGRES_UNIQUE_VIOLATION) {
-      return { claimed: false };
-    }
+  if (!error) {
+    return data ? { claimed: true } : { claimed: false, reason: "in-progress" };
+  }
+
+  if (error.code !== POSTGRES_UNIQUE_VIOLATION) {
     logger.error("Réclamation d'un envoi nurture échouée", {
       enrollmentId,
       step,
       error: error.message,
     });
-    return { claimed: false };
+    return { claimed: false, reason: "in-progress" };
   }
 
-  return { claimed: Boolean(data) };
+  return reclaimOrInspect(enrollmentId, step);
+}
+
+/**
+ * Appelée uniquement après un conflit d'unicité sur (enrollment_id, step).
+ * Tente d'abord de reprendre une ligne en échec récupérable (attempts < 3) ;
+ * si aucune ligne n'est reprise, lit l'état existant pour distinguer un envoi
+ * en cours/déjà réussi (in-progress, on ne fait rien) d'un abandon définitif
+ * (attempts >= 3).
+ */
+async function reclaimOrInspect(
+  enrollmentId: string,
+  step: number,
+): Promise<ClaimStepResult> {
+  const supabase = getSupabaseAdmin();
+
+  const { data: reclaimed, error: reclaimError } = await supabase
+    .from("nurture_sends")
+    .update({ status: "claimed" })
+    .eq("enrollment_id", enrollmentId)
+    .eq("step", step)
+    .eq("status", "failed")
+    .lt("attempts", MAX_SEND_ATTEMPTS)
+    .select("id");
+
+  if (reclaimError) {
+    logger.error("Reprise d'un envoi nurture en échec échouée", {
+      enrollmentId,
+      step,
+      error: reclaimError.message,
+    });
+    return { claimed: false, reason: "in-progress" };
+  }
+  if (Array.isArray(reclaimed) && reclaimed.length > 0) {
+    return { claimed: true };
+  }
+
+  const { data: existing, error: readError } = await supabase
+    .from("nurture_sends")
+    .select("status, attempts")
+    .eq("enrollment_id", enrollmentId)
+    .eq("step", step)
+    .maybeSingle();
+
+  if (readError || !existing) {
+    // Fail-safe : état inconnu, on ne renvoie jamais un email en doublon.
+    return { claimed: false, reason: "in-progress" };
+  }
+
+  const attempts =
+    typeof existing.attempts === "number" ? existing.attempts : 0;
+  if (existing.status === "failed" && attempts >= MAX_SEND_ATTEMPTS) {
+    return { claimed: false, reason: "abandoned" };
+  }
+  return { claimed: false, reason: "in-progress" };
 }
 
 /** Enrollments actifs dont l'étape suivante est due, les plus anciens d'abord. */

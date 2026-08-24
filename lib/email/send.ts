@@ -5,6 +5,14 @@ import { logger } from "@/lib/logger";
 import { maskEmail } from "@/lib/email/html";
 import type { EmailContent } from "@/lib/email/templates";
 
+/** Options d'envoi additionnelles, toutes facultatives (rétrocompatible). */
+export interface SendEmailOptions {
+  /** Adresse de réponse : toute réponse humaine à l'email y arrive. */
+  readonly replyTo?: string;
+  /** En-têtes SMTP additionnels (ex. List-Unsubscribe, RFC 8058). */
+  readonly headers?: Readonly<Record<string, string>>;
+}
+
 /**
  * Envoi d'email via Resend. Dégrade proprement : si Resend n'est pas configuré,
  * on journalise et on n'échoue pas (l'email est un « nice-to-have », pas un bloquant).
@@ -12,6 +20,7 @@ import type { EmailContent } from "@/lib/email/templates";
 export async function sendEmail(
   to: string,
   content: EmailContent,
+  options?: SendEmailOptions,
 ): Promise<boolean> {
   const env = getServerEnv();
   if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) {
@@ -29,6 +38,8 @@ export async function sendEmail(
       subject: content.subject,
       html: content.html,
       text: content.text,
+      ...(options?.replyTo ? { replyTo: options.replyTo } : {}),
+      ...(options?.headers ? { headers: options.headers } : {}),
     });
     if (error) {
       logger.error("Resend a renvoyé une erreur", { message: error.message });

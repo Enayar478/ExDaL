@@ -126,24 +126,38 @@ export async function POST(request: NextRequest) {
   // Effets nurture, best-effort strict : jamais bloquants pour les emails de
   // confirmation qui suivent. L'idempotence du webhook (retour anticipé
   // ci-dessus sur un replay) garantit qu'ils ne s'exécutent qu'une fois.
-  if (leadId) {
-    try {
-      await activateByLeadId(leadId);
-    } catch (error) {
-      logger.error("activateByLeadId a échoué (best-effort)", {
-        message: error instanceof Error ? error.message : String(error),
-      });
-    }
-  }
+  //
+  // Parallélisés (Promise.allSettled) : les deux opérations sont DISJOINTES,
+  // donc sans risque de course entre elles.
+  //   - activateByLeadId cible un enrollment `pending` de source
+  //     "qualification" (le lead vient de réserver après avoir rempli le
+  //     formulaire de qualification).
+  //   - stopByEmail(..., "score") cible exclusivement les enrollments de
+  //     source "score" (un lead nurturé depuis le Score qui réserve sort de
+  //     séquence).
+  // Deux sources différentes de l'index unique partiel `nurture_enrollments`
+  // (un seul parcours vivant par email) ne peuvent jamais désigner la même
+  // ligne : l'ordre d'exécution est donc indifférent au résultat final.
+  const nurtureEffects = await Promise.allSettled([
+    leadId ? activateByLeadId(leadId) : Promise.resolve(false),
+    stopByEmail(attendee.email, "booked", "score"),
+  ]);
 
-  try {
-    // onlySource "score" : un lead nurturé depuis le Score qui réserve un call
-    // sort de séquence. Ne doit jamais toucher un parcours "qualification" que
-    // l'activation ci-dessus vient éventuellement de démarrer pour cet email.
-    await stopByEmail(attendee.email, "booked", "score");
-  } catch (error) {
+  const [activateOutcome, stopOutcome] = nurtureEffects;
+  if (activateOutcome.status === "rejected") {
+    logger.error("activateByLeadId a échoué (best-effort)", {
+      message:
+        activateOutcome.reason instanceof Error
+          ? activateOutcome.reason.message
+          : String(activateOutcome.reason),
+    });
+  }
+  if (stopOutcome.status === "rejected") {
     logger.error("stopByEmail a échoué (best-effort)", {
-      message: error instanceof Error ? error.message : String(error),
+      message:
+        stopOutcome.reason instanceof Error
+          ? stopOutcome.reason.message
+          : String(stopOutcome.reason),
     });
   }
 
