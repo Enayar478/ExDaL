@@ -45,6 +45,31 @@ describe("leadInput", () => {
     const parsed = leadInput.parse({ ...validLead, website: "" });
     expect(parsed.website).toBe("");
   });
+
+  // --- Consentement marketing (RGPD) ---
+
+  it("marketingConsent absent : défaut à false (fail-safe)", () => {
+    const parsed = leadInput.parse(validLead);
+    expect(parsed.marketingConsent).toBe(false);
+  });
+
+  it("marketingConsent true est accepté", () => {
+    const parsed = leadInput.parse({ ...validLead, marketingConsent: true });
+    expect(parsed.marketingConsent).toBe(true);
+  });
+
+  it("marketingConsent false est accepté", () => {
+    const parsed = leadInput.parse({ ...validLead, marketingConsent: false });
+    expect(parsed.marketingConsent).toBe(false);
+  });
+
+  it("marketingConsent d'un type invalide est rejeté", () => {
+    const result = leadInput.safeParse({
+      ...validLead,
+      marketingConsent: "oui",
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("segmentSignal", () => {

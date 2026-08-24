@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { PennylaneUsage, Segment, Stage } from "@/lib/validation/lead";
 import { ChoiceGroup } from "@/components/booking/ChoiceGroup";
+import { ConsentCheckbox } from "@/components/ui/ConsentCheckbox";
 import { MonoLabel } from "@/components/ui/MonoLabel";
 import { capture } from "@/lib/analytics/client";
 import { ANALYTICS_EVENTS } from "@/lib/analytics/events";
@@ -14,6 +15,7 @@ interface FormState {
   company: string;
   pennylane: PennylaneUsage | "";
   stage: Stage | "";
+  marketingConsent: boolean;
   website: string; // honeypot
 }
 
@@ -24,6 +26,7 @@ const emptyForm: FormState = {
   company: "",
   pennylane: "",
   stage: "",
+  marketingConsent: false,
   website: "",
 };
 
@@ -205,6 +208,10 @@ export function QualificationModal({
         </div>
 
         <footer className="flex flex-col gap-3 border-t border-line px-7 py-6">
+          <ConsentCheckbox
+            checked={form.marketingConsent}
+            onChange={(v) => update("marketingConsent", v)}
+          />
           <button
             type="submit"
             disabled={submitting}

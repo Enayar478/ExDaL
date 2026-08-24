@@ -17,8 +17,13 @@ export async function insertScoreSubmission(submission: {
   answers: ScoreAnswers;
   source?: string;
   ipHash?: string;
+  marketingConsent?: boolean;
 }): Promise<StoredScoreSubmission> {
   const supabase = getSupabaseAdmin();
+  // Horodatage du consentement posé CÔTÉ SERVEUR, uniquement si le consentement
+  // est explicitement vrai. Jamais de valeur client, jamais d'horodatage si refus.
+  const marketingConsent = submission.marketingConsent ?? false;
+  const marketingConsentAt = marketingConsent ? new Date().toISOString() : null;
   const { data, error } = await supabase
     .from("score_submissions")
     .insert({
@@ -28,6 +33,8 @@ export async function insertScoreSubmission(submission: {
       answers: submission.answers,
       source: submission.source ?? null,
       ip_hash: submission.ipHash ?? null,
+      marketing_consent: marketingConsent,
+      marketing_consent_at: marketingConsentAt,
     })
     .select("id")
     .single();

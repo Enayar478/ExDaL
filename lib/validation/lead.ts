@@ -36,6 +36,9 @@ export const leadInput = z.object({
   stage: stage,
   // Segment éventuellement pré-sélectionné via le sélecteur de parcours.
   segment: segment.optional(),
+  // Consentement marketing explicite (case non précochée) : l'absence du
+  // champ équivaut à un refus, jamais à un consentement implicite.
+  marketingConsent: z.boolean().optional().default(false),
   // Honeypot anti-spam : doit rester vide.
   website: z.string().max(0).optional().or(z.literal("")),
 });
