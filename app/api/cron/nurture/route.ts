@@ -61,6 +61,7 @@ export async function GET(request: NextRequest) {
   let sent = 0;
   let failed = 0;
   let skipped = 0;
+  let repaired = 0;
 
   for (const enrollment of due) {
     const outcome = await processDueEnrollment(enrollment);
@@ -68,18 +69,25 @@ export async function GET(request: NextRequest) {
       sent += 1;
     } else if (outcome === "failed") {
       failed += 1;
+    } else if (outcome === "repaired") {
+      repaired += 1;
     } else {
       skipped += 1;
     }
   }
 
+  // Les reprises de claims périmés et les réparations d'avancement sont déjà
+  // journalisées individuellement (avec maskEmail) dans processDueEnrollment :
+  // ce résumé agrège les compteurs pour la supervision du cron dans son
+  // ensemble, jamais un blocage silencieux ne doit passer inaperçu ici.
   logger.warn("Passage du cron nurture terminé", {
     activated,
     due: due.length,
     sent,
     failed,
     skipped,
+    repaired,
   });
 
-  return ok({ activated, sent, failed, skipped });
+  return ok({ activated, sent, failed, skipped, repaired });
 }

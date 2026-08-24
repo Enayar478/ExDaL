@@ -162,4 +162,33 @@ describe("processDueEnrollment", () => {
     expect(mockMarkStepFailed).toHaveBeenCalledWith("enrollment-1", 2);
     expect(mockAdvanceEnrollment).not.toHaveBeenCalled();
   });
+
+  it("envoi confirmé mais avancement resté en retard (sent-not-advanced) : répare sans jamais renvoyer", async () => {
+    mockClaimStep.mockResolvedValue({
+      claimed: false,
+      reason: "sent-not-advanced",
+    });
+
+    const outcome = await processDueEnrollment(ENROLLMENT);
+
+    expect(outcome).toBe("repaired");
+    expect(mockSendEmail).not.toHaveBeenCalled();
+    expect(mockAdvanceEnrollment).toHaveBeenCalledWith({
+      enrollmentId: "enrollment-1",
+      sequence: "pilotage",
+      currentStep: 2,
+      startedAt: "2026-01-01T10:00:00.000Z",
+    });
+  });
+
+  it("claim réussi puis silence radio : reprise d'un claim périmé journalisée puis envoi normal", async () => {
+    mockClaimStep.mockResolvedValue({ claimed: true, reclaimedStale: true });
+    mockSendEmail.mockResolvedValue(true);
+
+    const outcome = await processDueEnrollment(ENROLLMENT);
+
+    expect(outcome).toBe("sent");
+    expect(mockSendEmail).toHaveBeenCalledTimes(1);
+    expect(mockMarkStepSent).toHaveBeenCalledWith("enrollment-1", 2);
+  });
 });

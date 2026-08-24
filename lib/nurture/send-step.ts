@@ -22,7 +22,7 @@ import type { DueEnrollment } from "@/lib/nurture/types";
  * de requête HTTP.
  */
 
-export type StepOutcome = "sent" | "failed" | "skipped";
+export type StepOutcome = "sent" | "failed" | "skipped" | "repaired";
 
 function unsubscribeUrls(enrollmentId: string, email: string) {
   const token = generateUnsubscribeToken(enrollmentId, email);
@@ -70,9 +70,37 @@ export async function processDueEnrollment(
       });
       return "failed";
     }
+    if (claim.reason === "sent-not-advanced") {
+      // L'email est déjà parti (ligne `sent` confirmée) : on ne renvoie
+      // SURTOUT PAS, on répare uniquement l'avancement resté en retard après
+      // un crash entre l'envoi et markStepSent/advanceEnrollment.
+      await advanceEnrollment({
+        enrollmentId: enrollment.id,
+        sequence: enrollment.sequence,
+        currentStep: enrollment.nextStep,
+        startedAt: enrollment.startedAt,
+      });
+      logger.warn("Enrollment nurture réparé (envoi confirmé, avancement manquant)", {
+        enrollmentId: enrollment.id,
+        step: enrollment.nextStep,
+        to: maskEmail(enrollment.email),
+      });
+      return "repaired";
+    }
     // "in-progress" : un autre passage du cron s'en occupe déjà, ou l'étape
     // est déjà envoyée. Jamais de doublon : on passe simplement au suivant.
     return "skipped";
+  }
+
+  if (claim.reclaimedStale) {
+    // Reprise d'une ligne `claimed` périmée (process mort avant markStepSent
+    // /markStepFailed) : jamais silencieux, même si l'issue finale (sent ou
+    // failed) suit ensuite le chemin normal ci-dessous.
+    logger.warn("Étape nurture reprise après claim périmé (process mort)", {
+      enrollmentId: enrollment.id,
+      step: enrollment.nextStep,
+      to: maskEmail(enrollment.email),
+    });
   }
 
   const env = getServerEnv();

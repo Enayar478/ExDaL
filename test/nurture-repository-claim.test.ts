@@ -24,6 +24,7 @@ function terminalChain(response: { data: unknown; error: unknown }) {
     "eq",
     "in",
     "lt",
+    "gte",
     "order",
     "limit",
     "insert",
@@ -85,7 +86,12 @@ describe("claimStep", () => {
       data: null,
       error: { code: "23505", message: "duplicate key value" },
     });
-    const updateChain = terminalChain({ data: [], error: null });
+    const updateFailedRetryChain = terminalChain({ data: [], error: null });
+    // resolveStaleClaim : ni périmée, ni éligible à l'abandon périmé (ligne
+    // pas assez vieille) -> les 3 UPDATE de reprise ne touchent aucune ligne.
+    const updateStaleAttempt1Chain = terminalChain({ data: [], error: null });
+    const updateStaleAttempt2Chain = terminalChain({ data: [], error: null });
+    const updateStaleExpireChain = terminalChain({ data: [], error: null });
     const selectChain = terminalChain({
       data: { status: "failed", attempts: 3 },
       error: null,
@@ -93,7 +99,10 @@ describe("claimStep", () => {
     const fromMock = vi
       .fn()
       .mockReturnValueOnce({ insert: vi.fn(() => insertChain) })
-      .mockReturnValueOnce({ update: vi.fn(() => updateChain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateFailedRetryChain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleAttempt1Chain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleAttempt2Chain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleExpireChain) })
       .mockReturnValueOnce({ select: vi.fn(() => selectChain) });
     vi.doMock("@/lib/supabase/server", () => ({
       getSupabaseAdmin: () => ({ from: fromMock }),
@@ -110,15 +119,21 @@ describe("claimStep", () => {
       data: null,
       error: { code: "23505", message: "duplicate key value" },
     });
-    const updateChain = terminalChain({ data: [], error: null });
+    const updateFailedRetryChain = terminalChain({ data: [], error: null });
+    const updateStaleAttempt1Chain = terminalChain({ data: [], error: null });
+    const updateStaleAttempt2Chain = terminalChain({ data: [], error: null });
+    const updateStaleExpireChain = terminalChain({ data: [], error: null });
     const selectChain = terminalChain({
-      data: { status: "sent", attempts: 1 },
+      data: { status: "claimed", attempts: 1 },
       error: null,
     });
     const fromMock = vi
       .fn()
       .mockReturnValueOnce({ insert: vi.fn(() => insertChain) })
-      .mockReturnValueOnce({ update: vi.fn(() => updateChain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateFailedRetryChain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleAttempt1Chain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleAttempt2Chain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleExpireChain) })
       .mockReturnValueOnce({ select: vi.fn(() => selectChain) });
     vi.doMock("@/lib/supabase/server", () => ({
       getSupabaseAdmin: () => ({ from: fromMock }),
@@ -130,12 +145,46 @@ describe("claimStep", () => {
     expect(result).toEqual({ claimed: false, reason: "in-progress" });
   });
 
+  it("conflit + ligne déjà envoyée mais avancement resté en retard : sent-not-advanced", async () => {
+    const insertChain = terminalChain({
+      data: null,
+      error: { code: "23505", message: "duplicate key value" },
+    });
+    const updateFailedRetryChain = terminalChain({ data: [], error: null });
+    const updateStaleAttempt1Chain = terminalChain({ data: [], error: null });
+    const updateStaleAttempt2Chain = terminalChain({ data: [], error: null });
+    const updateStaleExpireChain = terminalChain({ data: [], error: null });
+    const selectChain = terminalChain({
+      data: { status: "sent", attempts: 1 },
+      error: null,
+    });
+    const fromMock = vi
+      .fn()
+      .mockReturnValueOnce({ insert: vi.fn(() => insertChain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateFailedRetryChain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleAttempt1Chain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleAttempt2Chain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleExpireChain) })
+      .mockReturnValueOnce({ select: vi.fn(() => selectChain) });
+    vi.doMock("@/lib/supabase/server", () => ({
+      getSupabaseAdmin: () => ({ from: fromMock }),
+    }));
+
+    const { claimStep } = await import("@/lib/nurture/repository");
+    const result = await claimStep("enrollment-1", 2, "pilotage-2");
+
+    expect(result).toEqual({ claimed: false, reason: "sent-not-advanced" });
+  });
+
   it("conflit + lecture d'inspection en erreur : fail-safe in-progress (jamais de doublon)", async () => {
     const insertChain = terminalChain({
       data: null,
       error: { code: "23505", message: "duplicate key value" },
     });
-    const updateChain = terminalChain({ data: [], error: null });
+    const updateFailedRetryChain = terminalChain({ data: [], error: null });
+    const updateStaleAttempt1Chain = terminalChain({ data: [], error: null });
+    const updateStaleAttempt2Chain = terminalChain({ data: [], error: null });
+    const updateStaleExpireChain = terminalChain({ data: [], error: null });
     const selectChain = terminalChain({
       data: null,
       error: { message: "timeout" },
@@ -143,7 +192,110 @@ describe("claimStep", () => {
     const fromMock = vi
       .fn()
       .mockReturnValueOnce({ insert: vi.fn(() => insertChain) })
-      .mockReturnValueOnce({ update: vi.fn(() => updateChain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateFailedRetryChain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleAttempt1Chain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleAttempt2Chain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleExpireChain) })
+      .mockReturnValueOnce({ select: vi.fn(() => selectChain) });
+    vi.doMock("@/lib/supabase/server", () => ({
+      getSupabaseAdmin: () => ({ from: fromMock }),
+    }));
+
+    const { claimStep } = await import("@/lib/nurture/repository");
+    const result = await claimStep("enrollment-1", 2, "pilotage-2");
+
+    expect(result).toEqual({ claimed: false, reason: "in-progress" });
+  });
+
+  it("conflit + claim PÉRIMÉ (attempts < 3) : reprise atomique, jamais de silence radio", async () => {
+    const insertChain = terminalChain({
+      data: null,
+      error: { code: "23505", message: "duplicate key value" },
+    });
+    const updateFailedRetryChain = terminalChain({ data: [], error: null });
+    // attempts=1 -> périmé et repris (attempts+1=2), toutes les conditions
+    // (statut, attempts exact, péremption) sont dans le WHERE de cet UPDATE.
+    const updateStaleAttempt1Chain = terminalChain({
+      data: [{ id: "send-1" }],
+      error: null,
+    });
+    const fromMock = vi
+      .fn()
+      .mockReturnValueOnce({ insert: vi.fn(() => insertChain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateFailedRetryChain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleAttempt1Chain) });
+    vi.doMock("@/lib/supabase/server", () => ({
+      getSupabaseAdmin: () => ({ from: fromMock }),
+    }));
+
+    const { claimStep } = await import("@/lib/nurture/repository");
+    const result = await claimStep("enrollment-1", 2, "pilotage-2");
+
+    expect(result).toEqual({ claimed: true, reclaimedStale: true });
+    // Aucune lecture préalable : la reprise se joue entièrement dans le
+    // WHERE de l'UPDATE (statut + attempts exact + péremption), zéro TOCTOU.
+    expect(updateStaleAttempt1Chain.eq).toHaveBeenCalledWith("status", "claimed");
+    expect(updateStaleAttempt1Chain.eq).toHaveBeenCalledWith("attempts", 1);
+    expect(updateStaleAttempt1Chain.lt).toHaveBeenCalledWith(
+      "created_at",
+      expect.any(String),
+    );
+  });
+
+  it("conflit + claim PÉRIMÉ et tentatives épuisées (attempts >= 3) : abandon direct + advance côté appelant", async () => {
+    const insertChain = terminalChain({
+      data: null,
+      error: { code: "23505", message: "duplicate key value" },
+    });
+    const updateFailedRetryChain = terminalChain({ data: [], error: null });
+    const updateStaleAttempt1Chain = terminalChain({ data: [], error: null });
+    const updateStaleAttempt2Chain = terminalChain({ data: [], error: null });
+    // Ni attempts=1 ni attempts=2 périmés ne matchent (déjà >= 3) : le
+    // dernier UPDATE (gte attempts >= 3) bascule la ligne en `failed`.
+    const updateStaleExpireChain = terminalChain({
+      data: [{ id: "send-1" }],
+      error: null,
+    });
+    const fromMock = vi
+      .fn()
+      .mockReturnValueOnce({ insert: vi.fn(() => insertChain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateFailedRetryChain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleAttempt1Chain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleAttempt2Chain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleExpireChain) });
+    vi.doMock("@/lib/supabase/server", () => ({
+      getSupabaseAdmin: () => ({ from: fromMock }),
+    }));
+
+    const { claimStep } = await import("@/lib/nurture/repository");
+    const result = await claimStep("enrollment-1", 2, "pilotage-2");
+
+    expect(result).toEqual({ claimed: false, reason: "abandoned" });
+    expect(updateStaleExpireChain.gte).toHaveBeenCalledWith("attempts", 3);
+  });
+
+  it("conflit + claim FRAÎCHE (pas périmée) : in-progress inchangé, on ne vole pas le travail concurrent", async () => {
+    const insertChain = terminalChain({
+      data: null,
+      error: { code: "23505", message: "duplicate key value" },
+    });
+    const updateFailedRetryChain = terminalChain({ data: [], error: null });
+    // Les filtres de péremption (`lt("created_at", ...)`) ne matchent aucune
+    // ligne : une claim récente n'est jamais reprise par ce mécanisme.
+    const updateStaleAttempt1Chain = terminalChain({ data: [], error: null });
+    const updateStaleAttempt2Chain = terminalChain({ data: [], error: null });
+    const updateStaleExpireChain = terminalChain({ data: [], error: null });
+    const selectChain = terminalChain({
+      data: { status: "claimed", attempts: 1 },
+      error: null,
+    });
+    const fromMock = vi
+      .fn()
+      .mockReturnValueOnce({ insert: vi.fn(() => insertChain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateFailedRetryChain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleAttempt1Chain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleAttempt2Chain) })
+      .mockReturnValueOnce({ update: vi.fn(() => updateStaleExpireChain) })
       .mockReturnValueOnce({ select: vi.fn(() => selectChain) });
     vi.doMock("@/lib/supabase/server", () => ({
       getSupabaseAdmin: () => ({ from: fromMock }),

@@ -103,6 +103,7 @@ describe("GET /api/cron/nurture", () => {
       sent: 1,
       failed: 1,
       skipped: 0,
+      repaired: 0,
     });
     expect(mockProcessDueEnrollment).toHaveBeenCalledTimes(2);
   });
@@ -128,7 +129,13 @@ describe("GET /api/cron/nurture", () => {
     const json = await res.json();
 
     expect(res.status).toBe(200);
-    expect(json.data).toEqual({ activated: 0, sent: 0, failed: 0, skipped: 0 });
+    expect(json.data).toEqual({
+      activated: 0,
+      sent: 0,
+      failed: 0,
+      skipped: 0,
+      repaired: 0,
+    });
   });
 
   it("200, un enrollment skipped (déjà traité par une passe concurrente)", async () => {
@@ -140,5 +147,17 @@ describe("GET /api/cron/nurture", () => {
 
     expect(json.data.skipped).toBe(1);
     expect(json.data.sent).toBe(0);
+  });
+
+  it("200, un enrollment repaired (avancement réparé après envoi confirmé) : compté à part, jamais en sent", async () => {
+    mockFetchDue.mockResolvedValue([DUE_ENROLLMENT("a")]);
+    mockProcessDueEnrollment.mockResolvedValue("repaired");
+
+    const res = await GET(request(`Bearer ${CRON_SECRET}`));
+    const json = await res.json();
+
+    expect(json.data.repaired).toBe(1);
+    expect(json.data.sent).toBe(0);
+    expect(json.data.skipped).toBe(0);
   });
 });
