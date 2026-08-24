@@ -3,7 +3,8 @@
  * Styles inline (compatibilité clients mail). Fond sombre, or rare.
  */
 import { site } from "@/lib/site";
-import { escapeHtml } from "@/lib/email/html";
+import { escapeHtml, sanitizeSubjectField } from "@/lib/email/html";
+import { shell, BLANC, BRUME, OR, LINE } from "@/lib/email/layout";
 
 export interface EmailContent {
   subject: string;
@@ -17,38 +18,6 @@ interface BookingDetails {
   role?: string;
   company?: string;
   when?: string; // date/heure lisible
-}
-
-const NOIR = "#0e1013";
-const BLANC = "#e8e9e6";
-const BRUME = "#a9b0b6";
-const OR = "#d9b26a";
-const LINE = "#22262b";
-
-/**
- * Sanitise un champ destiné à être utilisé dans un sujet d'email (en-tête SMTP).
- * Les caractères CR (\r) et LF (\n) doivent être retirés pour prévenir
- * l'injection d'en-têtes SMTP (email header injection).
- * On retire également les tabulations (\t) qui peuvent être interprétées
- * comme des séparateurs de continuation d'en-tête (RFC 5322 folding).
- */
-function sanitizeSubjectField(value: string): string {
-  return value.replace(/[\r\n\t]/g, " ").trim();
-}
-
-function shell(inner: string): string {
-  return `<!DOCTYPE html><html lang="fr"><body style="margin:0;background:#090a0c;padding:32px 0;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#090a0c;">
-    <tr><td align="center">
-      <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;background:${NOIR};border:1px solid ${LINE};">
-        <tr><td style="padding:36px 40px;font-family:Georgia,'Times New Roman',serif;color:${BLANC};">
-          <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:${OR};margin-bottom:24px;">Ex Datis Lumen</div>
-          ${inner}
-          <div style="border-top:1px solid ${LINE};margin-top:32px;padding-top:18px;font-family:'Courier New',monospace;font-size:11px;letter-spacing:.1em;color:#6f6858;text-transform:uppercase;">${site.url.replace(/^https?:\/\//, "")}</div>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table></body></html>`;
 }
 
 /** Confirmation sobre envoyée au prospect après réservation. */

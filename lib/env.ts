@@ -14,6 +14,11 @@ import { z } from "zod";
  *     CAL_WEBHOOK_SECRET : fail-closed dans le handler (503 sans secret).
  *     NEWSLETTER_SECRET  : token non générable si absent (503).
  *     CAL_LINK           : réservation désactivée si absente (503).
+ *     NURTURE_SECRET     : token de désinscription non générable si absent
+ *                          (503) ; aucun enrollment ne doit être créé sans
+ *                          pouvoir générer son lien de désinscription.
+ *     CRON_SECRET        : la route cron d'envoi nurture répond 503 sans lui
+ *                          (fail-closed, jamais de cron ouvert sans secret).
  */
 const serverEnvSchema = z.object({
   SUPABASE_URL: z.string().url("SUPABASE_URL doit être une URL valide."),
@@ -35,6 +40,14 @@ const serverEnvSchema = z.object({
   // Mot de passe du panneau éditorial /admin (Basic Auth). Absent = /admin fermé
   // (404), fail-closed. Générer avec : openssl rand -hex 24.
   ADMIN_PASSWORD: z.string().min(16).optional(),
+  // Secret HMAC-SHA256 pour signer les tokens de désinscription du nurturing.
+  // Distinct de NEWSLETTER_SECRET (jamais partagé, cf. lib/nurture/token.ts).
+  // Générer avec : openssl rand -hex 32
+  NURTURE_SECRET: z.string().min(16).optional(),
+  // Secret partagé qui autorise l'appel de la route cron d'envoi nurture.
+  // Absent = route cron fermée (503), fail-closed.
+  // Générer avec : openssl rand -hex 32
+  CRON_SECRET: z.string().min(16).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -58,6 +71,8 @@ export function getServerEnv(): ServerEnv {
     NEWSLETTER_SECRET: process.env.NEWSLETTER_SECRET,
     CAL_LINK: process.env.CAL_LINK,
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+    NURTURE_SECRET: process.env.NURTURE_SECRET,
+    CRON_SECRET: process.env.CRON_SECRET,
   });
 
   if (!parsed.success) {

@@ -21,3 +21,14 @@ export function maskEmail(email: string): string {
   if (!domain) return "***";
   return `${local.slice(0, 2)}***@${domain}`;
 }
+
+/**
+ * Sanitise un champ destiné à être utilisé dans un sujet d'email (en-tête SMTP).
+ * Les caractères CR (\r) et LF (\n) doivent être retirés pour prévenir
+ * l'injection d'en-têtes SMTP (email header injection).
+ * On retire également les tabulations (\t) qui peuvent être interprétées
+ * comme des séparateurs de continuation d'en-tête (RFC 5322 folding).
+ */
+export function sanitizeSubjectField(value: string): string {
+  return value.replace(/[\r\n\t]/g, " ").trim();
+}
