@@ -45,7 +45,6 @@ export default function ConfidentialitePage() {
           {/* Responsable de traitement */}
           <Block id="responsable" label="Responsable de traitement">
             <h2
-              id="responsable"
               className="font-serif text-xl font-light text-blanc mb-4"
             >
               Qui est responsable de vos données
@@ -94,7 +93,6 @@ export default function ConfidentialitePage() {
           {/* Ce qui est collecté */}
           <Block id="donnees" label="Données collectées">
             <h2
-              id="donnees"
               className="font-serif text-xl font-light text-blanc mb-4"
             >
               Ce que nous collectons, et pourquoi
@@ -151,7 +149,6 @@ export default function ConfidentialitePage() {
           {/* Durée de conservation */}
           <Block id="conservation" label="Conservation">
             <h2
-              id="conservation"
               className="font-serif text-xl font-light text-blanc mb-4"
             >
               Combien de temps nous gardons vos données
@@ -179,7 +176,6 @@ export default function ConfidentialitePage() {
           {/* Destinataires */}
           <Block id="acces" label="Accès aux données">
             <h2
-              id="acces"
               className="font-serif text-xl font-light text-blanc mb-4"
             >
               Qui a accès à vos données
@@ -244,7 +240,6 @@ export default function ConfidentialitePage() {
           {/* Mesure d'audience */}
           <Block id="audience" label="Mesure d'audience">
             <h2
-              id="audience"
               className="font-serif text-xl font-light text-blanc mb-4"
             >
               La mesure d&apos;audience, sans vous suivre
@@ -271,7 +266,6 @@ export default function ConfidentialitePage() {
           {/* Droits */}
           <Block id="droits" label="Vos droits">
             <h2
-              id="droits"
               className="font-serif text-xl font-light text-blanc mb-4"
             >
               Vos droits
