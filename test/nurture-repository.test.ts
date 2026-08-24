@@ -174,3 +174,52 @@ describe("createEnrollment", () => {
     expect(payload.next_send_at).toBeNull();
   });
 });
+
+describe("advanceEnrollment (fin de séquence)", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  it("passe à completed avec next_send_at null après la dernière étape (step 5)", async () => {
+    const updateChain = terminalChain({ data: null, error: null });
+    const updateSpy = vi.fn(() => updateChain);
+    vi.doMock("@/lib/supabase/server", () => ({
+      getSupabaseAdmin: () => ({ from: vi.fn(() => ({ update: updateSpy })) }),
+    }));
+
+    const { advanceEnrollment } = await import("@/lib/nurture/repository");
+    await advanceEnrollment({
+      enrollmentId: "enrollment-1",
+      sequence: "pilotage",
+      currentStep: 5,
+      startedAt: new Date("2026-01-01T10:00:00.000Z").toISOString(),
+    });
+
+    const payload = updateSpy.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload.status).toBe("completed");
+    expect(payload.next_step).toBe(6);
+    expect(payload.next_send_at).toBeNull();
+  });
+
+  it("programme l'étape suivante tant que la séquence n'est pas finie", async () => {
+    const updateChain = terminalChain({ data: null, error: null });
+    const updateSpy = vi.fn(() => updateChain);
+    vi.doMock("@/lib/supabase/server", () => ({
+      getSupabaseAdmin: () => ({ from: vi.fn(() => ({ update: updateSpy })) }),
+    }));
+
+    const { advanceEnrollment } = await import("@/lib/nurture/repository");
+    await advanceEnrollment({
+      enrollmentId: "enrollment-2",
+      sequence: "premium",
+      currentStep: 0,
+      startedAt: new Date("2026-01-01T10:00:00.000Z").toISOString(),
+    });
+
+    const payload = updateSpy.mock.calls[0][0] as Record<string, unknown>;
+    expect(payload.status).toBe("active");
+    expect(payload.next_step).toBe(1);
+    // Premium : step 1 à J+2 après l'ancre de départ.
+    expect(payload.next_send_at).toBe("2026-01-03T10:00:00.000Z");
+  });
+});
