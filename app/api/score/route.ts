@@ -6,9 +6,12 @@ import { evaluate, isComplete } from "@/lib/score/scoring";
 import { insertScoreSubmission } from "@/lib/score/repository";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email/send";
-import { scorePlan } from "@/lib/email/templates";
+import { scorePlan, priorityContact } from "@/lib/email/templates";
 import { maskEmail } from "@/lib/email/html";
 import { logger } from "@/lib/logger";
+import { getServerEnv } from "@/lib/env";
+import { createEnrollment } from "@/lib/nurture/repository";
+import { sequenceForVerdict } from "@/lib/nurture/sequences";
 
 export const runtime = "nodejs";
 
@@ -94,6 +97,8 @@ export async function POST(request: NextRequest) {
   }
 
   // 7. Envoi du plan personnalisé (dégrade proprement si Resend n'est pas configuré).
+  //    Inchangé quel que soit le consentement : le plan est un email transactionnel,
+  //    le dirigeant l'a explicitement demandé en soumettant son email.
   const emailSent = await sendEmail(
     email,
     scorePlan({
@@ -111,6 +116,50 @@ export async function POST(request: NextRequest) {
     logger.warn("Email du plan de préparation non envoyé", {
       to: maskEmail(email),
     });
+  }
+
+  // 8. Inscription au nurturing, best-effort strict : indépendante de la
+  //    persistance et de l'envoi du plan ci-dessus, jamais bloquante pour la
+  //    réponse. startNow=true : pas de call à attendre, le parcours démarre
+  //    immédiatement.
+  if (marketingConsent) {
+    try {
+      const enrollment = await createEnrollment({
+        email,
+        sequence: sequenceForVerdict(result.verdict.key),
+        source: "score",
+        consentAt: new Date().toISOString(),
+        startNow: true,
+      });
+      if (!enrollment.created) {
+        logger.warn("Enrollment nurture (score) non créé", {
+          reason: enrollment.reason,
+        });
+      }
+    } catch (error) {
+      logger.error("createEnrollment (score) a échoué (best-effort)", {
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  // 9. Notification interne « priorité de contact » : un dossier au verdict
+  //    le plus bas, avec consentement, mérite un contact humain avant même
+  //    que le parcours email ne commence. Best-effort, zéro impact sur la
+  //    réponse au dirigeant.
+  const notificationEmail = getServerEnv().NOTIFICATION_EMAIL;
+  if (
+    result.verdict.key === "fondations" &&
+    marketingConsent &&
+    notificationEmail
+  ) {
+    const notificationSent = await sendEmail(
+      notificationEmail,
+      priorityContact({ email, score: result.score }),
+    );
+    if (!notificationSent) {
+      logger.warn("Notification de contact prioritaire non envoyée");
+    }
   }
 
   return ok({ delivered: true });

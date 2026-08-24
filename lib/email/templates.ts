@@ -3,7 +3,7 @@
  * Styles inline (compatibilité clients mail). Fond sombre, or rare.
  */
 import { site } from "@/lib/site";
-import { escapeHtml, sanitizeSubjectField } from "@/lib/email/html";
+import { escapeHtml, sanitizeSubjectField, maskEmail } from "@/lib/email/html";
 import { shell, BLANC, BRUME, OR, LINE } from "@/lib/email/layout";
 
 export interface EmailContent {
@@ -177,6 +177,46 @@ Email : ${details.email}${details.role ? `\nRôle : ${details.role}` : ""}${deta
 
   return {
     subject: `Nouveau RDV, ${safeName}${safeCompany ? ` (${safeCompany})` : ""}`,
+    html,
+    text,
+  };
+}
+
+interface PriorityContactDetails {
+  email: string;
+  score: number;
+}
+
+/**
+ * Notification interne : un dirigeant au Score de Préparation bas (segment
+ * premium, verdict « fondations ») a consenti au nurturing. Signal de contact
+ * prioritaire pour le commercial : score bas + consentement explicite =
+ * fenêtre d'opportunité immédiate, avant même que le parcours email démarre.
+ *
+ * RGPD, minimisation : aucune autre donnée que l'email et le score. L'email
+ * est masqué dans le sujet (peut transiter par des systèmes tiers, logs
+ * d'agrégation) mais laissé complet dans le corps pour permettre une réponse
+ * directe.
+ */
+export function priorityContact(details: PriorityContactDetails): EmailContent {
+  const html = shell(`
+    <h1 style="font-size:24px;font-weight:400;line-height:1.35;margin:0 0 18px;color:${BLANC};">Contact prioritaire</h1>
+    <p style="font-size:16px;line-height:1.6;color:${BRUME};margin:0 0 20px;">Un dirigeant en segment premium vient de compléter le Score de Préparation avec un résultat bas, et a consenti à être recontacté.</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+      <tr><td style="padding:6px 0;font-family:'Courier New',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6f6858;width:110px;vertical-align:top;">Email</td><td style="padding:6px 0;font-size:15px;color:${BLANC};">${escapeHtml(details.email)}</td></tr>
+      <tr><td style="padding:6px 0;font-family:'Courier New',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#6f6858;width:110px;vertical-align:top;">Score</td><td style="padding:6px 0;font-size:15px;color:${OR};">${details.score} / 100</td></tr>
+    </table>
+  `);
+
+  const text = `Contact prioritaire ExDaL
+
+Un dirigeant en segment premium vient de compléter le Score de Préparation avec un résultat bas, et a consenti à être recontacté.
+
+Email : ${details.email}
+Score : ${details.score} / 100`;
+
+  return {
+    subject: `Contact prioritaire, ${maskEmail(details.email)}`,
     html,
     text,
   };

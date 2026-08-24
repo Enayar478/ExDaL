@@ -32,10 +32,17 @@ vi.mock("@/lib/rate-limit", () => ({
   clientIp: vi.fn().mockReturnValue("1.2.3.4"),
 }));
 
+vi.mock("@/lib/nurture/repository", () => ({
+  createEnrollment: vi
+    .fn()
+    .mockResolvedValue({ created: true, id: "enrollment-1" }),
+}));
+
 // Import différé après les mocks
 const { POST } = await import("@/app/api/lead/route");
 const { insertLead } = await import("@/lib/leads/repository");
 const { rateLimit } = await import("@/lib/rate-limit");
+const { createEnrollment } = await import("@/lib/nurture/repository");
 
 // Lead valide réutilisé dans tous les cas
 const validBody = {
@@ -68,6 +75,10 @@ describe("POST /api/lead", () => {
     vi.clearAllMocks();
     vi.mocked(insertLead).mockResolvedValue({ id: "lead-uuid-42" });
     vi.mocked(rateLimit).mockReturnValue({ allowed: true, remaining: 4 });
+    vi.mocked(createEnrollment).mockResolvedValue({
+      created: true,
+      id: "enrollment-1",
+    });
     mockGetServerEnv.mockReturnValue({
       SUPABASE_URL: "https://db.supabase.co",
       SUPABASE_SERVICE_ROLE_KEY: "service_role_key_1234567890",
@@ -256,5 +267,90 @@ describe("POST /api/lead", () => {
     const res = await POST(req);
 
     expect(res.status).toBe(413);
+  });
+
+  // --- Nurturing (déclencheur d'entrée, PR 3) ---
+
+  it("200, marketingConsent=true : crée un enrollment pending (qualification)", async () => {
+    const req = makeRequest({ ...validBody, marketingConsent: true });
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    expect(createEnrollment).toHaveBeenCalledOnce();
+    const call = vi.mocked(createEnrollment).mock.calls[0][0];
+    expect(call.email).toBe(validBody.email);
+    expect(call.sequence).toBe("premium"); // stage: "operation"
+    expect(call.source).toBe("qualification");
+    expect(call.leadId).toBe("lead-uuid-42");
+    expect(call.startNow).toBe(false);
+    expect(typeof call.consentAt).toBe("string");
+  });
+
+  it("200, marketingConsent=false : aucun appel nurture", async () => {
+    const req = makeRequest(validBody);
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    expect(createEnrollment).not.toHaveBeenCalled();
+  });
+
+  it("200, sans marketingConsent (absent du payload) : aucun appel nurture", async () => {
+    const { marketingConsent: _omit, ...withoutConsent } = validBody as Record<
+      string,
+      unknown
+    >;
+    const req = makeRequest(withoutConsent);
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    expect(createEnrollment).not.toHaveBeenCalled();
+  });
+
+  it("200, createEnrollment échoue (rejette) : la réponse calUrl reste intacte", async () => {
+    vi.mocked(createEnrollment).mockRejectedValueOnce(new Error("DB down"));
+    const req = makeRequest({ ...validBody, marketingConsent: true });
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.success).toBe(true);
+    expect(typeof json.data.calUrl).toBe("string");
+  });
+
+  it("200, createEnrollment renvoie created:false (ex. désinscrit) : calUrl reste intacte", async () => {
+    vi.mocked(createEnrollment).mockResolvedValueOnce({
+      created: false,
+      reason: "unsubscribed",
+    });
+    const req = makeRequest({ ...validBody, marketingConsent: true });
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.data.calUrl).toBeDefined();
+  });
+
+  it("200, stage 'pilotage' route vers la séquence 'pilotage'", async () => {
+    const req = makeRequest({
+      ...validBody,
+      stage: "pilotage",
+      marketingConsent: true,
+    });
+    await POST(req);
+
+    const call = vi.mocked(createEnrollment).mock.calls[0][0];
+    expect(call.sequence).toBe("pilotage");
+  });
+
+  it("200, stage 'cabinet' route vers la séquence 'cabinet'", async () => {
+    const req = makeRequest({
+      ...validBody,
+      stage: "cabinet",
+      marketingConsent: true,
+    });
+    await POST(req);
+
+    const call = vi.mocked(createEnrollment).mock.calls[0][0];
+    expect(call.sequence).toBe("cabinet");
   });
 });

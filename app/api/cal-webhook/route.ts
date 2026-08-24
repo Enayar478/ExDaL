@@ -11,6 +11,7 @@ import {
 } from "@/lib/cal-webhook";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
+import { activateByLeadId, stopByEmail } from "@/lib/nurture/repository";
 
 export const runtime = "nodejs";
 
@@ -120,6 +121,30 @@ export async function POST(request: NextRequest) {
 
   if (alreadyProcessed) {
     return ok({ processed: false, reason: "already_handled" });
+  }
+
+  // Effets nurture, best-effort strict : jamais bloquants pour les emails de
+  // confirmation qui suivent. L'idempotence du webhook (retour anticipé
+  // ci-dessus sur un replay) garantit qu'ils ne s'exécutent qu'une fois.
+  if (leadId) {
+    try {
+      await activateByLeadId(leadId);
+    } catch (error) {
+      logger.error("activateByLeadId a échoué (best-effort)", {
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  try {
+    // onlySource "score" : un lead nurturé depuis le Score qui réserve un call
+    // sort de séquence. Ne doit jamais toucher un parcours "qualification" que
+    // l'activation ci-dessus vient éventuellement de démarrer pour cet email.
+    await stopByEmail(attendee.email, "booked", "score");
+  } catch (error) {
+    logger.error("stopByEmail a échoué (best-effort)", {
+      message: error instanceof Error ? error.message : String(error),
+    });
   }
 
   const details = {
